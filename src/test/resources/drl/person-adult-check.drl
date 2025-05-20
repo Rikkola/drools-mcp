@@ -1,0 +1,30 @@
+package org.example;
+
+declare Person
+    name : String
+    age : int
+    adult : boolean = false
+end
+
+rule "Create Test Data"
+    when
+        not Person()
+    then
+        Person alice = new Person();
+        alice.setName("Alice");
+        alice.setAge(25);
+        insert(alice);
+        
+        Person bob = new Person();
+        bob.setName("Bob");
+        bob.setAge(17);
+        insert(bob);
+end
+
+rule "Check Adults"
+    no-loop
+    when
+        $person : Person(age > 18, adult == false)
+    then
+        modify($person) { setAdult(true) }
+end

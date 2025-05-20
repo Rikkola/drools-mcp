@@ -1,0 +1,22 @@
+package org.drools.test;
+
+declare Counter
+    value : int = 0
+end
+
+rule "Initialize Counter"
+salience 100
+when
+    not Counter()
+then
+    insert(new Counter());
+    System.out.println("Initialized counter");
+end
+
+rule "Increment Counter"
+when
+    $c : Counter(value < 10)
+then
+    modify($c) { setValue($c.getValue() + 1); }
+    System.out.println("Incremented counter to: " + $c.getValue());
+end

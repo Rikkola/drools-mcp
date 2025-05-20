@@ -1,0 +1,21 @@
+package org.example;
+
+declare Counter
+    value : int
+end
+
+rule "Initialize Counter"
+    when
+        not Counter()
+    then
+        Counter c = new Counter();
+        c.setValue(0);
+        insert(c);
+end
+
+rule "Increment Counter"
+    when
+        $c : Counter(value < 3)
+    then
+        modify($c) { setValue($c.getValue() + 1) }
+end
