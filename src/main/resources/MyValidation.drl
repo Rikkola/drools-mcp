@@ -1,0 +1,29 @@
+package org.drools;
+
+import org.drools.verifier.components.Pattern;
+import org.drools.verifier.components.VerifierRule ;
+
+import org.drools.verifier.report.components.VerifierMessage;
+import org.drools.verifier.report.components.Severity;
+import org.drools.verifier.report.components.MessageType;
+
+import org.drools.verifier.data.VerifierReport;
+
+import java.util.HashMap;
+
+global VerifierReport result;
+
+
+
+rule "Find patterns"
+    when
+        $r : VerifierRule( name not matches "[A-Z].*"  )
+    then
+        result.add( new VerifierMessage(
+                            new HashMap(),
+                            Severity.NOTE,
+                            MessageType.NOT_SPECIFIED,
+                            $r,
+                            "The rule name '" + $r.getName() + "' needs to start with a capital letter." ) );
+
+end

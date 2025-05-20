@@ -1,0 +1,9 @@
+package org.example;
+
+rule "Empty Rule"
+    when
+        // No conditions - rule won't fire
+        eval(false)
+    then
+        // Won't execute
+end

@@ -1,0 +1,77 @@
+
+// Define Person as a declared type in DRL
+declare Person
+    name : String
+    age : int
+    adult : boolean = false
+end
+
+// Rule to create test data - this will insert Person facts into working memory
+rule "Create Test Person Data"
+    when
+        // This rule fires once at startup when no Person facts exist
+        not Person()
+    then
+        // Create test Person objects using setters
+        Person alice = new Person();
+        alice.setName("Alice");
+        alice.setAge(25);
+        insert(alice);
+        
+        Person bob = new Person();
+        bob.setName("Bob");
+        bob.setAge(17);
+        insert(bob);
+        
+        Person charlie = new Person();
+        charlie.setName("Charlie");
+        charlie.setAge(18);
+        insert(charlie);
+        
+        Person diana = new Person();
+        diana.setName("Diana");
+        diana.setAge(22);
+        insert(diana);
+        
+        Person eve = new Person();
+        eve.setName("Eve");
+        eve.setAge(16);
+        insert(eve);
+        
+        Person frank = new Person();
+        frank.setName("Frank");
+        frank.setAge(35);
+        insert(frank);
+        
+        System.out.println("Created 6 test Person objects using setters");
+end
+
+// Rule to check if person is over 18
+rule "Check if person is over 18"
+    no-loop
+    when
+        $person : Person(age > 18, adult == false)
+    then
+        System.out.println("Person " + $person.getName() + " is over 18 (age: " + $person.getAge() + ")");
+        modify($person) { setAdult(true) }
+end
+
+// Rule to check if person is 18 or under
+rule "Check if person is 18 or under"
+    no-loop
+    when
+        $person : Person(age <= 18, adult == false)
+    then
+        System.out.println("Person " + $person.getName() + " is 18 or under (age: " + $person.getAge() + ")");
+        modify($person) { setAdult(false) }
+end
+
+// Rule to report final results
+rule "Report Results"
+    salience -100  // Run this rule last
+    when
+        $adults : Number() from accumulate(Person(adult == true), count())
+        $minors : Number() from accumulate(Person(adult == false), count())
+    then
+        System.out.println("Final Results: " + $adults + " adults, " + $minors + " minors");
+end
