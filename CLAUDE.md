@@ -16,7 +16,8 @@ The project follows a modular architecture with clear separation of concerns:
 - **DRLRunner** (`src/main/java/org/drools/DRLRunner.java`): Executes DRL code with or without external facts
 - **DRLVerifier** (`src/main/java/org/drools/DRLVerifier.java`): Performs structural validation of DRL code using Drools verifier
 - **DefinitionStorage** (`src/main/java/org/drools/DefinitionStorage.java`): Manages storage and retrieval of reusable DRL definitions (types, functions, etc.)
-- **DynamicObjectFactory** (`src/main/java/org/drools/DynamicObjectFactory.java`): Creates dynamic objects from JSON data for use with Drools rules
+- **DynamicObjectCreator** (`src/main/java/org/drools/DynamicObjectCreator.java`): Creates dynamic Java objects from code strings using JShell
+- **DynamicJsonToJavaFactory** (`src/main/java/org/drools/DynamicJsonToJavaFactory.java`): Converts JSON data into dynamic Java objects for use with Drools rules
 
 ### MCP Tools Available
 
