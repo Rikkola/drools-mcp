@@ -74,6 +74,12 @@
             <artifactId>drools-verifier-drl</artifactId>
             <version>8.44.0.Final</version>
         </dependency>
+        <!-- JShell API for dynamic object creation -->
+        <dependency>
+            <groupId>org.openjdk</groupId>
+            <artifactId>jshell</artifactId>
+            <version>17</version>
+        </dependency>
     </dependencies>
 
     <build>

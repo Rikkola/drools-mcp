@@ -15,10 +15,10 @@ Setup for Claude would be:
 
     {
        "mcpServers": {
-          "drl-verifier": {
+          "drools-mcp": {
              "command": "jbang",
              "args": ["--quiet",
-             "org.drools:drl-verifier:1.0.0-SNAPSHOT:runner"]
+             "org.drools:drools-mcp:1.0.0-SNAPSHOT:runner"]
           }
        }
     }

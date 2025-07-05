@@ -8,6 +8,9 @@ public class DRLTool {
 
     // Singleton instance of DefinitionStorage
     private static final DefinitionStorage definitionStorage = new DefinitionStorage();
+    
+    // Singleton instance of DynamicObjectCreator
+    private static final DynamicObjectCreator dynamicObjectCreator = new DynamicObjectCreator();
 
     @Tool(description = "Validates the Drools DRL code is correctly structured")
     String validateDRLStructure(@ToolArg(description = "Drools DRL code") String code) {
