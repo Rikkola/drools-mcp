@@ -12,7 +12,7 @@ The project follows a modular architecture with clear separation of concerns:
 
 ### Core Components
 
-- **DRLValidator** (`src/main/java/org/drools/DRLValidator.java`): Main MCP tool provider class that exposes all available tools to AI clients
+- **DRLTool** (`src/main/java/org/drools/DRLTool.java`): Main MCP tool provider class that exposes all available tools to AI clients
 - **DRLRunner** (`src/main/java/org/drools/DRLRunner.java`): Executes DRL code with or without external facts
 - **DRLVerifier** (`src/main/java/org/drools/DRLVerifier.java`): Performs structural validation of DRL code using Drools verifier
 - **DefinitionStorage** (`src/main/java/org/drools/DefinitionStorage.java`): Manages storage and retrieval of reusable DRL definitions (types, functions, etc.)
@@ -20,7 +20,7 @@ The project follows a modular architecture with clear separation of concerns:
 
 ### MCP Tools Available
 
-The DRLValidator class exposes these tools to AI clients:
+The DRLTool class exposes these tools to AI clients:
 
 1. **validateDRLStructure** - Validates DRL code structure
 2. **runDRLCode** - Executes DRL with declared types and data creation rules

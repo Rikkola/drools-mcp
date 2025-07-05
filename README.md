@@ -24,7 +24,7 @@ Setup for Claude would be:
     }
 
 ### Details
-[DRLValidator.java](src/main/java/org/drools/DRLValidator.java) lists the available tools.
+[DRLTool.java](src/main/java/org/drools/DRLTool.java) lists the available tools.
 
 These tools include two ways to run DRL code and one for structural validation.
 

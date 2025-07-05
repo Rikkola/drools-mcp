@@ -1,6 +1,6 @@
 # DRL Test Files
 
-This directory contains Drools Rule Language (DRL) files used by the DRLValidatorTest class.
+This directory contains Drools Rule Language (DRL) files used by the DRLToolTest class.
 
 ## Files Description
 
@@ -22,7 +22,7 @@ This directory contains Drools Rule Language (DRL) files used by the DRLValidato
 
 ## Usage
 
-These files are loaded by the `DRLValidatorTest.readDRLFile(String filename)` method and used in various test scenarios to validate DRL compilation, execution, and error handling.
+These files are loaded by the `DRLToolTest.readDRLFile(String filename)` method and used in various test scenarios to validate DRL compilation, execution, and error handling.
 
 ## File Naming Convention
 
