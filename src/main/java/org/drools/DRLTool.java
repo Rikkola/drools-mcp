@@ -66,7 +66,7 @@ public class DRLTool {
                        "in working memory after rule execution. Use this when you have DRL rules that need to " +
                        "process specific data objects. The DRL should contain rules but may not need data creation " +
                        "rules since facts are provided externally. External facts should be provided as JSON objects " +
-                       "that will be converted to Java objects using object definitions. Returns JSON-formatted list of all facts in working " +
+                       "with a '_type' field to specify the object type. Returns JSON-formatted list of all facts in working " +
                        "memory after rule execution.")
     String runDRLWithExternalFacts(@ToolArg(description = "Complete Drools DRL code including package declaration " +
                                                         "and rules. May include declared types. Should contain business " +
@@ -74,26 +74,16 @@ public class DRLTool {
                                                         "\"package org.example; rule 'ProcessData' when $obj: MyObject() " +
                                                         "then ... end\"") String drlCode,
                                    @ToolArg(description = "JSON array of external facts to insert into working memory " +
-                                                        "before rule execution. Each fact should be a JSON object. For typed objects, " +
-                                                        "include '_type' field to specify the object type. Example: " +
+                                                        "before rule execution. Each fact should be a JSON object with a '_type' field " +
+                                                        "to specify the object type. Example: " +
                                                         "\"[{\\\"_type\\\":\\\"Person\\\", \\\"name\\\":\\\"John\\\", \\\"age\\\":25}, " +
                                                         "{\\\"_type\\\":\\\"Person\\\", \\\"name\\\":\\\"Jane\\\", \\\"age\\\":30}]\"") String externalFactsJson,
-                                   @ToolArg(description = "JSON schema defining object structures for creating typed objects. " +
-                                                        "Optional - if not provided, objects will be created as simple Maps. " +
-                                                        "Format: \"[{\\\"name\\\":\\\"Person\\\", \\\"fields\\\":[{\\\"name\\\":\\\"name\\\", \\\"type\\\":\\\"string\\\", \\\"required\\\":true}, " +
-                                                        "{\\\"name\\\":\\\"age\\\", \\\"type\\\":\\\"integer\\\", \\\"required\\\":false}]}]\"") String objectSchema,
                                    @ToolArg(description = "Maximum number of rule activations to fire (0 for unlimited). " +
                                                         "Use this to prevent infinite loops or limit rule execution for performance.") 
                                    int maxActivations) {
         try {
-            // Parse object definitions from schema
-            java.util.Map<String, ObjectDefinition> objectDefinitions = new java.util.HashMap<>();
-            if (objectSchema != null && !objectSchema.trim().isEmpty()) {
-                objectDefinitions = DRLRunner.createObjectDefinitionsFromSchema(objectSchema);
-            }
-            
-            // Execute DRL with JSON facts
-            List<Object> facts = DRLRunner.runDRLWithJsonFacts(drlCode, externalFactsJson, objectDefinitions, maxActivations);
+            // Execute DRL with JSON facts using DynamicJsonToJavaFactory
+            List<Object> facts = DRLRunner.runDRLWithJsonFacts(drlCode, externalFactsJson, maxActivations);
             
             // Convert facts to a readable JSON-like format
             StringBuilder result = new StringBuilder();
@@ -107,17 +97,9 @@ public class DRLTool {
                 result.append("    {\n");
                 
                 // Enhanced type reporting for dynamic objects
-                if (fact instanceof DynamicObjectFactory.DynamicObject) {
-                    DynamicObjectFactory.DynamicObject dynObj = (DynamicObjectFactory.DynamicObject) fact;
-                    result.append("      \"type\": \"").append(dynObj.getObjectTypeName()).append("\",\n");
-                    result.append("      \"isDynamicObject\": true,\n");
-                    result.append("      \"fields\": ").append(formatObjectFields(dynObj.getAllFieldValues())).append(",\n");
-                    result.append("      \"value\": \"").append(fact.toString().replace("\"", "\\\"")).append("\"\n");
-                } else {
-                    result.append("      \"type\": \"").append(fact.getClass().getSimpleName()).append("\",\n");
-                    result.append("      \"isDynamicObject\": false,\n");
-                    result.append("      \"value\": \"").append(fact.toString().replace("\"", "\\\"")).append("\"\n");
-                }
+                result.append("      \"type\": \"").append(fact.getClass().getSimpleName()).append("\",\n");
+                result.append("      \"isDynamicObject\": false,\n");
+                result.append("      \"value\": \"").append(fact.toString().replace("\"", "\\\"")).append("\"\n");
                 
                 result.append("    }");
                 if (i < facts.size() - 1) {

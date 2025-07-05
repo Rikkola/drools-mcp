@@ -6,9 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -207,46 +205,21 @@ public class DRLRunnerTest {
             "    System.out.println('Marked ' + $p.getName() + ' as adult');\n" +
             "end";
         
-        // Create object definitions for Person
-        Map<String, ObjectDefinition> objectDefinitions = new HashMap<>();
-        ObjectDefinition personDef = new ObjectDefinition("Person");
-        personDef.addField(new FieldDefinition("name", FieldDefinition.FieldType.STRING, true));
-        personDef.addField(new FieldDefinition("age", FieldDefinition.FieldType.INTEGER, true));
-        personDef.addField(new FieldDefinition("adult", FieldDefinition.FieldType.BOOLEAN, false));
-        objectDefinitions.put("Person", personDef);
-        
-        // Test with JSON facts
+        // Test with JSON facts using _type field
         String jsonFacts = "[{\"_type\":\"Person\", \"name\":\"John\", \"age\":25}, {\"_type\":\"Person\", \"name\":\"Jane\", \"age\":16}]";
         
-        List<Object> facts = DRLRunner.runDRLWithJsonFacts(simpleDRL, jsonFacts, objectDefinitions);
+        List<Object> facts = DRLRunner.runDRLWithJsonFacts(simpleDRL, jsonFacts);
         assertNotNull(facts, "Facts should not be null");
         
         // Test with maxRuns parameter
-        List<Object> factsWithLimit = DRLRunner.runDRLWithJsonFacts(simpleDRL, jsonFacts, objectDefinitions, 5);
+        List<Object> factsWithLimit = DRLRunner.runDRLWithJsonFacts(simpleDRL, jsonFacts, 5);
         assertNotNull(factsWithLimit, "Facts with limit should not be null");
     }
 
-    @Test
-    public void testCreateObjectDefinitionsFromSchema() {
-        String schema = "[{\"name\":\"Person\", \"fields\":[{\"name\":\"name\", \"type\":\"string\", \"required\":true}, {\"name\":\"age\", \"type\":\"integer\", \"required\":true}]}]";
-        
-        try {
-            Map<String, ObjectDefinition> definitions = DRLRunner.createObjectDefinitionsFromSchema(schema);
-            assertNotNull(definitions, "Definitions should not be null");
-            assertTrue(definitions.containsKey("Person"), "Should contain Person definition");
-            
-            ObjectDefinition personDef = definitions.get("Person");
-            assertEquals("Person", personDef.getName(), "Person definition name should match");
-            assertEquals(2, personDef.getFields().size(), "Person should have 2 fields");
-            
-        } catch (Exception e) {
-            fail("Failed to create object definitions from schema: " + e.getMessage());
-        }
-    }
 
     @Test
-    public void testGetDynamicObjectFactory() {
-        DynamicObjectFactory factory = DRLRunner.getDynamicObjectFactory();
-        assertNotNull(factory, "Dynamic object factory should not be null");
+    public void testGetDynamicJsonToJavaFactory() {
+        DynamicJsonToJavaFactory factory = DRLRunner.getDynamicJsonToJavaFactory();
+        assertNotNull(factory, "Dynamic JSON to Java factory should not be null");
     }
 }

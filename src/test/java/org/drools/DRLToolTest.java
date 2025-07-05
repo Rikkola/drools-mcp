@@ -128,10 +128,9 @@ public class DRLToolTest {
     public void testRunDRLWithExternalFacts_BasicExecution() throws Exception {
         String drlCode = readDRLFile("person-age-categorization.drl");
         
-        String externalFacts = "[{\"name\":\"John\", \"age\":25}, {\"name\":\"Mary\", \"age\":16}, {\"name\":\"Bob\", \"age\":70}]";
-        String objectSchema = "[{\"name\":\"Person\", \"fields\":[{\"name\":\"name\", \"type\":\"string\", \"required\":true}, {\"name\":\"age\", \"type\":\"integer\", \"required\":true}]}]";
+        String externalFacts = "[{\"_type\":\"Person\", \"name\":\"John\", \"age\":25}, {\"_type\":\"Person\", \"name\":\"Mary\", \"age\":16}, {\"_type\":\"Person\", \"name\":\"Bob\", \"age\":70}]";
         
-        String result = drlTool.runDRLWithExternalFacts(drlCode, externalFacts, objectSchema, 0); // 0 = unlimited activations
+        String result = drlTool.runDRLWithExternalFacts(drlCode, externalFacts, 0); // 0 = unlimited activations
         
         JsonNode jsonResult = objectMapper.readTree(result);
         assertEquals("success", jsonResult.get("executionStatus").asText());
@@ -146,9 +145,8 @@ public class DRLToolTest {
         String drlCode = readDRLFile("count-facts.drl");
         
         String emptyFacts = "[]";
-        String objectSchema = "";
         
-        String result = drlTool.runDRLWithExternalFacts(drlCode, emptyFacts, objectSchema, 0); // 0 = unlimited activations
+        String result = drlTool.runDRLWithExternalFacts(drlCode, emptyFacts, 0); // 0 = unlimited activations
         
         JsonNode jsonResult = objectMapper.readTree(result);
         assertEquals("success", jsonResult.get("executionStatus").asText());
@@ -208,11 +206,10 @@ public class DRLToolTest {
     public void testRunDRLWithExternalFacts_WithMaxActivationsLimit() throws Exception {
         String drlCode = readDRLFile("person-age-categorization.drl");
         
-        String externalFacts = "[{\"name\":\"John\", \"age\":25}]";
-        String objectSchema = "[{\"name\":\"Person\", \"fields\":[{\"name\":\"name\", \"type\":\"string\", \"required\":true}, {\"name\":\"age\", \"type\":\"integer\", \"required\":true}]}]";
+        String externalFacts = "[{\"_type\":\"Person\", \"name\":\"John\", \"age\":25}]";
         
         // Test with limited activations
-        String result = drlTool.runDRLWithExternalFacts(drlCode, externalFacts, objectSchema, 1); // Limit to 1 activation
+        String result = drlTool.runDRLWithExternalFacts(drlCode, externalFacts, 1); // Limit to 1 activation
         
         JsonNode jsonResult = objectMapper.readTree(result);
         assertEquals("success", jsonResult.get("executionStatus").asText());
