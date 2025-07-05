@@ -129,8 +129,9 @@ public class DRLValidatorTest {
         String drlCode = readDRLFile("person-age-categorization.drl");
         
         String externalFacts = "[{\"name\":\"John\", \"age\":25}, {\"name\":\"Mary\", \"age\":16}, {\"name\":\"Bob\", \"age\":70}]";
+        String objectSchema = "[{\"name\":\"Person\", \"fields\":[{\"name\":\"name\", \"type\":\"string\", \"required\":true}, {\"name\":\"age\", \"type\":\"integer\", \"required\":true}]}]";
         
-        String result = drlValidator.runDRLWithExternalFacts(drlCode, externalFacts, 0); // 0 = unlimited activations
+        String result = drlValidator.runDRLWithExternalFacts(drlCode, externalFacts, objectSchema, 0); // 0 = unlimited activations
         
         JsonNode jsonResult = objectMapper.readTree(result);
         assertEquals("success", jsonResult.get("executionStatus").asText());
@@ -145,12 +146,14 @@ public class DRLValidatorTest {
         String drlCode = readDRLFile("count-facts.drl");
         
         String emptyFacts = "[]";
+        String objectSchema = "";
         
-        String result = drlValidator.runDRLWithExternalFacts(drlCode, emptyFacts, 0); // 0 = unlimited activations
+        String result = drlValidator.runDRLWithExternalFacts(drlCode, emptyFacts, objectSchema, 0); // 0 = unlimited activations
         
         JsonNode jsonResult = objectMapper.readTree(result);
         assertEquals("success", jsonResult.get("executionStatus").asText());
-        assertEquals("", jsonResult.get("facts").asText());
+        // Empty facts should result in an empty facts array
+        assertTrue(jsonResult.get("facts").isArray());
     }
 
     @Test
@@ -206,9 +209,10 @@ public class DRLValidatorTest {
         String drlCode = readDRLFile("person-age-categorization.drl");
         
         String externalFacts = "[{\"name\":\"John\", \"age\":25}]";
+        String objectSchema = "[{\"name\":\"Person\", \"fields\":[{\"name\":\"name\", \"type\":\"string\", \"required\":true}, {\"name\":\"age\", \"type\":\"integer\", \"required\":true}]}]";
         
         // Test with limited activations
-        String result = drlValidator.runDRLWithExternalFacts(drlCode, externalFacts, 1); // Limit to 1 activation
+        String result = drlValidator.runDRLWithExternalFacts(drlCode, externalFacts, objectSchema, 1); // Limit to 1 activation
         
         JsonNode jsonResult = objectMapper.readTree(result);
         assertEquals("success", jsonResult.get("executionStatus").asText());
@@ -232,5 +236,57 @@ public class DRLValidatorTest {
         
         // Both should produce the same result since the high limit won't be reached
         assertEquals(jsonUnlimited.get("factsCount").asInt(), jsonHighLimit.get("factsCount").asInt());
+    }
+
+    @Test
+    public void testDefinitionManagementMethods() throws Exception {
+        // Test adding a definition
+        String addResult = drlValidator.addDefinition("TestPerson", "declare", "declare TestPerson name: String age: int end");
+        JsonNode addJson = objectMapper.readTree(addResult);
+        assertEquals("success", addJson.get("status").asText());
+        assertEquals("added", addJson.get("action").asText());
+        
+        // Test getting all definitions
+        String allResult = drlValidator.getAllDefinitions();
+        JsonNode allJson = objectMapper.readTree(allResult);
+        assertEquals("success", allJson.get("status").asText());
+        assertTrue(allJson.get("count").asInt() >= 1);
+        
+        // Test getting a specific definition
+        String getResult = drlValidator.getDefinition("TestPerson");
+        JsonNode getJson = objectMapper.readTree(getResult);
+        assertEquals("success", getJson.get("status").asText());
+        assertEquals("TestPerson", getJson.get("name").asText());
+        
+        // Test generating DRL from definitions
+        String generateResult = drlValidator.generateDRLFromDefinitions("org.test");
+        JsonNode generateJson = objectMapper.readTree(generateResult);
+        assertEquals("success", generateJson.get("status").asText());
+        assertTrue(generateJson.has("drlContent"));
+        
+        // Test getting definitions summary
+        String summaryResult = drlValidator.getDefinitionsSummary();
+        JsonNode summaryJson = objectMapper.readTree(summaryResult);
+        assertEquals("success", summaryJson.get("status").asText());
+        assertTrue(summaryJson.has("summary"));
+        
+        // Test removing a definition
+        String removeResult = drlValidator.removeDefinition("TestPerson");
+        JsonNode removeJson = objectMapper.readTree(removeResult);
+        assertEquals("success", removeJson.get("status").asText());
+        assertEquals("removed", removeJson.get("action").asText());
+    }
+
+    @Test
+    public void testDefinitionNotFound() throws Exception {
+        // Test getting a non-existent definition
+        String getResult = drlValidator.getDefinition("NonExistentDefinition");
+        JsonNode getJson = objectMapper.readTree(getResult);
+        assertEquals("not_found", getJson.get("status").asText());
+        
+        // Test removing a non-existent definition
+        String removeResult = drlValidator.removeDefinition("NonExistentDefinition");
+        JsonNode removeJson = objectMapper.readTree(removeResult);
+        assertEquals("not_found", removeJson.get("status").asText());
     }
 }

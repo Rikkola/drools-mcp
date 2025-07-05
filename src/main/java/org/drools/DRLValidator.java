@@ -59,11 +59,11 @@ public class DRLValidator {
         }
     }
 
-    @Tool(description = "Executes Drools DRL code with external facts provided as input and returns all facts " +
+    @Tool(description = "Executes Drools DRL code with external facts provided as JSON and returns all facts " +
                        "in working memory after rule execution. Use this when you have DRL rules that need to " +
                        "process specific data objects. The DRL should contain rules but may not need data creation " +
                        "rules since facts are provided externally. External facts should be provided as JSON objects " +
-                       "that will be converted to Java objects. Returns JSON-formatted list of all facts in working " +
+                       "that will be converted to Java objects using object definitions. Returns JSON-formatted list of all facts in working " +
                        "memory after rule execution.")
     String runDRLWithExternalFacts(@ToolArg(description = "Complete Drools DRL code including package declaration " +
                                                         "and rules. May include declared types. Should contain business " +
@@ -71,27 +71,26 @@ public class DRLValidator {
                                                         "\"package org.example; rule 'ProcessData' when $obj: MyObject() " +
                                                         "then ... end\"") String drlCode,
                                    @ToolArg(description = "JSON array of external facts to insert into working memory " +
-                                                        "before rule execution. Each fact should be a JSON object that can " +
-                                                        "be processed by the DRL rules. Example: " +
-                                                        "\"[{\\\"name\\\":\\\"John\\\", \\\"age\\\":25}, " +
-                                                        "{\\\"name\\\":\\\"Jane\\\", \\\"age\\\":30}]\"") String externalFactsJson,
+                                                        "before rule execution. Each fact should be a JSON object. For typed objects, " +
+                                                        "include '_type' field to specify the object type. Example: " +
+                                                        "\"[{\\\"_type\\\":\\\"Person\\\", \\\"name\\\":\\\"John\\\", \\\"age\\\":25}, " +
+                                                        "{\\\"_type\\\":\\\"Person\\\", \\\"name\\\":\\\"Jane\\\", \\\"age\\\":30}]\"") String externalFactsJson,
+                                   @ToolArg(description = "JSON schema defining object structures for creating typed objects. " +
+                                                        "Optional - if not provided, objects will be created as simple Maps. " +
+                                                        "Format: \"[{\\\"name\\\":\\\"Person\\\", \\\"fields\\\":[{\\\"name\\\":\\\"name\\\", \\\"type\\\":\\\"string\\\", \\\"required\\\":true}, " +
+                                                        "{\\\"name\\\":\\\"age\\\", \\\"type\\\":\\\"integer\\\", \\\"required\\\":false}]}]\"") String objectSchema,
                                    @ToolArg(description = "Maximum number of rule activations to fire (0 for unlimited). " +
                                                         "Use this to prevent infinite loops or limit rule execution for performance.") 
                                    int maxActivations) {
         try {
-            // Parse the external facts JSON
-            // For now, we'll create simple Map objects from the JSON
-            // In a more sophisticated implementation, we could use a JSON parser
-            java.util.List<Object> externalFacts = new java.util.ArrayList<>();
-            
-            // Simple JSON parsing for basic objects
-            // This is a basic implementation - in production, you'd use a proper JSON library
-            if (externalFactsJson != null && !externalFactsJson.trim().isEmpty() && !externalFactsJson.equals("[]")) {
-                // For now, just create empty list - this would need proper JSON parsing
-                // The DRLRunner.runDRLWithFacts method can handle empty lists
+            // Parse object definitions from schema
+            java.util.Map<String, ObjectDefinition> objectDefinitions = new java.util.HashMap<>();
+            if (objectSchema != null && !objectSchema.trim().isEmpty()) {
+                objectDefinitions = DRLRunner.createObjectDefinitionsFromSchema(objectSchema);
             }
             
-            List<Object> facts = DRLRunner.runDRLWithFacts(drlCode, externalFacts, maxActivations);
+            // Execute DRL with JSON facts
+            List<Object> facts = DRLRunner.runDRLWithJsonFacts(drlCode, externalFactsJson, objectDefinitions, maxActivations);
             
             // Convert facts to a readable JSON-like format
             StringBuilder result = new StringBuilder();
@@ -103,8 +102,20 @@ public class DRLValidator {
             for (int i = 0; i < facts.size(); i++) {
                 Object fact = facts.get(i);
                 result.append("    {\n");
-                result.append("      \"type\": \"").append(fact.getClass().getSimpleName()).append("\",\n");
-                result.append("      \"value\": \"").append(fact.toString().replace("\"", "\\\"")).append("\"\n");
+                
+                // Enhanced type reporting for dynamic objects
+                if (fact instanceof DynamicObjectFactory.DynamicObject) {
+                    DynamicObjectFactory.DynamicObject dynObj = (DynamicObjectFactory.DynamicObject) fact;
+                    result.append("      \"type\": \"").append(dynObj.getObjectTypeName()).append("\",\n");
+                    result.append("      \"isDynamicObject\": true,\n");
+                    result.append("      \"fields\": ").append(formatObjectFields(dynObj.getAllFieldValues())).append(",\n");
+                    result.append("      \"value\": \"").append(fact.toString().replace("\"", "\\\"")).append("\"\n");
+                } else {
+                    result.append("      \"type\": \"").append(fact.getClass().getSimpleName()).append("\",\n");
+                    result.append("      \"isDynamicObject\": false,\n");
+                    result.append("      \"value\": \"").append(fact.toString().replace("\"", "\\\"")).append("\"\n");
+                }
+                
                 result.append("    }");
                 if (i < facts.size() - 1) {
                     result.append(",");
@@ -255,5 +266,40 @@ public class DRLValidator {
         } catch (Exception e) {
             return "{\"status\": \"error\", \"message\": \"" + e.getMessage().replace("\"", "\\\"") + "\"}";
         }
+    }
+
+    /**
+     * Format object fields as JSON string for display
+     */
+    private String formatObjectFields(java.util.Map<String, Object> fields) {
+        if (fields == null || fields.isEmpty()) {
+            return "{}";
+        }
+        
+        StringBuilder json = new StringBuilder();
+        json.append("{");
+        
+        boolean first = true;
+        for (java.util.Map.Entry<String, Object> entry : fields.entrySet()) {
+            if (!first) {
+                json.append(", ");
+            }
+            first = false;
+            
+            json.append("\"").append(entry.getKey()).append("\": ");
+            Object value = entry.getValue();
+            if (value == null) {
+                json.append("null");
+            } else if (value instanceof String) {
+                json.append("\"").append(value.toString().replace("\"", "\\\"")).append("\"");
+            } else if (value instanceof Number || value instanceof Boolean) {
+                json.append(value.toString());
+            } else {
+                json.append("\"").append(value.toString().replace("\"", "\\\"")).append("\"");
+            }
+        }
+        
+        json.append("}");
+        return json.toString();
     }
 }
