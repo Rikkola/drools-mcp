@@ -37,25 +37,25 @@ The DRLValidator class exposes these tools to AI clients:
 ### Build and Test
 ```bash
 # Build the project
-./mvnw clean compile
+mvn clean compile
 
 # Run tests
-./mvnw test
+mvn test
 
 # Run specific test
-./mvnw test -Dtest=DRLRunnerTest
+mvn test -Dtest=DRLRunnerTest
 
 # Build uber JAR for jbang execution
-./mvnw package
+mvn package
 
 # Run in development mode
-./mvnw quarkus:dev
+mvn quarkus:dev
 ```
 
 ### Native Build
 ```bash
 # Build native executable
-./mvnw package -Pnative
+mvn package -Pnative
 
 # Run native executable
 ./target/drools-mcp-1.0.0-SNAPSHOT-runner

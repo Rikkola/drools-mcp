@@ -4,7 +4,7 @@ import io.quarkiverse.mcp.server.Tool;
 import io.quarkiverse.mcp.server.ToolArg;
 import java.util.List;
 
-public class DRLValidator {
+public class DRLTool {
 
     // Singleton instance of DefinitionStorage
     private static final DefinitionStorage definitionStorage = new DefinitionStorage();
