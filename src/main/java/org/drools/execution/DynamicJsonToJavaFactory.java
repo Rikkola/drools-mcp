@@ -1,4 +1,4 @@
-package org.drools;
+package org.drools.execution;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
 import java.util.*;
+import org.drools.storage.DefinitionStorage;
 
 /**
  * DynamicJsonToJavaFactory converts JSON data into dynamic Java objects using DynamicObjectCreator.

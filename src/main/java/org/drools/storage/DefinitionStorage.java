@@ -1,4 +1,4 @@
-package org.drools;
+package org.drools.storage;
 
 import java.util.ArrayList;
 import java.util.HashMap;

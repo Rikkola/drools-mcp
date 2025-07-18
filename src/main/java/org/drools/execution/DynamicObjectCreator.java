@@ -1,4 +1,4 @@
-package org.drools;
+package org.drools.execution;
 
 import jdk.jshell.JShell;
 import jdk.jshell.SnippetEvent;
