@@ -83,6 +83,36 @@ public class DRLTool {
         }
     }
 
+    @Tool(description = "Executes external facts against all stored DRL definitions and returns all facts " +
+                       "in working memory after rule execution. This uses the combined DRL from all stored " +
+                       "definitions (declared types, functions, globals, imports, and rules) to process the " +
+                       "external facts. External facts should be provided as JSON objects with a '_type' field " +
+                       "to specify the object type. Returns JSON-formatted list of all facts in working memory " +
+                       "after rule execution.")
+    public String runFactsAgainstStoredDefinitions(@ToolArg(description = "JSON array of external facts to insert into working memory " +
+                                                                        "before rule execution. Each fact should be a JSON object with a '_type' field " +
+                                                                        "to specify the object type. Example: " +
+                                                                        "\"[{\\\"_type\\\":\\\"Person\\\", \\\"name\\\":\\\"John\\\", \\\"age\\\":25}, " +
+                                                                        "{\\\"_type\\\":\\\"Person\\\", \\\"name\\\":\\\"Jane\\\", \\\"age\\\":30}]\"") String externalFactsJson,
+                                                   @ToolArg(description = "Maximum number of rule activations to fire (0 for unlimited). " +
+                                                                        "Use this to prevent infinite loops or limit rule execution for performance.") 
+                                                   int maxActivations) {
+        try {
+            List<Object> facts = executionService.executeDRLWithJsonFactsAgainstStoredDefinitions(externalFactsJson, maxActivations, definitionService);
+            return JsonResponseBuilder.create()
+                    .facts(facts)
+                    .build();
+        } catch (DRLExecutionException e) {
+            return JsonResponseBuilder.create()
+                    .error(e.getMessage())
+                    .build();
+        } catch (Exception e) {
+            return JsonResponseBuilder.create()
+                    .error("Failed to execute facts against stored definitions: " + e.getMessage())
+                    .build();
+        }
+    }
+
     @Tool(description = "Add a single Drools definition (declared type, function, global, import, etc.) to the storage. " +
                        "If a definition with the same name already exists, it will be replaced.")
     public String addDefinition(@ToolArg(description = "Name/identifier of the definition (e.g., 'Person', 'calculateAge', etc.)") String name,

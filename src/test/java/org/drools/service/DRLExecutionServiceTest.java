@@ -132,4 +132,93 @@ class DRLExecutionServiceTest {
         
         assertEquals("Maximum activations cannot be negative", exception.getMessage());
     }
+
+    @Test
+    void testExecuteDRLWithJsonFactsAgainstStoredDefinitions_Success() {
+        // Given
+        String factsJson = "[{\"_type\":\"Person\",\"name\":\"John\",\"age\":25}]";
+        int maxActivations = 5;
+        String expectedDRL = "package org.drools.generated; declare Person name: String age: int end";
+        List<Object> expectedFacts = Arrays.asList("result1", "result2");
+        
+        DefinitionManagementService mockDefinitionService = mock(DefinitionManagementService.class);
+        when(mockDefinitionService.generateDRLFromDefinitions("org.drools.generated")).thenReturn(expectedDRL);
+        when(mockDefinitionService.getDefinitionCount()).thenReturn(1);
+
+        // Mock the static method call
+        try (MockedStatic<DRLRunner> mockedRunner = mockStatic(DRLRunner.class)) {
+            mockedRunner.when(() -> DRLRunner.runDRLWithJsonFacts(expectedDRL, factsJson, maxActivations))
+                       .thenReturn(expectedFacts);
+
+            // When
+            List<Object> result = executionService.executeDRLWithJsonFactsAgainstStoredDefinitions(factsJson, maxActivations, mockDefinitionService);
+
+            // Then
+            assertEquals(expectedFacts, result);
+            verify(mockDefinitionService).generateDRLFromDefinitions("org.drools.generated");
+            verify(mockDefinitionService).getDefinitionCount();
+            mockedRunner.verify(() -> DRLRunner.runDRLWithJsonFacts(expectedDRL, factsJson, maxActivations));
+        }
+    }
+
+    @Test
+    void testExecuteDRLWithJsonFactsAgainstStoredDefinitions_NoDefinitions() {
+        // Given
+        String factsJson = "[{\"_type\":\"Person\",\"name\":\"John\",\"age\":25}]";
+        int maxActivations = 5;
+        
+        DefinitionManagementService mockDefinitionService = mock(DefinitionManagementService.class);
+        when(mockDefinitionService.generateDRLFromDefinitions("org.drools.generated")).thenReturn("package org.drools.generated;");
+        when(mockDefinitionService.getDefinitionCount()).thenReturn(0);
+
+        // When & Then
+        DRLExecutionException exception = assertThrows(DRLExecutionException.class, 
+            () -> executionService.executeDRLWithJsonFactsAgainstStoredDefinitions(factsJson, maxActivations, mockDefinitionService));
+        
+        assertEquals("Failed to execute facts against stored definitions: No DRL definitions found in storage. Please add some definitions first using addDefinition.", exception.getMessage());
+        verify(mockDefinitionService).generateDRLFromDefinitions("org.drools.generated");
+        verify(mockDefinitionService).getDefinitionCount();
+        verifyNoMoreInteractions(mockDefinitionService);
+    }
+
+    @Test
+    void testExecuteDRLWithJsonFactsAgainstStoredDefinitions_NegativeMaxActivations() {
+        // Given
+        DefinitionManagementService mockDefinitionService = mock(DefinitionManagementService.class);
+
+        // When & Then
+        DRLExecutionException exception = assertThrows(DRLExecutionException.class, 
+            () -> executionService.executeDRLWithJsonFactsAgainstStoredDefinitions("[]", -1, mockDefinitionService));
+        
+        assertEquals("Maximum activations cannot be negative", exception.getMessage());
+        verifyNoInteractions(mockDefinitionService);
+    }
+
+    @Test
+    void testExecuteDRLWithJsonFactsAgainstStoredDefinitions_ExecutionException() {
+        // Given
+        String factsJson = "[{\"_type\":\"Person\",\"name\":\"John\",\"age\":25}]";
+        int maxActivations = 5;
+        String expectedDRL = "package org.drools.generated; declare Person name: String age: int end";
+        RuntimeException executionException = new RuntimeException("Execution failed");
+        
+        DefinitionManagementService mockDefinitionService = mock(DefinitionManagementService.class);
+        when(mockDefinitionService.generateDRLFromDefinitions("org.drools.generated")).thenReturn(expectedDRL);
+        when(mockDefinitionService.getDefinitionCount()).thenReturn(1);
+
+        // Mock the static method call to throw exception
+        try (MockedStatic<DRLRunner> mockedRunner = mockStatic(DRLRunner.class)) {
+            mockedRunner.when(() -> DRLRunner.runDRLWithJsonFacts(expectedDRL, factsJson, maxActivations))
+                       .thenThrow(executionException);
+
+            // When & Then
+            DRLExecutionException exception = assertThrows(DRLExecutionException.class, 
+                () -> executionService.executeDRLWithJsonFactsAgainstStoredDefinitions(factsJson, maxActivations, mockDefinitionService));
+            
+            assertEquals("Failed to execute facts against stored definitions: Execution failed", exception.getMessage());
+            assertEquals(executionException, exception.getCause());
+            verify(mockDefinitionService).generateDRLFromDefinitions("org.drools.generated");
+            verify(mockDefinitionService).getDefinitionCount();
+        }
+    }
 }

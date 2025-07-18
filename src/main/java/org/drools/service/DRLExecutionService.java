@@ -58,4 +58,35 @@ public class DRLExecutionService {
             throw new DRLExecutionException("Failed to execute DRL: " + e.getMessage(), e);
         }
     }
+
+    /**
+     * Executes external JSON facts against all stored DRL definitions.
+     * 
+     * @param externalFactsJson JSON string containing external facts
+     * @param maxActivations Maximum number of rule activations (0 for unlimited)
+     * @param definitionService Service to access stored definitions
+     * @return List of facts in working memory after execution
+     * @throws DRLExecutionException if execution fails
+     */
+    public List<Object> executeDRLWithJsonFactsAgainstStoredDefinitions(String externalFactsJson, int maxActivations, 
+                                                                        DefinitionManagementService definitionService) {
+        if (maxActivations < 0) {
+            throw new DRLExecutionException("Maximum activations cannot be negative");
+        }
+        
+        try {
+            // Generate complete DRL from all stored definitions
+            String drlCode = definitionService.generateDRLFromDefinitions("org.drools.generated");
+            
+            // Check if we have any definitions
+            if (definitionService.getDefinitionCount() == 0) {
+                throw new DRLExecutionException("No DRL definitions found in storage. Please add some definitions first using addDefinition.");
+            }
+            
+            // Execute with the generated DRL
+            return DRLRunner.runDRLWithJsonFacts(drlCode, externalFactsJson, maxActivations);
+        } catch (Exception e) {
+            throw new DRLExecutionException("Failed to execute facts against stored definitions: " + e.getMessage(), e);
+        }
+    }
 }

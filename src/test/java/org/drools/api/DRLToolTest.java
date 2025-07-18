@@ -137,4 +137,65 @@ public class DRLToolTest {
         JsonNode removeJson = objectMapper.readTree(removeResult);
         assertEquals("not_found", removeJson.get("status").asText());
     }
+
+    @Test
+    public void testRunFactsAgainstStoredDefinitions_Success() throws Exception {
+        // First add some definitions
+        drlTool.addDefinition("Person", "declare", "declare Person name: String age: int end");
+        drlTool.addDefinition("AgeRule", "rule", 
+            "rule \"Check Adult\" " +
+            "when " +
+            "    $p: Person(age >= 18) " +
+            "then " +
+            "    System.out.println(\"Adult: \" + $p.getName()); " +
+            "end");
+
+        // Execute facts against stored definitions
+        String factsJson = "[{\"_type\":\"Person\",\"name\":\"John\",\"age\":25}]";
+        String response = drlTool.runFactsAgainstStoredDefinitions(factsJson, 10);
+        
+        JsonNode responseNode = objectMapper.readTree(response);
+        assertEquals("success", responseNode.get("executionStatus").asText());
+        assertTrue(responseNode.get("factsCount").asInt() > 0);
+        assertNotNull(responseNode.get("facts"));
+    }
+
+    @Test
+    public void testRunFactsAgainstStoredDefinitions_NoDefinitions() throws Exception {
+        // Try to run facts without any stored definitions
+        String factsJson = "[{\"_type\":\"Person\",\"name\":\"John\",\"age\":25}]";
+        String response = drlTool.runFactsAgainstStoredDefinitions(factsJson, 10);
+        
+        JsonNode responseNode = objectMapper.readTree(response);
+        assertEquals("error", responseNode.get("status").asText());
+        assertTrue(responseNode.get("message").asText().contains("No DRL definitions found"));
+    }
+
+    @Test
+    public void testRunFactsAgainstStoredDefinitions_EmptyFacts() throws Exception {
+        // Add a definition first
+        drlTool.addDefinition("Person", "declare", "declare Person name: String age: int end");
+        
+        // Execute empty facts
+        String factsJson = "[]";
+        String response = drlTool.runFactsAgainstStoredDefinitions(factsJson, 10);
+        
+        JsonNode responseNode = objectMapper.readTree(response);
+        assertEquals("success", responseNode.get("executionStatus").asText());
+        assertEquals(0, responseNode.get("factsCount").asInt());
+    }
+
+    @Test
+    public void testRunFactsAgainstStoredDefinitions_NegativeMaxActivations() throws Exception {
+        // Add a definition first
+        drlTool.addDefinition("Person", "declare", "declare Person name: String age: int end");
+        
+        // Try with negative max activations
+        String factsJson = "[{\"_type\":\"Person\",\"name\":\"John\",\"age\":25}]";
+        String response = drlTool.runFactsAgainstStoredDefinitions(factsJson, -1);
+        
+        JsonNode responseNode = objectMapper.readTree(response);
+        assertEquals("error", responseNode.get("status").asText());
+        assertTrue(responseNode.get("message").asText().contains("Maximum activations cannot be negative"));
+    }
 }
