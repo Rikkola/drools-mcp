@@ -9,57 +9,10 @@ public class DRLTool {
     // Singleton instance of DefinitionStorage
     private static final DefinitionStorage definitionStorage = new DefinitionStorage();
     
-    // Singleton instance of DynamicObjectCreator
-    private static final DynamicObjectCreator dynamicObjectCreator = new DynamicObjectCreator();
 
     @Tool(description = "Validates the Drools DRL code is correctly structured")
     String validateDRLStructure(@ToolArg(description = "Drools DRL code") String code) {
         return new DRLVerifier().verify(code);
-    }
-
-    @Tool(description = "Executes Drools DRL code and returns the facts in working memory after rule execution. " +
-                       "Use this to test DRL rules with declared types, data creation rules, or business logic. " +
-                       "The DRL code should be complete and valid, including package declaration, declared types (if any), " +
-                       "and rules. For DRL with data creation rules, no external facts are needed. " +
-                       "Returns JSON-formatted list of facts from working memory after all rules have fired.")
-    String runDRLCode(@ToolArg(description = "Complete Drools DRL code including package declaration, " +
-                                           "optional declared types (e.g., declare Person ... end), " +
-                                           "and rules. Example: \"package org.example; declare MyType ... end " +
-                                           "rule 'MyRule' when ... then ... end\"") String drlCode,
-                      @ToolArg(description = "Maximum number of rule activations to fire (0 for unlimited). " +
-                                           "Use this to prevent infinite loops or limit rule execution for performance.") 
-                      int maxActivations) {
-        try {
-            List<Object> facts = DRLRunner.runDRL(drlCode, maxActivations);
-            
-            // Convert facts to a readable JSON-like format
-            StringBuilder result = new StringBuilder();
-            result.append("{\n");
-            result.append("  \"executionStatus\": \"success\",\n");
-            result.append("  \"factsCount\": ").append(facts.size()).append(",\n");
-            result.append("  \"facts\": [\n");
-            
-            for (int i = 0; i < facts.size(); i++) {
-                Object fact = facts.get(i);
-                result.append("    {\n");
-                result.append("      \"type\": \"").append(fact.getClass().getSimpleName()).append("\",\n");
-                result.append("      \"value\": \"").append(fact.toString().replace("\"", "\\\"")).append("\"\n");
-                result.append("    }");
-                if (i < facts.size() - 1) {
-                    result.append(",");
-                }
-                result.append("\n");
-            }
-            
-            result.append("  ]\n");
-            result.append("}");
-            
-            return result.toString();
-            
-        } catch (Exception e) {
-            return "{\"executionStatus\": \"error\", \"errorMessage\": \"" + 
-                   e.getMessage().replace("\"", "\\\"") + "\"}";
-        }
     }
 
     @Tool(description = "Executes Drools DRL code with external facts provided as JSON and returns all facts " +
@@ -251,40 +204,5 @@ public class DRLTool {
         } catch (Exception e) {
             return "{\"status\": \"error\", \"message\": \"" + e.getMessage().replace("\"", "\\\"") + "\"}";
         }
-    }
-
-    /**
-     * Format object fields as JSON string for display
-     */
-    private String formatObjectFields(java.util.Map<String, Object> fields) {
-        if (fields == null || fields.isEmpty()) {
-            return "{}";
-        }
-        
-        StringBuilder json = new StringBuilder();
-        json.append("{");
-        
-        boolean first = true;
-        for (java.util.Map.Entry<String, Object> entry : fields.entrySet()) {
-            if (!first) {
-                json.append(", ");
-            }
-            first = false;
-            
-            json.append("\"").append(entry.getKey()).append("\": ");
-            Object value = entry.getValue();
-            if (value == null) {
-                json.append("null");
-            } else if (value instanceof String) {
-                json.append("\"").append(value.toString().replace("\"", "\\\"")).append("\"");
-            } else if (value instanceof Number || value instanceof Boolean) {
-                json.append(value.toString());
-            } else {
-                json.append("\"").append(value.toString().replace("\"", "\\\"")).append("\"");
-            }
-        }
-        
-        json.append("}");
-        return json.toString();
     }
 }
