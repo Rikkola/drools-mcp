@@ -1,6 +1,0 @@
-package org.example; 
-
-rule "Test Rule" 
-when 
-then 
-end

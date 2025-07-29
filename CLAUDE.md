@@ -4,115 +4,61 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Drools MCP (Model Context Protocol) server built with Quarkus. It provides AI assistants with tools to execute, validate, and manage Drools DRL (Decision Rule Language) code. The project serves as a bridge between AI models and the Drools rule engine.
+This is a multi-module Maven project for Drools AI POC (Proof of Concept) tools. The project is structured with a parent POM and multiple submodules to provide AI assistants with tools to work with Drools and other rule engines.
 
-## Architecture
+## Project Structure
 
-The project follows a modular architecture with clear separation of concerns:
+```
+drools-ai-poc/
+├── pom.xml (parent POM - drools-ai-poc)
+├── CLAUDE.md (this file)
+└── knowledge-builder-mcp/ (submodule)
+    ├── pom.xml
+    ├── CLAUDE.md
+    └── src/
+```
 
-### Core Components
+## Modules
 
-- **DRLTool** (`src/main/java/org/drools/DRLTool.java`): Main MCP tool provider class that exposes all available tools to AI clients
-- **DRLRunner** (`src/main/java/org/drools/DRLRunner.java`): Executes DRL code with or without external facts
-- **DRLVerifier** (`src/main/java/org/drools/DRLVerifier.java`): Performs structural validation of DRL code using Drools verifier
-- **DefinitionStorage** (`src/main/java/org/drools/DefinitionStorage.java`): Manages storage and retrieval of reusable DRL definitions (types, functions, etc.)
-- **DynamicObjectCreator** (`src/main/java/org/drools/DynamicObjectCreator.java`): Creates dynamic Java objects from code strings using JShell
-- **DynamicJsonToJavaFactory** (`src/main/java/org/drools/DynamicJsonToJavaFactory.java`): Converts JSON data into dynamic Java objects for use with Drools rules
-
-### MCP Tools Available
-
-The DRLTool class exposes these tools to AI clients:
-
-1. **validateDRLStructure** - Validates DRL code structure
-2. **runDRLCode** - Executes DRL with declared types and data creation rules
-3. **runDRLWithExternalFacts** - Executes DRL with external JSON facts
-4. **addDefinition** - Stores reusable DRL definitions
-5. **getAllDefinitions** - Lists all stored definitions
-6. **getDefinition** - Retrieves specific definition by name
-7. **generateDRLFromDefinitions** - Generates complete DRL from stored definitions
-8. **getDefinitionsSummary** - Gets summary of definitions grouped by type
-9. **removeDefinition** - Removes stored definition
+### knowledge-builder-mcp
+A Drools MCP server built with Quarkus that provides AI assistants with tools to execute, validate, and manage Drools DRL (Decision Rule Language) code. See `knowledge-builder-mcp/CLAUDE.md` for detailed documentation.
 
 ## Common Development Commands
 
-### Build and Test
+### Build All Modules
 ```bash
-# Build the project
+# Build the entire project from root
 mvn clean compile
 
-# Run tests
+# Build specific module
+mvn clean compile -pl knowledge-builder-mcp
+
+# Run tests for all modules
 mvn test
 
-# Run specific test
-mvn test -Dtest=DRLRunnerTest
+# Run tests for specific module
+mvn test -pl knowledge-builder-mcp
 
-# Build uber JAR for jbang execution
+# Package all modules
 mvn package
-
-# Run in development mode
-mvn quarkus:dev
 ```
 
-### Native Build
-```bash
-# Build native executable
-mvn package -Pnative
+### Module-Specific Commands
+For module-specific commands, either:
+1. Navigate to the module directory and run Maven commands
+2. Use the `-pl` (projects list) option from the root
 
-# Run native executable
-./target/drools-mcp-1.0.0-SNAPSHOT-runner
-```
+## Adding New Modules
 
-### JBang Execution
-```bash
-# Run as MCP server via jbang
-jbang --quiet org.drools:drools-mcp:1.0.0-SNAPSHOT:runner
-```
+To add a new module:
+1. Create the module directory
+2. Add `<module>module-name</module>` to the parent POM
+3. Create the module's POM with proper parent reference
+4. Add module-specific documentation to the module's CLAUDE.md
 
-## Key Dependencies
+## Architecture Notes
 
-- **Quarkus 3.20.0** - Application framework
-- **Drools 8.44.0.Final** - Rule engine (core, compiler, verifier)
-- **KIE API 8.44.0.Final** - Knowledge base API
-- **Quarkus MCP Server 1.0.0** - MCP protocol implementation
-- **Jackson** - JSON processing for dynamic objects
-
-## Configuration
-
-The application uses these key configuration properties in `src/main/resources/application.properties`:
-
-- `quarkus.package.jar.type=uber-jar` - Enables single JAR deployment
-- `quarkus.log.file.enable=true` - Enables file logging to `drools-mcp.log`
-- `quarkus.mcp.server.sse.root-path=/` - MCP server configuration
-
-## Test Resources
-
-The project includes comprehensive test DRL files in `src/test/resources/drl/` covering:
-- Basic rule validation
-- Counter and fact creation patterns
-- Person age categorization examples
-- Order discount logic
-- Message handling with quotes
-- Maximum rule execution limits
-
-## Development Notes
-
-- The project uses Java 17 as the target version
-- All MCP tools return JSON-formatted responses for consistent AI integration
-- The DefinitionStorage uses thread-safe ConcurrentHashMap for multi-threaded access
-- DynamicObjectFactory uses Java Proxy pattern for creating runtime objects
-- Extensive logging is enabled for debugging rule execution
-
-## Claude Desktop Integration
-
-To use this MCP server with Claude Desktop, add this configuration to your MCP settings:
-
-```json
-{
-   "mcpServers": {
-      "drl-verifier": {
-         "command": "jbang",
-         "args": ["--quiet", "org.drools:drools-mcp:1.0.0-SNAPSHOT:runner"]
-      }
-   }
-}
-```
+- The parent POM manages common properties, dependency management, and plugin configuration
+- Each submodule inherits from the parent and can override/extend as needed
+- Shared dependencies and versions are managed at the parent level
+- Module-specific dependencies are defined in each module's POM

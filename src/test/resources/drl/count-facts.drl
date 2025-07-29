@@ -1,8 +1,0 @@
-package org.example;
-
-rule "Count Facts"
-    when
-        $count : Number() from accumulate(Object(), count())
-    then
-        System.out.println("Total facts: " + $count);
-end
