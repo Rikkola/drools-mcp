@@ -21,6 +21,7 @@
 
     <modules>
         <module>knowledge-builder-mcp</module>
+        <module>anthropic-examples</module>
     </modules>
 
     <dependencyManagement>
