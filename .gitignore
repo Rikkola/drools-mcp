@@ -44,3 +44,7 @@ nb-configuration.xml
 # TLS Certificates
 .certs/
 .aider*
+
+# Log files
+*.log
+*.log.*
