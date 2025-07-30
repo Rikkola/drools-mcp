@@ -22,7 +22,7 @@
     <modules>
         <module>knowledge-builder-core</module>
         <module>knowledge-builder-mcp</module>
-        <module>anthropic-examples</module>
+        <module>knowledge-mcp</module>
     </modules>
 
     <dependencyManagement>
