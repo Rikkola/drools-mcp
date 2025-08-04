@@ -172,13 +172,8 @@ public class DroolsAgentMain {
             }
         }
         
-        // Default: try environment-based selection, fallback to Anthropic
-        ChatModel envModel = ChatModels.createFromEnvironment();
-        if (envModel.getClass().getSimpleName().contains("Ollama")) {
-            System.out.println("Auto-selected Ollama model from environment");
-        } else {
-            System.out.println("Using default Anthropic model");
-        }
-        return envModel;
+        // Default: use environment-based selection
+        System.out.println("Using environment-based model selection");
+        return ChatModels.createFromEnvironment();
     }
 }

@@ -2,7 +2,6 @@ package org.drools.agentic.example.examples;
 
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.anthropic.AnthropicChatModel;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import java.util.ArrayList;
@@ -10,6 +9,7 @@ import java.util.List;
 
 import io.quarkiverse.mcp.server.Tool;
 import io.quarkiverse.mcp.server.ToolArg;
+import org.drools.agentic.example.config.ChatModels;
 
 /**
  * Decision service powered by Anthropic AI.
@@ -24,12 +24,7 @@ public class AnthropicTool {
     private final List<String> constraints;
 
     public AnthropicTool() {
-        this.model = AnthropicChatModel.builder()
-                .apiKey(System.getenv("ANTHROPIC_API_KEY"))
-                .modelName("claude-3-haiku-20240307")
-                .logRequests(true)
-                .logResponses(true)
-                .build();
+        this.model = ChatModels.createFromEnvironment();
         this.decisionHistory = new ArrayList<>();
         this.constraints = new ArrayList<>();
     }
