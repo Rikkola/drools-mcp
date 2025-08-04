@@ -9,8 +9,8 @@ import org.drools.storage.DefinitionStorage;
 import java.util.List;
 
 /**
- * Service class that provides Tool-annotated methods for executing DRL code.
- * This class wraps the DRLExecutionService functionality to make it usable by AI agents.
+ * Service class that provides Tool-annotated methods for executing stored DRL definitions with JSON facts.
+ * This class focuses on executing rules from DefinitionStorage rather than accepting arbitrary DRL code.
  */
 public class DRLExecutionToolService {
     private final DRLExecutionService executionService = new DRLExecutionService();
@@ -20,132 +20,131 @@ public class DRLExecutionToolService {
         this.definitionService = new DefinitionManagementService(storage);
     }
 
-    @Tool("Execute DRL code with JSON facts")
-    public String executeDRLWithJsonFacts(@P("DRL code to execute") String drlCode, 
-                                         @P("JSON facts to insert") String jsonFacts, 
-                                         @P("maximum rule activations (0 for unlimited)") int maxActivations) {
-        try {
-            List<Object> results = executionService.executeDRLWithJsonFacts(drlCode, jsonFacts, maxActivations);
-            
-            StringBuilder response = new StringBuilder();
-            response.append(String.format("DRL execution completed successfully!\n"));
-            response.append(String.format("Facts in working memory: %d\n", results.size()));
-            
-            if (!results.isEmpty()) {
-                response.append("Working memory contents:\n");
-                for (Object fact : results) {
-                    response.append(String.format("  - %s\n", fact.toString()));
-                }
-            } else {
-                response.append("No facts remaining in working memory.\n");
-            }
-            
-            return response.toString();
-        } catch (Exception e) {
-            return String.format("DRL execution failed: %s", e.getMessage());
-        }
-    }
-
     @Tool("Execute JSON facts against all stored DRL definitions")
-    public String executeJsonFactsAgainstStoredDefinitions(@P("JSON facts to insert") String jsonFacts, 
-                                                          @P("maximum rule activations (0 for unlimited)") int maxActivations) {
-        try {
-            List<Object> results = executionService.executeDRLWithJsonFactsAgainstStoredDefinitions(
-                jsonFacts, maxActivations, definitionService);
-            
-            StringBuilder response = new StringBuilder();
-            response.append(String.format("DRL execution against stored definitions completed successfully!\n"));
-            response.append(String.format("Used %d stored definitions\n", definitionService.getDefinitionCount()));
-            response.append(String.format("Facts in working memory: %d\n", results.size()));
-            
-            if (!results.isEmpty()) {
-                response.append("Working memory contents:\n");
-                for (Object fact : results) {
-                    response.append(String.format("  - %s\n", fact.toString()));
-                }
-            } else {
-                response.append("No facts remaining in working memory.\n");
-            }
-            
-            return response.toString();
-        } catch (Exception e) {
-            return String.format("DRL execution failed: %s", e.getMessage());
-        }
-    }
-
-    @Tool("Execute DRL code without external facts (using only rules that create facts)")
-    public String executeDRLOnly(@P("DRL code to execute") String drlCode, 
-                                @P("maximum rule activations (0 for unlimited)") int maxActivations) {
-        try {
-            // Execute with empty JSON facts
-            List<Object> results = executionService.executeDRLWithJsonFacts(drlCode, "[]", maxActivations);
-            
-            StringBuilder response = new StringBuilder();
-            response.append(String.format("DRL execution completed successfully!\n"));
-            response.append(String.format("Facts in working memory: %d\n", results.size()));
-            
-            if (!results.isEmpty()) {
-                response.append("Working memory contents:\n");
-                for (Object fact : results) {
-                    response.append(String.format("  - %s\n", fact.toString()));
-                }
-            } else {
-                response.append("No facts remaining in working memory.\n");
-            }
-            
-            return response.toString();
-        } catch (Exception e) {
-            return String.format("DRL execution failed: %s", e.getMessage());
-        }
-    }
-
-    @Tool("Get generated DRL from all stored definitions")
-    public String getGeneratedDRLFromDefinitions(@P("package name (optional)") String packageName) {
+    public String executeWithJsonFacts(@P("JSON facts to insert") String jsonFacts, 
+                                      @P("maximum rule activations (0 for unlimited)") int maxActivations) {
         try {
             if (definitionService.getDefinitionCount() == 0) {
-                return "No definitions stored. Please add some definitions first.";
-            }
-            
-            String drl = definitionService.generateDRLFromDefinitions(packageName != null ? packageName : "org.drools.generated");
-            return String.format("Generated DRL from %d definitions:\n\n%s", 
-                               definitionService.getDefinitionCount(), drl);
-        } catch (Exception e) {
-            return String.format("Failed to generate DRL: %s", e.getMessage());
-        }
-    }
-
-    @Tool("Execute stored definitions with JSON facts (combined operation)")
-    public String executeStoredDefinitionsWithJsonFacts(@P("JSON facts to insert") String jsonFacts, 
-                                                       @P("maximum rule activations (0 for unlimited)") int maxActivations) {
-        try {
-            if (definitionService.getDefinitionCount() == 0) {
-                return "No definitions stored. Please add some definitions first using the definition storage tools.";
+                return "❌ No definitions stored. Please add some definitions first using the definition storage tools.";
             }
 
             // Show what definitions we're using
             StringBuilder response = new StringBuilder();
-            response.append(String.format("Executing with %d stored definitions:\n", definitionService.getDefinitionCount()));
+            response.append(String.format("🚀 Executing JSON facts against %d stored definitions:\n", definitionService.getDefinitionCount()));
+            response.append("=" .repeat(50) + "\n\n");
+            
+            // Show stored definitions summary
+            response.append("📋 Using stored definitions:\n");
             response.append(definitionService.getDefinitionsSummary()).append("\n");
             
             // Execute the facts
             List<Object> results = executionService.executeDRLWithJsonFactsAgainstStoredDefinitions(
                 jsonFacts, maxActivations, definitionService);
             
-            response.append(String.format("Execution completed successfully!\n"));
-            response.append(String.format("Facts in working memory: %d\n", results.size()));
+            response.append("⚡ Execution Results:\n");
+            response.append("-".repeat(20) + "\n");
+            response.append(String.format("✅ Execution completed successfully!\n"));
+            response.append(String.format("📊 Facts in working memory: %d\n", results.size()));
             
             if (!results.isEmpty()) {
-                response.append("Working memory contents:\n");
+                response.append("\n💾 Working memory contents:\n");
                 for (Object fact : results) {
-                    response.append(String.format("  - %s\n", fact.toString()));
+                    response.append(String.format("  • %s\n", fact.toString()));
                 }
             } else {
-                response.append("No facts remaining in working memory.\n");
+                response.append("\n🗑️  No facts remaining in working memory.\n");
             }
             
             return response.toString();
         } catch (Exception e) {
-            return String.format("Execution failed: %s", e.getMessage());
+            return String.format("❌ Execution failed: %s\n\nPlease check your JSON facts format and stored definitions.", e.getMessage());
+        }
+    }
+
+    @Tool("Execute empty facts against stored definitions (test rule firing without external data)")
+    public String executeStoredDefinitionsOnly(@P("maximum rule activations (0 for unlimited)") int maxActivations) {
+        try {
+            if (definitionService.getDefinitionCount() == 0) {
+                return "❌ No definitions stored. Please add some definitions first using the definition storage tools.";
+            }
+
+            StringBuilder response = new StringBuilder();
+            response.append(String.format("🧪 Testing stored definitions without external facts:\n"));
+            response.append("=" .repeat(45) + "\n\n");
+            
+            response.append("📋 Testing definitions:\n");
+            response.append(definitionService.getDefinitionsSummary()).append("\n");
+            
+            // Execute with empty JSON facts to test rule creation and firing
+            List<Object> results = executionService.executeDRLWithJsonFactsAgainstStoredDefinitions(
+                "[]", maxActivations, definitionService);
+            
+            response.append("⚡ Test Results:\n");
+            response.append("-".repeat(15) + "\n");
+            response.append(String.format("✅ Test execution completed!\n"));
+            response.append(String.format("📊 Facts created by rules: %d\n", results.size()));
+            
+            if (!results.isEmpty()) {
+                response.append("\n💾 Facts created during execution:\n");
+                for (Object fact : results) {
+                    response.append(String.format("  • %s\n", fact.toString()));
+                }
+            } else {
+                response.append("\n📝 No facts were created by the rules (this is normal for rules that only modify existing facts).\n");
+            }
+            
+            return response.toString();
+        } catch (Exception e) {
+            return String.format("❌ Test execution failed: %s", e.getMessage());
+        }
+    }
+
+    @Tool("Show generated DRL code from all stored definitions")
+    public String showGeneratedDRL(@P("package name (optional)") String packageName) {
+        try {
+            if (definitionService.getDefinitionCount() == 0) {
+                return "❌ No definitions stored. Please add some definitions first.";
+            }
+            
+            String drl = definitionService.generateDRLFromDefinitions(packageName != null ? packageName : "org.drools.generated");
+            
+            StringBuilder response = new StringBuilder();
+            response.append(String.format("📄 Generated DRL from %d stored definitions:\n", definitionService.getDefinitionCount()));
+            response.append("=" .repeat(40) + "\n\n");
+            response.append("```drl\n");
+            response.append(drl);
+            response.append("\n```\n\n");
+            response.append("💡 This DRL code represents all your stored definitions combined and ready for execution.\n");
+            
+            return response.toString();
+        } catch (Exception e) {
+            return String.format("❌ Failed to generate DRL: %s", e.getMessage());
+        }
+    }
+
+    @Tool("Get execution statistics and stored definitions info")
+    public String getExecutionInfo() {
+        try {
+            StringBuilder response = new StringBuilder();
+            response.append("📊 Execution Service Information:\n");
+            response.append("=" .repeat(30) + "\n\n");
+            
+            int definitionCount = definitionService.getDefinitionCount();
+            response.append(String.format("📋 Stored definitions: %d\n", definitionCount));
+            
+            if (definitionCount == 0) {
+                response.append("⚠️  No definitions available for execution.\n");
+                response.append("💡 Use the definition storage tools to add types, functions, and rules first.\n");
+            } else {
+                response.append("✅ Ready for execution!\n\n");
+                response.append("📖 Definitions breakdown:\n");
+                response.append(definitionService.getDefinitionsSummary());
+                response.append("\n💡 You can now execute JSON facts against these definitions.\n");
+            }
+            
+            return response.toString();
+        } catch (Exception e) {
+            return String.format("❌ Failed to get execution info: %s", e.getMessage());
         }
     }
 }

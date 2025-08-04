@@ -129,9 +129,8 @@ public class DroolsAgent {
         // Example 4: Use specialized execution agent
         System.out.println("\n=== Execution Agent Demo ===");
         String result4 = executionAgent.executeRequest("""
-            Execute this DRL code with JSON facts:
-            DRL: rule "test" when then System.out.println("Hello Drools!"); end
-            JSON: []
+            Execute JSON facts against stored definitions:
+            JSON: [{"name": "Test User", "age": 30}]
             """);
         System.out.println("Execution Result:");
         System.out.println(result4);
@@ -151,7 +150,7 @@ public class DroolsAgent {
         System.out.println(validationResult);
         
         // Execute against stored definitions
-        String executionResult = executionService.executeStoredDefinitionsWithJsonFacts(
+        String executionResult = executionService.executeWithJsonFacts(
             "[{\"name\": \"Premium User\", \"vip\": false}, {\"name\": \"Regular User\", \"vip\": false}]", 
             10);
         System.out.println("Direct Execution Result:");
