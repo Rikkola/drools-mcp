@@ -99,29 +99,6 @@ public class DRLExecutionToolService {
         }
     }
 
-    @Tool("Show generated DRL code from all stored definitions")
-    public String showGeneratedDRL(@P("package name (optional)") String packageName) {
-        try {
-            if (definitionService.getDefinitionCount() == 0) {
-                return "❌ No definitions stored. Please add some definitions first.";
-            }
-            
-            String drl = definitionService.generateDRLFromDefinitions(packageName != null ? packageName : "org.drools.generated");
-            
-            StringBuilder response = new StringBuilder();
-            response.append(String.format("📄 Generated DRL from %d stored definitions:\n", definitionService.getDefinitionCount()));
-            response.append("=" .repeat(40) + "\n\n");
-            response.append("```drl\n");
-            response.append(drl);
-            response.append("\n```\n\n");
-            response.append("💡 This DRL code represents all your stored definitions combined and ready for execution.\n");
-            
-            return response.toString();
-        } catch (Exception e) {
-            return String.format("❌ Failed to generate DRL: %s", e.getMessage());
-        }
-    }
-
     @Tool("Get execution statistics and stored definitions info")
     public String getExecutionInfo() {
         try {
