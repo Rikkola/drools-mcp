@@ -12,11 +12,11 @@ The project follows a modular architecture with clear separation of concerns:
 
 ### Core Components
 
-- **DRLTool** (`knowledge-builder-mcp/src/main/java/org/drools/api/DRLTool.java`): Main MCP tool provider class that exposes all available tools to AI clients
-- **DRLRunner** (`knowledge-builder-mcp/src/main/java/org/drools/execution/DRLRunner.java`): Executes DRL code with or without external facts
-- **DRLVerifier** (`knowledge-builder-mcp/src/main/java/org/drools/validation/DRLVerifier.java`): Performs structural validation of DRL code using Drools verifier
-- **DefinitionStorage** (`knowledge-builder-mcp/src/main/java/org/drools/storage/DefinitionStorage.java`): Manages storage and retrieval of reusable DRL definitions (types, functions, etc.)
-- **DynamicJsonToJavaFactory** (`knowledge-builder-mcp/src/main/java/org/drools/execution/DynamicJsonToJavaFactory.java`): Converts JSON data into dynamic Java objects for use with Drools rules
+- **DRLTool** (`drools-builder-mcp/src/main/java/org/drools/api/DRLTool.java`): Main MCP tool provider class that exposes all available tools to AI clients
+- **DRLRunner** (`drools-builder-core/src/main/java/org/drools/execution/DRLRunner.java`): Executes DRL code with or without external facts
+- **DRLVerifier** (`drools-builder-core/src/main/java/org/drools/validation/DRLVerifier.java`): Performs structural validation of DRL code using Drools verifier
+- **DefinitionStorage** (`drools-builder-core/src/main/java/org/drools/storage/DefinitionStorage.java`): Manages storage and retrieval of reusable DRL definitions (types, functions, etc.)
+- **DynamicJsonToJavaFactory** (`drools-builder-core/src/main/java/org/drools/execution/DynamicJsonToJavaFactory.java`): Converts JSON data into dynamic Java objects for use with Drools rules
 
 ### MCP Tools Available
 
@@ -64,7 +64,7 @@ mvn package -Pnative
 ### JBang Execution
 ```bash
 # Run as MCP server via jbang
-jbang --quiet org.drools:knowledge-builder-mcp:1.0.0-SNAPSHOT:runner
+jbang --quiet org.drools:drools-builder-mcp:1.0.0-SNAPSHOT:runner
 ```
 
 ## Key Dependencies
@@ -77,7 +77,7 @@ jbang --quiet org.drools:knowledge-builder-mcp:1.0.0-SNAPSHOT:runner
 
 ## Configuration
 
-The application uses these key configuration properties in `knowledge-builder-mcp/src/main/resources/application.properties`:
+The application uses these key configuration properties in `drools-builder-mcp/src/main/resources/application.properties`:
 
 - `quarkus.package.jar.type=uber-jar` - Enables single JAR deployment
 - `quarkus.log.file.enable=true` - Enables file logging to `drools-mcp.log`
@@ -85,7 +85,7 @@ The application uses these key configuration properties in `knowledge-builder-mc
 
 ## Test Resources
 
-The project includes comprehensive test DRL files in `knowledge-builder-mcp/src/test/resources/drl/` covering:
+The project includes comprehensive test DRL files in `drools-builder-mcp/src/test/resources/drl/` covering:
 - Basic rule validation
 - Counter and fact creation patterns
 - Person age categorization examples
@@ -110,7 +110,7 @@ To use this MCP server with Claude Desktop, add this configuration to your MCP s
    "mcpServers": {
       "drl-verifier": {
          "command": "jbang",
-         "args": ["--quiet", "org.drools:knowledge-builder-mcp:1.0.0-SNAPSHOT:runner"]
+         "args": ["--quiet", "org.drools:drools-builder-mcp:1.0.0-SNAPSHOT:runner"]
       }
    }
 }

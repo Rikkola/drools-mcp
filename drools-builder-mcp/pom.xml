@@ -9,13 +9,13 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
     
-    <artifactId>knowledge-builder-mcp</artifactId>
+    <artifactId>drools-builder-mcp</artifactId>
 
 
     <dependencies>
         <dependency>
             <groupId>org.drools</groupId>
-            <artifactId>knowledge-builder-core</artifactId>
+            <artifactId>drools-builder-core</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>

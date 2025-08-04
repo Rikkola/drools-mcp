@@ -9,7 +9,7 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
     
-    <artifactId>knowledge-builder-core</artifactId>
+    <artifactId>drools-builder-core</artifactId>
 
     <dependencies>
         <dependency>

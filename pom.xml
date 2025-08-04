@@ -20,8 +20,8 @@
     </properties>
 
     <modules>
-        <module>knowledge-builder-core</module>
-        <module>knowledge-builder-mcp</module>
+        <module>drools-builder-core</module>
+        <module>drools-builder-mcp</module>
         <module>knowledge-mcp</module>
     </modules>
 

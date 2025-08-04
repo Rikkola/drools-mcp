@@ -20,8 +20,8 @@ drools-ai-poc/
 
 ## Modules
 
-### knowledge-builder-mcp
-A Drools MCP server built with Quarkus that provides AI assistants with tools to execute, validate, and manage Drools DRL (Decision Rule Language) code. See `knowledge-builder-mcp/CLAUDE.md` for detailed documentation.
+### drools-builder-mcp
+A Drools MCP server built with Quarkus that provides AI assistants with tools to execute, validate, and manage Drools DRL (Decision Rule Language) code. See `drools-builder-mcp/CLAUDE.md` for detailed documentation.
 
 ## Common Development Commands
 
@@ -31,13 +31,13 @@ A Drools MCP server built with Quarkus that provides AI assistants with tools to
 mvn clean compile
 
 # Build specific module
-mvn clean compile -pl knowledge-builder-mcp
+mvn clean compile -pl drools-builder-mcp
 
 # Run tests for all modules
 mvn test
 
 # Run tests for specific module
-mvn test -pl knowledge-builder-mcp
+mvn test -pl drools-builder-mcp
 
 # Package all modules
 mvn package
