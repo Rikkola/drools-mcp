@@ -8,7 +8,15 @@ import dev.langchain4j.agent.tool.Tool;
  * This class wraps the DefinitionStorage functionality to make it usable by AI agents.
  */
 public class DefinitionStorageService {
-    private final org.drools.storage.DefinitionStorage storage = new org.drools.storage.DefinitionStorage();
+    private final org.drools.storage.DefinitionStorage storage;
+
+    public DefinitionStorageService() {
+        this.storage = new org.drools.storage.DefinitionStorage();
+    }
+
+    public DefinitionStorageService(org.drools.storage.DefinitionStorage storage) {
+        this.storage = storage;
+    }
 
     @Tool("Add a new Drools definition")
     public String addDefinition(@P("definition name") String name, 

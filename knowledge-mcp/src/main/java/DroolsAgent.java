@@ -2,11 +2,13 @@ package dev.langchain4j.agentic.example;
 
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.agentic.AgentServices;
+import dev.langchain4j.agentic.supervisor.SupervisorAgent;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import dev.langchain4j.model.anthropic.AnthropicChatModel;
+import org.drools.storage.DefinitionStorage;
 
 public class DroolsAgent {
 
@@ -22,6 +24,31 @@ public class DroolsAgent {
         String handleRequest(@V("request") String request);
     }
 
+    // Define the DRL execution agent
+    public interface DRLExecutionAgent {
+        @SystemMessage("""
+            You are a Drools rule execution assistant that helps users execute DRL rules and analyze results.
+            You can execute DRL code with JSON facts, run stored definitions against data, and analyze execution results.
+            Always provide clear feedback about rule execution including facts processed and working memory contents.
+            """)
+        @UserMessage("{{request}}")
+        @Agent("A DRL execution agent")
+        String executeRequest(@V("request") String request);
+    }
+
+    // Define a comprehensive Drools agent that combines both definition management and execution
+    public interface ComprehensiveDroolsAgent {
+        @SystemMessage("""
+            You are a comprehensive Drools assistant that helps users with both rule definition management and execution.
+            You can store, retrieve, and organize DRL definitions, as well as execute rules with data and analyze results.
+            Use the appropriate tools based on what the user needs - definition management or rule execution.
+            Always provide helpful and detailed responses about both the definitions and execution results.
+            """)
+        @UserMessage("{{request}}")
+        @Agent("A comprehensive Drools management and execution agent")
+        String handleRequest(@V("request") String request);
+    }
+
 
     public static void main(String[] args) {
         ChatModel chatModel = AnthropicChatModel.builder()
@@ -31,37 +58,67 @@ public class DroolsAgent {
                 .logResponses(true)
                 .build();
 
-        // Create service instances
-        DefinitionStorageService definitionService = new DefinitionStorageService();
+        // Create shared storage and service instances
+        DefinitionStorage sharedStorage = new DefinitionStorage();
+        DefinitionStorageService definitionService = new DefinitionStorageService(sharedStorage);
+        DRLExecutionToolService executionService = new DRLExecutionToolService(sharedStorage);
 
-        // Build the Drools definition management agent
-        DroolsDefinitionAgent droolsAgent = AgentServices.agentBuilder(DroolsDefinitionAgent.class)
+        // Build individual specialized agents
+        DroolsDefinitionAgent definitionAgent = AgentServices.agentBuilder(DroolsDefinitionAgent.class)
                 .chatModel(chatModel)
                 .tools(definitionService)
                 .build();
 
-        // Example usage - natural language requests to manage Drools definitions
-        String result1 = droolsAgent.handleRequest(
-            "Add a Person type definition with name, age, and email fields, then create a function to validate age range"
-        );
-        System.out.println("Result 1:");
+        DRLExecutionAgent executionAgent = AgentServices.agentBuilder(DRLExecutionAgent.class)
+                .chatModel(chatModel)
+                .tools(executionService)
+                .build();
+
+        // Build comprehensive agent with both definition and execution tools
+        ComprehensiveDroolsAgent comprehensiveAgent = AgentServices.agentBuilder(ComprehensiveDroolsAgent.class)
+                .chatModel(chatModel)
+                .tools(definitionService, executionService)
+                .build();
+
+        // Example 1: Use comprehensive agent for complete workflow
+        System.out.println("=== Comprehensive Agent Demo ===");
+        String result1 = comprehensiveAgent.handleRequest("""
+            Create a Person type with name, age, and adult fields, then add a rule that sets adult=true for people over 18.
+            After that, execute it with JSON facts for John age 25 and Jane age 16.
+            """);
+        System.out.println("Comprehensive Result:");
         System.out.println(result1);
 
-        String result2 = droolsAgent.handleRequest("Show me all the definitions I have stored");
-        System.out.println("\nResult 2:");
+        // Example 2: Use specialized definition agent
+        System.out.println("\n=== Definition Agent Demo ===");
+        String result2 = definitionAgent.handleRequest("Add an Order type with id, amount, and discount fields");
+        System.out.println("Definition Result:");
         System.out.println(result2);
 
-        String result3 = droolsAgent.handleRequest("Generate complete DRL code with package name com.example.rules");
-        System.out.println("\nResult 3:");
+        // Example 3: Use specialized execution agent
+        System.out.println("\n=== Execution Agent Demo ===");
+        String result3 = executionAgent.executeRequest("""
+            Execute this DRL code with JSON facts:
+            DRL: rule "test" when then System.out.println("Hello Drools!"); end
+            JSON: []
+            """);
+        System.out.println("Execution Result:");
         System.out.println(result3);
 
-        // Direct service calls for demonstration
-        System.out.println("\n--- Direct Service Calls ---");
+        // Direct service demonstration
+        System.out.println("\n=== Direct Service Demo ===");
         
-        definitionService.addDefinition("Order", "declare", "declare Order\n    id: String\n    amount: double\n    customer: String\nend");
-        definitionService.addDefinition("calculateDiscount", "function", "function double calculateDiscount(double amount) {\n    return amount > 100 ? amount * 0.1 : 0.0;\n}");
+        // Add some definitions directly to shared storage
+        sharedStorage.addDefinition("Customer", "declare", 
+            "declare Customer\n    name: String\n    vip: boolean\nend");
+        sharedStorage.addDefinition("VIPRule", "rule", 
+            "rule \"Mark VIP customers\"\nwhen\n    $c: Customer(name == \"Premium User\")\nthen\n    $c.setVip(true);\nend");
         
-        System.out.println("Definitions Summary:");
-        System.out.println(definitionService.getDefinitionsSummary());
+        // Execute against stored definitions
+        String directResult = executionService.executeStoredDefinitionsWithJsonFacts(
+            "[{\"name\": \"Premium User\", \"vip\": false}, {\"name\": \"Regular User\", \"vip\": false}]", 
+            10);
+        System.out.println("Direct Execution Result:");
+        System.out.println(directResult);
     }
 }
