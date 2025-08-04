@@ -1,3 +1,5 @@
+package dev.langchain4j.agentic.example.examples;
+
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.anthropic.AnthropicChatModel;

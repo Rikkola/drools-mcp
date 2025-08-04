@@ -1,4 +1,4 @@
-package dev.langchain4j.agentic.example;
+package dev.langchain4j.agentic.example.services;
 
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
