@@ -36,16 +36,28 @@ public class DroolsAgent {
         String executeRequest(@V("request") String request);
     }
 
-    // Define a comprehensive Drools agent that combines both definition management and execution
-    public interface ComprehensiveDroolsAgent {
+    // Define the DRL validation agent
+    public interface DRLValidationAgent {
         @SystemMessage("""
-            You are a comprehensive Drools assistant that helps users with both rule definition management and execution.
-            You can store, retrieve, and organize DRL definitions, as well as execute rules with data and analyze results.
-            Use the appropriate tools based on what the user needs - definition management or rule execution.
-            Always provide helpful and detailed responses about both the definitions and execution results.
+            You are a Drools validation assistant that helps users validate their DRL code and definitions.
+            You can check DRL syntax, structure, and provide guidance on fixing validation issues.
+            Always provide clear feedback about validation results and helpful suggestions for improvement.
             """)
         @UserMessage("{{request}}")
-        @Agent("A comprehensive Drools management and execution agent")
+        @Agent("A DRL validation agent")
+        String validateRequest(@V("request") String request);
+    }
+
+    // Define a comprehensive Drools agent that combines definition management, execution, and validation
+    public interface ComprehensiveDroolsAgent {
+        @SystemMessage("""
+            You are a comprehensive Drools assistant that helps users with rule definition management, execution, and validation.
+            You can store, retrieve, and organize DRL definitions, execute rules with data, and validate DRL code structure.
+            Use the appropriate tools based on what the user needs - definition management, rule execution, or validation.
+            Always provide helpful and detailed responses about definitions, execution results, and validation feedback.
+            """)
+        @UserMessage("{{request}}")
+        @Agent("A comprehensive Drools management, execution, and validation agent")
         String handleRequest(@V("request") String request);
     }
 
@@ -62,6 +74,7 @@ public class DroolsAgent {
         DefinitionStorage sharedStorage = new DefinitionStorage();
         DefinitionStorageService definitionService = new DefinitionStorageService(sharedStorage);
         DRLExecutionToolService executionService = new DRLExecutionToolService(sharedStorage);
+        DRLValidationToolService validationService = new DRLValidationToolService(sharedStorage);
 
         // Build individual specialized agents
         DroolsDefinitionAgent definitionAgent = AgentServices.agentBuilder(DroolsDefinitionAgent.class)
@@ -74,36 +87,54 @@ public class DroolsAgent {
                 .tools(executionService)
                 .build();
 
-        // Build comprehensive agent with both definition and execution tools
+        DRLValidationAgent validationAgent = AgentServices.agentBuilder(DRLValidationAgent.class)
+                .chatModel(chatModel)
+                .tools(validationService)
+                .build();
+
+        // Build comprehensive agent with definition, execution, and validation tools
         ComprehensiveDroolsAgent comprehensiveAgent = AgentServices.agentBuilder(ComprehensiveDroolsAgent.class)
                 .chatModel(chatModel)
-                .tools(definitionService, executionService)
+                .tools(definitionService, executionService, validationService)
                 .build();
 
         // Example 1: Use comprehensive agent for complete workflow
         System.out.println("=== Comprehensive Agent Demo ===");
         String result1 = comprehensiveAgent.handleRequest("""
-            Create a Person type with name, age, and adult fields, then add a rule that sets adult=true for people over 18.
-            After that, execute it with JSON facts for John age 25 and Jane age 16.
+            Create a Person type with name, age, and adult fields, then validate and execute it with JSON facts for John age 25 and Jane age 16.
             """);
         System.out.println("Comprehensive Result:");
         System.out.println(result1);
 
-        // Example 2: Use specialized definition agent
-        System.out.println("\n=== Definition Agent Demo ===");
-        String result2 = definitionAgent.handleRequest("Add an Order type with id, amount, and discount fields");
-        System.out.println("Definition Result:");
+        // Example 2: Use specialized validation agent
+        System.out.println("\n=== Validation Agent Demo ===");
+        String result2 = validationAgent.validateRequest("""
+            Please validate this DRL code and provide guidance:
+            rule "adult check"
+            when
+                $p: Person(age > 18)
+            then
+                $p.setAdult(true);
+            end
+            """);
+        System.out.println("Validation Result:");
         System.out.println(result2);
 
-        // Example 3: Use specialized execution agent
+        // Example 3: Use specialized definition agent
+        System.out.println("\n=== Definition Agent Demo ===");
+        String result3 = definitionAgent.handleRequest("Add an Order type with id, amount, and discount fields");
+        System.out.println("Definition Result:");
+        System.out.println(result3);
+
+        // Example 4: Use specialized execution agent
         System.out.println("\n=== Execution Agent Demo ===");
-        String result3 = executionAgent.executeRequest("""
+        String result4 = executionAgent.executeRequest("""
             Execute this DRL code with JSON facts:
             DRL: rule "test" when then System.out.println("Hello Drools!"); end
             JSON: []
             """);
         System.out.println("Execution Result:");
-        System.out.println(result3);
+        System.out.println(result4);
 
         // Direct service demonstration
         System.out.println("\n=== Direct Service Demo ===");
@@ -114,11 +145,23 @@ public class DroolsAgent {
         sharedStorage.addDefinition("VIPRule", "rule", 
             "rule \"Mark VIP customers\"\nwhen\n    $c: Customer(name == \"Premium User\")\nthen\n    $c.setVip(true);\nend");
         
+        // Validate stored definitions
+        String validationResult = validationService.validateStoredDefinitions();
+        System.out.println("Direct Validation Result:");
+        System.out.println(validationResult);
+        
         // Execute against stored definitions
-        String directResult = executionService.executeStoredDefinitionsWithJsonFacts(
+        String executionResult = executionService.executeStoredDefinitionsWithJsonFacts(
             "[{\"name\": \"Premium User\", \"vip\": false}, {\"name\": \"Regular User\", \"vip\": false}]", 
             10);
         System.out.println("Direct Execution Result:");
-        System.out.println(directResult);
+        System.out.println(executionResult);
+        
+        // Validate a problematic DRL snippet
+        System.out.println("\n=== Validation Demo with Issues ===");
+        String problemValidation = validationService.validateWithGuidance(
+            "rule incomplete\nwhen\n    Person(age >\nthen\n    // missing end");
+        System.out.println("Problem Validation Result:");
+        System.out.println(problemValidation);
     }
 }
