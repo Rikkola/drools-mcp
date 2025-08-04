@@ -48,18 +48,6 @@ public class DroolsAgent {
         String validateRequest(@V("request") String request);
     }
 
-    // Define a comprehensive Drools agent that combines definition management, execution, and validation
-    public interface ComprehensiveDroolsAgent {
-        @SystemMessage("""
-            You are a comprehensive Drools assistant that helps users with rule definition management, execution, and validation.
-            You can store, retrieve, and organize DRL definitions, execute rules with data, and validate DRL code structure.
-            Use the appropriate tools based on what the user needs - definition management, rule execution, or validation.
-            Always provide helpful and detailed responses about definitions, execution results, and validation feedback.
-            """)
-        @UserMessage("{{request}}")
-        @Agent("A comprehensive Drools management, execution, and validation agent")
-        String handleRequest(@V("request") String request);
-    }
 
 
     public static void main(String[] args) {
@@ -92,18 +80,18 @@ public class DroolsAgent {
                 .tools(validationService)
                 .build();
 
-        // Build comprehensive agent with definition, execution, and validation tools
-        ComprehensiveDroolsAgent comprehensiveAgent = AgentServices.agentBuilder(ComprehensiveDroolsAgent.class)
+        // Build supervisor agent that coordinates the specialized agents
+        SupervisorAgent droolsSupervisorAgent = AgentServices.supervisorBuilder()
                 .chatModel(chatModel)
-                .tools(definitionService, executionService, validationService)
+                .subAgents(definitionAgent, executionAgent, validationAgent)
                 .build();
 
-        // Example 1: Use comprehensive agent for complete workflow
-        System.out.println("=== Comprehensive Agent Demo ===");
-        String result1 = comprehensiveAgent.handleRequest("""
+        // Example 1: Use supervisor agent for complete workflow
+        System.out.println("=== Supervisor Agent Demo ===");
+        String result1 = droolsSupervisorAgent.invoke("""
             Create a Person type with name, age, and adult fields, then validate and execute it with JSON facts for John age 25 and Jane age 16.
             """);
-        System.out.println("Comprehensive Result:");
+        System.out.println("Supervisor Result:");
         System.out.println(result1);
 
         // Example 2: Use specialized validation agent
