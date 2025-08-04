@@ -2,18 +2,12 @@ package dev.langchain4j.agentic.example;
 
 import dev.langchain4j.agentic.supervisor.SupervisorAgent;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.anthropic.AnthropicChatModel;
 import org.drools.storage.DefinitionStorage;
 
 public class DroolsAgentMain {
 
     public static void main(String[] args) {
-        ChatModel chatModel = AnthropicChatModel.builder()
-                .apiKey(System.getenv("ANTHROPIC_API_KEY"))
-                .modelName("claude-3-haiku-20240307")
-                .logRequests(true)
-                .logResponses(true)
-                .build();
+        ChatModel chatModel = ChatModels.DEFAULT_ANTHROPIC_MODEL;
 
         // Create the supervisor agent using DroolsAgent factory method
         SupervisorAgent droolsSupervisorAgent = DroolsAgent.createDroolsSupervisorAgent(chatModel);
