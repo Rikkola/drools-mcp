@@ -1,4 +1,4 @@
-package dev.langchain4j.agentic.example.agents;
+package org.drools.agentic.example.agents;
 
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.agentic.AgentServices;
@@ -7,9 +7,9 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
-import dev.langchain4j.agentic.example.services.DefinitionStorageService;
-import dev.langchain4j.agentic.example.services.DRLExecutionToolService;
-import dev.langchain4j.agentic.example.services.DRLValidationToolService;
+import org.drools.agentic.example.services.DefinitionStorageService;
+import org.drools.agentic.example.services.DRLExecutionToolService;
+import org.drools.agentic.example.services.DRLValidationToolService;
 import org.drools.storage.DefinitionStorage;
 
 public class DroolsAgent {

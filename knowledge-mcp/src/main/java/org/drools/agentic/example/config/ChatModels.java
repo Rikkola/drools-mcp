@@ -1,4 +1,4 @@
-package dev.langchain4j.agentic.example.config;
+package org.drools.agentic.example.config;
 
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.anthropic.AnthropicChatModel;

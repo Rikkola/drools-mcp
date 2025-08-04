@@ -1,4 +1,4 @@
-package dev.langchain4j.agentic.example.examples;
+package org.drools.agentic.example.examples;
 
 import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.data.message.SystemMessage;
