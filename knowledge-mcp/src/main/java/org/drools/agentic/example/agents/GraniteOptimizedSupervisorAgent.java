@@ -54,21 +54,30 @@ public class GraniteOptimizedSupervisorAgent {
     }
     
     /**
-     * Builds a Granite-optimized prompt with explicit instructions and examples.
+     * Builds a Granite-optimized prompt with explicit instructions and completion detection.
      */
     private String buildGraniteOptimizedPrompt(String request) {
         return String.format("""
-            🎯 IMPORTANT INSTRUCTIONS FOR GRANITE MODEL:
+            🎯 GRANITE MODEL INSTRUCTIONS:
             
-            You are helping with a Drools DRL task. You have ONE agent available: "handleRequest"
+            You are a supervisor coordinating ONE agent: "handleRequest"
             
-            🚨 CRITICAL RULES:
-            1. The ONLY valid agent name is: "handleRequest" 
+            🚨 CRITICAL AGENT RULES:
+            1. The ONLY valid agent names are: "handleRequest" and "done"
             2. DO NOT create new agent names like "createType", "generateCode", "validateRules"
             3. USE EXACTLY "handleRequest" - copy it exactly as written
             
-            ✅ CORRECT response format:
+            🚨 COMPLETION RULES:
+            1. If the agent returns DRL code that is validated and executed, respond with "done"
+            2. If the agent completes the user's request, respond with "done"  
+            3. Only call "handleRequest" ONCE per user request
+            4. After receiving a complete response with DRL code, use agentName "done"
+            
+            ✅ FIRST CALL FORMAT:
             {"agentName": "handleRequest", "arguments": {"request": "your request here"}}
+            
+            ✅ COMPLETION FORMAT:
+            {"agentName": "done", "arguments": {"response": "Task completed successfully"}}
             
             ❌ WRONG examples (DO NOT USE):
             - "createType" 
@@ -78,7 +87,7 @@ public class GraniteOptimizedSupervisorAgent {
             
             User's request: %s
             
-            Remember: Use "handleRequest" as the agent name!
+            Remember: Call "handleRequest" once, then "done" when complete!
             """, request);
     }
     
@@ -100,6 +109,14 @@ public class GraniteOptimizedSupervisorAgent {
               "agentName": "handleRequest",
               "arguments": {
                 "request": "%s"
+              }
+            }
+            
+            🚨 COMPLETION RULE: After "handleRequest" completes, use:
+            {
+              "agentName": "done",
+              "arguments": {
+                "response": "Task completed successfully"
               }
             }
             
@@ -130,7 +147,7 @@ public class GraniteOptimizedSupervisorAgent {
         String ultraExplicitRequest = String.format("""
             GRANITE MODEL ALERT: Previous attempt failed because you used wrong agent name.
             
-            📋 AVAILABLE AGENTS: handleRequest (ONLY THIS ONE EXISTS)
+            📋 AVAILABLE AGENTS: handleRequest, done
             
             🎯 YOUR TASK: Select "handleRequest" for this request: %s
             
@@ -139,6 +156,14 @@ public class GraniteOptimizedSupervisorAgent {
               "agentName": "handleRequest",
               "arguments": {
                 "request": "%s"
+              }
+            }
+            
+            🚨 COMPLETION: After "handleRequest" finishes, use "done":
+            {
+              "agentName": "done",
+              "arguments": {
+                "response": "Task completed successfully"
               }
             }
             

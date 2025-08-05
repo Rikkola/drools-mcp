@@ -127,6 +127,11 @@ public class DroolsAgentMain {
                     System.out.println("Using Granite3 MoE code generation model (granite3-moe:3b)");
                     return ChatModels.OLLAMA_GRANITE3_MOE_MODEL;
                     
+                case "--qwen":
+                case "--qwen-coder":
+                    System.out.println("Using Qwen2.5 Coder code generation model (qwen2.5-coder:14b)");
+                    return ChatModels.createOllamaModel("qwen2.5-coder:14b");
+                    
                 case "--ollama":
                 case "-o":
                     System.out.println("Using default Ollama code generation model (llama3.2:3b)");
@@ -166,8 +171,8 @@ public class DroolsAgentMain {
             }
         }
         
-        // Default: use Granite3 MoE model (best for code generation with tools)
-        System.out.println("Using default Granite3 MoE code generation model (granite3-moe:3b)");
-        return ChatModels.OLLAMA_GRANITE3_MOE_MODEL;
+        // Default: use Qwen2.5 Coder model (fast and supports tools)
+        System.out.println("Using default Qwen2.5 Coder code generation model (qwen2.5-coder:14b)");
+        return ChatModels.createOllamaModel("qwen2.5-coder:14b");
     }
 }
