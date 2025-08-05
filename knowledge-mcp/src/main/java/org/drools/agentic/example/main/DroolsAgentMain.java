@@ -3,6 +3,7 @@ package org.drools.agentic.example.main;
 import dev.langchain4j.agentic.supervisor.SupervisorAgent;
 import dev.langchain4j.model.chat.ChatModel;
 import org.drools.agentic.example.agents.DroolsAgent;
+import org.drools.agentic.example.agents.GraniteOptimizedSupervisorAgent;
 import org.drools.agentic.example.agents.DRLExecutionAgent;
 import org.drools.agentic.example.config.ChatModels;
 import org.drools.agentic.example.services.DefinitionStorageService;
@@ -13,13 +14,15 @@ import org.drools.storage.DefinitionStorage;
 public class DroolsAgentMain {
 
     public static void main(String[] args) {
-        // Choose model based on environment or preference
-        ChatModel chatModel = selectChatModel(args);
+        // Choose models based on environment or preference
+        ChatModel planningModel = selectPlanningModel(args);
+        ChatModel codeGenModel = selectCodeGenModel(args);
         
-        System.out.println("Using chat model: " + chatModel.getClass().getSimpleName());
+        System.out.println("Using planning model: " + planningModel.getClass().getSimpleName());
+        System.out.println("Using code generation model: " + codeGenModel.getClass().getSimpleName());
 
-        // Create the supervisor agent using DroolsAgent factory method
-        SupervisorAgent droolsSupervisorAgent = DroolsAgent.createDroolsSupervisorAgent(chatModel);
+        // Create the supervisor agent using DroolsAgent factory method with separate models
+        GraniteOptimizedSupervisorAgent droolsSupervisorAgent = DroolsAgent.createDroolsSupervisorAgent(planningModel, codeGenModel);
 
         // Example 1: Use supervisor agent for complete workflow
         System.out.println("=== Supervisor Agent Demo ===");
@@ -37,15 +40,25 @@ public class DroolsAgentMain {
     }
 
     /**
-     * Selects the appropriate ChatModel based on command line arguments or environment.
+     * Selects the appropriate planning ChatModel based on command line arguments or environment.
      * 
      * @param args Command line arguments
-     * @return Selected ChatModel
+     * @return Selected planning ChatModel
      */
-    private static ChatModel selectChatModel(String[] args) {
+    private static ChatModel selectPlanningModel(String[] args) {
         // Check command line arguments first
         for (String arg : args) {
+            if (arg.startsWith("--planning=")) {
+                String modelName = arg.substring("--planning=".length());
+                System.out.println("Using custom planning model: " + modelName);
+                return ChatModels.createOllamaModel(modelName);
+            }
             switch (arg.toLowerCase()) {
+                case "--granite":
+                case "-g":
+                    System.out.println("Using Granite planning model (granite-code:20b)");
+                    return ChatModels.OLLAMA_GRANITE_MODEL;
+                    
                 case "--ollama":
                 case "-o":
                     System.out.println("Using default Ollama model (llama3.2:3b)");
@@ -85,8 +98,76 @@ public class DroolsAgentMain {
             }
         }
         
-        // Default: use environment-based selection
-        System.out.println("Using environment-based model selection");
-        return ChatModels.createFromEnvironment();
+        // Default: use Granite code model (best for planning)
+        System.out.println("Using default Granite planning model (granite-code:20b)");
+        return ChatModels.OLLAMA_GRANITE_MODEL;
+    }
+
+    /**
+     * Selects the appropriate code generation ChatModel based on command line arguments or environment.
+     * 
+     * @param args Command line arguments
+     * @return Selected code generation ChatModel
+     */
+    private static ChatModel selectCodeGenModel(String[] args) {
+        // Check command line arguments first
+        for (String arg : args) {
+            if (arg.startsWith("--codegen=")) {
+                String modelName = arg.substring("--codegen=".length());
+                System.out.println("Using custom code generation model: " + modelName);
+                return ChatModels.createOllamaModel(modelName);
+            }
+            switch (arg.toLowerCase()) {
+                case "--granite3-moe":
+                    System.out.println("Using Granite3 MoE code generation model (granite3-moe:3b)");
+                    return ChatModels.OLLAMA_GRANITE3_MOE_MODEL;
+                    
+                case "--granite":
+                case "-g":
+                    System.out.println("Using Granite3 MoE code generation model (granite3-moe:3b)");
+                    return ChatModels.OLLAMA_GRANITE3_MOE_MODEL;
+                    
+                case "--ollama":
+                case "-o":
+                    System.out.println("Using default Ollama code generation model (llama3.2:3b)");
+                    return ChatModels.DEFAULT_OLLAMA_MODEL;
+                    
+                case "--ollama-8b":
+                    System.out.println("Using Ollama Llama 8B code generation model");
+                    return ChatModels.OLLAMA_LLAMA_8B_MODEL;
+                    
+                case "--codellama":
+                    System.out.println("Using Ollama CodeLlama code generation model");
+                    return ChatModels.OLLAMA_CODELLAMA_MODEL;
+                    
+                case "--anthropic":
+                case "-a":
+                    System.out.println("Using Anthropic Claude code generation model");
+                    return ChatModels.DEFAULT_ANTHROPIC_MODEL;
+                    
+                case "--auto":
+                    System.out.println("Auto-selecting code generation model from environment");
+                    return ChatModels.createFromEnvironment();
+            }
+        }
+        
+        // Check for model-specific arguments
+        for (int i = 0; i < args.length - 1; i++) {
+            if ("--ollama-model".equals(args[i])) {
+                String modelName = args[i + 1];
+                System.out.println("Using custom Ollama code generation model: " + modelName);
+                return ChatModels.createOllamaModel(modelName);
+            }
+            if ("--ollama-url".equals(args[i])) {
+                String baseUrl = args[i + 1];
+                String modelName = (i + 2 < args.length) ? args[i + 2] : "granite3-moe:3b";
+                System.out.println("Using Ollama at " + baseUrl + " for code generation with model: " + modelName);
+                return ChatModels.createOllamaModel(baseUrl, modelName);
+            }
+        }
+        
+        // Default: use Granite3 MoE model (best for code generation with tools)
+        System.out.println("Using default Granite3 MoE code generation model (granite3-moe:3b)");
+        return ChatModels.OLLAMA_GRANITE3_MOE_MODEL;
     }
 }

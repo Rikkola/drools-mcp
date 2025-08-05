@@ -39,6 +39,8 @@ import java.time.Duration;
  * 
  * <h3>Command Line Usage:</h3>
  * <pre>
+ * java DroolsAgentMain                   # Use default Granite model (granite-code:20b)
+ * java DroolsAgentMain --granite         # Use Granite code model (default)
  * java DroolsAgentMain --ollama          # Use default Ollama (llama3.2:3b)
  * java DroolsAgentMain --ollama-8b       # Use Llama 8B model
  * java DroolsAgentMain --codellama       # Use CodeLlama model
@@ -97,6 +99,32 @@ public class ChatModels {
             .baseUrl(DEFAULT_OLLAMA_BASE_URL)
             .modelName("codellama:13b")
             .timeout(Duration.ofMinutes(3)) // Longer timeout for complex code tasks
+            .logRequests(true)
+            .logResponses(true)
+            .build();
+
+    /**
+     * High-performance local Ollama model using granite-code:20b.
+     * IBM's Granite code model optimized for planning and coordination tasks.
+     * Good for supervisor agents but doesn't support tools.
+     */
+    public static final ChatModel OLLAMA_GRANITE_MODEL = OllamaChatModel.builder()
+            .baseUrl(DEFAULT_OLLAMA_BASE_URL)
+            .modelName("granite-code:20b")
+            .timeout(Duration.ofMinutes(5)) // Longer timeout for large model
+            .logRequests(true)
+            .logResponses(true)
+            .build();
+
+    /**
+     * High-performance local Ollama model using granite3-moe:3b.
+     * IBM's Granite3 MoE model optimized for code generation and tool usage.
+     * Supports tools and excellent for DRL authoring tasks.
+     */
+    public static final ChatModel OLLAMA_GRANITE3_MOE_MODEL = OllamaChatModel.builder()
+            .baseUrl(DEFAULT_OLLAMA_BASE_URL)
+            .modelName("granite3-moe:3b")
+            .timeout(Duration.ofMinutes(3))
             .logRequests(true)
             .logResponses(true)
             .build();

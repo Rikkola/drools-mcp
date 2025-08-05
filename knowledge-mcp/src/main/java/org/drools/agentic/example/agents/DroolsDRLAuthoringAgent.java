@@ -6,6 +6,7 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
+import org.drools.agentic.example.config.ChatModels;
 import org.drools.agentic.example.services.SimpleDRLExecutionToolService;
 import org.drools.agentic.example.services.SimpleDRLValidationToolService;
 
@@ -30,7 +31,7 @@ public interface DroolsDRLAuthoringAgent {
     /**
      * Creates a DroolsDRLAuthoringAgent with simple validation and execution tools.
      * 
-     * @param chatModel The chat model to use for the agent
+     * @param chatModel The chat model to use for the agent (must support tools)
      * @return A configured DroolsDRLAuthoringAgent with validation and execution tools
      */
     static DroolsDRLAuthoringAgent create(ChatModel chatModel) {
