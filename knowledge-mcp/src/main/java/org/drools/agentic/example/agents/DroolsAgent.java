@@ -8,49 +8,27 @@ import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import org.drools.agentic.example.services.DefinitionStorageService;
-import org.drools.agentic.example.services.DRLExecutionToolService;
-import org.drools.agentic.example.services.DRLValidationToolService;
+import org.drools.agentic.example.services.SimpleDRLValidationToolService;
+import org.drools.agentic.example.services.SimpleDRLExecutionToolService;
 import org.drools.storage.DefinitionStorage;
 
 public class DroolsAgent {
 
-    // Define the Drools definition management agent
-    public interface DroolsDefinitionAgent {
+    public interface DroolsDRLAuthoringAgent {
         @SystemMessage("""
-            You are a Drools definition management assistant that helps users manage their DRL definitions.
-            You can store, retrieve, organize, and generate DRL code from declared types, functions, globals, and other Drools definitions.
-            Always provide helpful responses and use the available tools to perform the requested operations.
+            You are a Drools DRL language authoring agent.
+            You can generate DRL code like declared types, functions, globals, rules, and other Drools definition elements.
+    
+            Input you get is natural language text that contains constraints, conditions and resolutions.
+            Output you give is the given text presented in DRL format.
+
+            Before output can be returned. It needs to be validated with the validator tool and tested with generated data using the execution tool. The data will be discarded after the use.
+
             """)
         @UserMessage("{{request}}")
-        @Agent("A Drools definition management agent")
+        @Agent("A Drools DRL authoring agent")
         String handleRequest(@V("request") String request);
     }
-
-    // Define the DRL execution agent
-    public interface DRLExecutionAgent {
-        @SystemMessage("""
-            You are a Drools rule execution assistant that helps users execute DRL rules and analyze results.
-            You can execute DRL code with JSON facts, run stored definitions against data, and analyze execution results.
-            Always provide clear feedback about rule execution including facts processed and working memory contents.
-            """)
-        @UserMessage("{{request}}")
-        @Agent("A DRL execution agent")
-        String executeRequest(@V("request") String request);
-    }
-
-    // Define the DRL validation agent
-    public interface DRLValidationAgent {
-        @SystemMessage("""
-            You are a Drools validation assistant that helps users validate their DRL code and definitions.
-            You can check DRL syntax, structure, and provide guidance on fixing validation issues.
-            Always provide clear feedback about validation results and helpful suggestions for improvement.
-            """)
-        @UserMessage("{{request}}")
-        @Agent("A DRL validation agent")
-        String validateRequest(@V("request") String request);
-    }
-
-
 
     /**
      * Creates and returns a SupervisorAgent that coordinates all Drools agents.
@@ -62,29 +40,19 @@ public class DroolsAgent {
         // Create shared storage and service instances
         DefinitionStorage sharedStorage = new DefinitionStorage();
         DefinitionStorageService definitionService = new DefinitionStorageService(sharedStorage);
-        DRLExecutionToolService executionService = new DRLExecutionToolService(sharedStorage);
-        DRLValidationToolService validationService = new DRLValidationToolService(sharedStorage);
+        SimpleDRLValidationToolService validationService = new SimpleDRLValidationToolService();
+        SimpleDRLExecutionToolService executionService = new SimpleDRLExecutionToolService();
 
         // Build individual specialized agents
-        DroolsDefinitionAgent definitionAgent = AgenticServices.agentBuilder(DroolsDefinitionAgent.class)
+        DroolsDRLAuthoringAgent authoringAgent = AgenticServices.agentBuilder(DroolsDRLAuthoringAgent.class)
                 .chatModel(chatModel)
-                .tools(definitionService)
-                .build();
-
-        DRLExecutionAgent executionAgent = AgenticServices.agentBuilder(DRLExecutionAgent.class)
-                .chatModel(chatModel)
-                .tools(executionService)
-                .build();
-
-        DRLValidationAgent validationAgent = AgenticServices.agentBuilder(DRLValidationAgent.class)
-                .chatModel(chatModel)
-                .tools(validationService)
+                .tools(validationService, executionService)
                 .build();
 
         // Build and return supervisor agent that coordinates the specialized agents
         return AgenticServices.supervisorBuilder()
                 .chatModel(chatModel)
-                .subAgents(definitionAgent, executionAgent, validationAgent)
+                .subAgents(authoringAgent)
                 .build();
     }
 }

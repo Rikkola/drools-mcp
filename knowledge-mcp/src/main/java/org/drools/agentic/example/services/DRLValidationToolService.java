@@ -12,73 +12,7 @@ import org.drools.storage.DefinitionStorage;
  */
 public class DRLValidationToolService {
     private final DRLValidationService validationService = new DRLValidationService();
-    private final DefinitionManagementService definitionService;
 
-    public DRLValidationToolService(DefinitionStorage storage) {
-        this.definitionService = new DefinitionManagementService(storage);
-    }
-
-    @Tool("Validate DRL code structure and syntax")
-    public String validateDRLCode(@P("DRL code to validate") String drlCode) {
-        try {
-            String result = validationService.validateDRLStructure(drlCode);
-            
-            StringBuilder response = new StringBuilder();
-            response.append("DRL Validation Results:\n");
-            response.append("======================\n");
-            
-            if ("Code looks good".equals(result)) {
-                response.append("✅ Validation PASSED: The DRL code structure is valid.\n");
-                response.append("No syntax errors or structural issues detected.\n");
-            } else {
-                response.append("⚠️  Validation NOTES/WARNINGS:\n");
-                response.append(result).append("\n");
-                response.append("\nNote: These are validation notes, not necessarily errors.\n");
-            }
-            
-            return response.toString();
-        } catch (Exception e) {
-            return String.format("❌ Validation FAILED: %s\n\nPlease check your DRL syntax and structure.", e.getMessage());
-        }
-    }
-
-    @Tool("Validate stored DRL definitions")
-    public String validateStoredDefinitions() {
-        try {
-            if (definitionService.getDefinitionCount() == 0) {
-                return "No definitions stored to validate. Please add some definitions first.";
-            }
-
-            StringBuilder response = new StringBuilder();
-            response.append(String.format("Validating %d stored definitions:\n", definitionService.getDefinitionCount()));
-            response.append("=====================================\n\n");
-
-            // Generate complete DRL from stored definitions
-            String completeDRL = definitionService.generateDRLFromDefinitions("org.drools.validation");
-            
-            // Validate the complete DRL
-            String validationResult = validationService.validateDRLStructure(completeDRL);
-            
-            response.append("Generated DRL:\n");
-            response.append("-------------\n");
-            response.append(completeDRL).append("\n\n");
-            
-            response.append("Validation Results:\n");
-            response.append("------------------\n");
-            
-            if ("Code looks good".equals(validationResult)) {
-                response.append("✅ All stored definitions are valid!\n");
-                response.append("The combined DRL structure is correct and ready for execution.\n");
-            } else {
-                response.append("⚠️  Validation notes for stored definitions:\n");
-                response.append(validationResult).append("\n");
-            }
-            
-            return response.toString();
-        } catch (Exception e) {
-            return String.format("❌ Validation of stored definitions failed: %s", e.getMessage());
-        }
-    }
 
     @Tool("Validate DRL code and provide syntax guidance")
     public String validateWithGuidance(@P("DRL code to validate") String drlCode) {
@@ -132,24 +66,4 @@ public class DRLValidationToolService {
         }
     }
 
-    @Tool("Quick syntax check for DRL code snippet")
-    public String quickSyntaxCheck(@P("DRL code snippet to check") String drlCode) {
-        try {
-            // Add basic package declaration if missing for validation
-            String codeToValidate = drlCode;
-            if (!drlCode.trim().startsWith("package")) {
-                codeToValidate = "package org.drools.quickcheck;\n\n" + drlCode;
-            }
-            
-            String result = validationService.validateDRLStructure(codeToValidate);
-            
-            if ("Code looks good".equals(result)) {
-                return "✅ Quick Check PASSED - DRL syntax looks correct";
-            } else {
-                return String.format("⚠️  Quick Check NOTES: %s", result);
-            }
-        } catch (Exception e) {
-            return String.format("❌ Quick Check FAILED: %s", e.getMessage());
-        }
-    }
 }
