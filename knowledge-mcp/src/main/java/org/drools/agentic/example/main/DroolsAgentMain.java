@@ -43,17 +43,17 @@ public class DroolsAgentMain {
         DRLValidationToolService validationService = new DRLValidationToolService(sharedStorage);
 
         // Build individual specialized agents
-        DroolsAgent.DroolsDefinitionAgent definitionAgent = dev.langchain4j.agentic.AgentServices.agentBuilder(DroolsAgent.DroolsDefinitionAgent.class)
+        DroolsAgent.DroolsDefinitionAgent definitionAgent = dev.langchain4j.agentic.AgenticServices.agentBuilder(DroolsAgent.DroolsDefinitionAgent.class)
                 .chatModel(chatModel)
                 .tools(definitionService)
                 .build();
 
-        DroolsAgent.DRLExecutionAgent executionAgent = dev.langchain4j.agentic.AgentServices.agentBuilder(DroolsAgent.DRLExecutionAgent.class)
+        DroolsAgent.DRLExecutionAgent executionAgent = dev.langchain4j.agentic.AgenticServices.agentBuilder(DroolsAgent.DRLExecutionAgent.class)
                 .chatModel(chatModel)
                 .tools(executionService)
                 .build();
 
-        DroolsAgent.DRLValidationAgent validationAgent = dev.langchain4j.agentic.AgentServices.agentBuilder(DroolsAgent.DRLValidationAgent.class)
+        DroolsAgent.DRLValidationAgent validationAgent = dev.langchain4j.agentic.AgenticServices.agentBuilder(DroolsAgent.DRLValidationAgent.class)
                 .chatModel(chatModel)
                 .tools(validationService)
                 .build();

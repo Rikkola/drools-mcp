@@ -1,7 +1,7 @@
 package org.drools.agentic.example.agents;
 
 import dev.langchain4j.agentic.Agent;
-import dev.langchain4j.agentic.AgentServices;
+import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.agentic.supervisor.SupervisorAgent;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.SystemMessage;
@@ -66,23 +66,23 @@ public class DroolsAgent {
         DRLValidationToolService validationService = new DRLValidationToolService(sharedStorage);
 
         // Build individual specialized agents
-        DroolsDefinitionAgent definitionAgent = AgentServices.agentBuilder(DroolsDefinitionAgent.class)
+        DroolsDefinitionAgent definitionAgent = AgenticServices.agentBuilder(DroolsDefinitionAgent.class)
                 .chatModel(chatModel)
                 .tools(definitionService)
                 .build();
 
-        DRLExecutionAgent executionAgent = AgentServices.agentBuilder(DRLExecutionAgent.class)
+        DRLExecutionAgent executionAgent = AgenticServices.agentBuilder(DRLExecutionAgent.class)
                 .chatModel(chatModel)
                 .tools(executionService)
                 .build();
 
-        DRLValidationAgent validationAgent = AgentServices.agentBuilder(DRLValidationAgent.class)
+        DRLValidationAgent validationAgent = AgenticServices.agentBuilder(DRLValidationAgent.class)
                 .chatModel(chatModel)
                 .tools(validationService)
                 .build();
 
         // Build and return supervisor agent that coordinates the specialized agents
-        return AgentServices.supervisorBuilder()
+        return AgenticServices.supervisorBuilder()
                 .chatModel(chatModel)
                 .subAgents(definitionAgent, executionAgent, validationAgent)
                 .build();
