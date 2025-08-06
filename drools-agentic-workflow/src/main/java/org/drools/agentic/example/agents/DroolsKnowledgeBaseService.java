@@ -52,15 +52,16 @@ public class DroolsKnowledgeBaseService {
             }
             
             String drlContent = Files.readString(filePath);
-            return buildKnowledgeBaseFromContent(drlContent, "main-kb");
+            return buildKnowledgeBaseFromContent(drlContent);
             
         } catch (IOException e) {
             return "❌ Error reading DRL file " + filename + ": " + e.getMessage();
         }
     }
     
-    private String buildKnowledgeBaseFromContent( String drlContent ) {
+    private String buildKnowledgeBaseFromContent(String drlContent) {
         try {
+            String name = "main-kb";
             
             // Previous knowledge base will be disposed by shared storage
             

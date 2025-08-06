@@ -22,7 +22,7 @@
     <modules>
         <module>drools-builder-core</module>
         <module>drools-builder-mcp</module>
-        <module>knowledge-mcp</module>
+        <module>drools-agentic-workflow</module>
     </modules>
 
     <dependencyManagement>
