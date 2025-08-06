@@ -18,12 +18,14 @@ public class MainAgent {
 
 
     public UntypedAgent createAgentWorkflow(ChatModel planningModel, ChatModel codeGenModel) {
+        // Use the factory method that includes tools
         var droolsAuthoringAgent = DroolsDRLAuthoringAgent.create(codeGenModel);
         var fileStorageAgent = FileStorageAgentInterface.create(codeGenModel);
 
         UntypedAgent agentWorkflow = AgenticServices
                 .sequenceBuilder()
                 .subAgents(droolsAuthoringAgent, fileStorageAgent)
+                .outputName("result")
                 .build();
 
         return agentWorkflow;

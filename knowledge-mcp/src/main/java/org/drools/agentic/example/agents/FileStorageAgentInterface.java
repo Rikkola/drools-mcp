@@ -21,10 +21,12 @@ public interface FileStorageAgentInterface {
         
         When users ask you to save or store content, use the appropriate file operations.
         When they ask about file contents or directory listings, read and provide the information.
+        
+        Always use the writeFile tool to actually save content to files - do not just return JSON descriptions.
         """)
-    @UserMessage("{{request}}")
+    @UserMessage("Process this request: {{it}}")
     @Agent("A file storage agent for file operations")
-    String handleRequest(@V("request") String request);
+    String handleRequest(String request);
 
     /**
      * Factory method to create a FileStorageAgentInterface with the provided chat model.
