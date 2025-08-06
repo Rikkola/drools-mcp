@@ -2,10 +2,10 @@ package org.drools.agentic.example.main;
 
 import dev.langchain4j.model.chat.ChatModel;
 import org.drools.agentic.example.config.ChatModels;
-import org.drools.agentic.example.workflows.MainWorkflow;
+import org.drools.agentic.example.workflows.DroolsWorkflowOrchestrator;
 import java.util.Map;
 
-public class MainWorkflowRunner {
+public class DroolsWorkflowOrchestratorRunner {
 
     public static void main(String[] args) {
         // Choose models based on environment or preference
@@ -15,19 +15,19 @@ public class MainWorkflowRunner {
         System.out.println("Using planning model: " + planningModel.getClass().getSimpleName());
         System.out.println("Using code generation model: " + codeGenModel.getClass().getSimpleName());
 
-        // Create the MainWorkflow instance
-        MainWorkflow mainWorkflow = new MainWorkflow();
+        // Create the DroolsWorkflowOrchestrator instance
+        DroolsWorkflowOrchestrator droolsWorkflowOrchestrator = new DroolsWorkflowOrchestrator();
         
         // Example: Create agent workflow and invoke with demo request
-        System.out.println("=== MainWorkflow Demo ===");
-        var agentWorkflow = mainWorkflow.createAgentWorkflow(planningModel, codeGenModel);
+        System.out.println("=== DroolsWorkflowOrchestrator Demo ===");
+        var agentWorkflow = droolsWorkflowOrchestrator.createAgentWorkflow(planningModel, codeGenModel);
         
         Map<String, Object> input = Map.of(
             "request", "Create a simple Person DRL rule with fields name, age, and adult, then save it to a file called person-rules.drl"
         );
         
         Object result = agentWorkflow.invoke(input);
-        System.out.println("MainWorkflow Result:");
+        System.out.println("DroolsWorkflowOrchestrator Result:");
         System.out.println(result);
     }
 

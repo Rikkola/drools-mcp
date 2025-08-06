@@ -5,7 +5,7 @@ A Quarkus-based MCP (Model Context Protocol) server that provides AI assistants 
 ## Features
 
 ### 🤖 AI-Powered Rule Development
-- **improveKnowledgeBase**: Uses MainWorkflow multi-agent system to autonomously create and modify Drools rules
+- **improveKnowledgeBase**: Uses DroolsWorkflowOrchestrator multi-agent system to autonomously create and modify Drools rules
 - Integrates DRL authoring, file storage, and knowledge base management agents
 - Supports Ollama models (Granite, Granite3-MoE) for planning and code generation
 
@@ -27,7 +27,7 @@ A Quarkus-based MCP (Model Context Protocol) server that provides AI assistants 
 
 ## Architecture
 
-- **MainWorkflow**: Multi-agent orchestration system
+- **DroolsWorkflowOrchestrator**: Multi-agent orchestration system
   - DRL Authoring Agent: Generates and validates DRL code
   - File Storage Agent: Manages file operations
   - Knowledge Base Agent: Handles knowledge base building and management

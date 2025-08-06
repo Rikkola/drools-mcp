@@ -15,7 +15,7 @@ import org.drools.agentic.example.agents.DroolsKnowledgeBaseAgent;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.agentic.UntypedAgent;
 
-public class MainWorkflow {
+public class DroolsWorkflowOrchestrator {
 
 
     public UntypedAgent createAgentWorkflow(ChatModel planningModel, ChatModel codeGenModel) {

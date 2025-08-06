@@ -6,7 +6,7 @@ import org.drools.exception.DefinitionNotFoundException;
 import org.drools.exception.DRLExecutionException;
 import org.drools.exception.DRLValidationException;
 import org.drools.model.JsonResponseBuilder;
-import org.drools.agentic.example.workflows.MainWorkflow;
+import org.drools.agentic.example.workflows.DroolsWorkflowOrchestrator;
 import org.drools.agentic.example.config.ChatModels;
 import org.drools.agentic.example.services.execution.KnowledgeRunnerService;
 import dev.langchain4j.agentic.UntypedAgent;
@@ -19,11 +19,11 @@ import java.util.Map;
 @ApplicationScoped
 public class DroolsAgenticTool {
 
-    private final MainWorkflow mainWorkflow;
+    private final DroolsWorkflowOrchestrator droolsWorkflowOrchestrator;
     private final KnowledgeRunnerService knowledgeRunnerService;
 
     public DroolsAgenticTool() {
-        this.mainWorkflow = new MainWorkflow();
+        this.droolsWorkflowOrchestrator = new DroolsWorkflowOrchestrator();
         this.knowledgeRunnerService = new KnowledgeRunnerService();
     }
 
@@ -31,7 +31,7 @@ public class DroolsAgenticTool {
     public String improveKnowledgeBase(@ToolArg(description = "Requirements for improving the knowledge base") String requirements) {
         try {
             // Create agent workflow with default chat models
-            UntypedAgent agentWorkflow = mainWorkflow.createAgentWorkflow(
+            UntypedAgent agentWorkflow = droolsWorkflowOrchestrator.createAgentWorkflow(
                 ChatModels.OLLAMA_GRANITE_MODEL, 
                 ChatModels.OLLAMA_GRANITE3_MOE_MODEL
             );
