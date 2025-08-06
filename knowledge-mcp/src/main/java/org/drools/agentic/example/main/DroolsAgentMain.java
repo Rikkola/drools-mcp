@@ -32,11 +32,6 @@ public class DroolsAgentMain {
         System.out.println("Supervisor Result:");
         System.out.println(result1);
 
-        // Create individual agents for demonstration (alternative approach)
-        //XXX Maybe do this // demonstrateIndividualAgents(chatModel);
-        
-        // Demonstrate direct service usage
-        //XXX Maybe do this // demonstrateDirectServices();
     }
 
     /**
