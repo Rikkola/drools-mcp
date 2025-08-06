@@ -32,6 +32,11 @@ A Quarkus-based MCP (Model Context Protocol) server that provides AI assistants 
 | Prompt | Description | Parameters |
 |--------|-------------|------------|
 | `businessLogicSpecificationGuide` | Generate comprehensive guide for creating business logic specifications | `domain` (business domain/use case) |
+| `jsonFactsGuide` | Generate properly formatted JSON facts for rule execution with examples | `entityTypes` (domain entities to create facts for) |
+| `batchExecutionGuide` | Generate batch execution scenarios for comprehensive testing | `scenario` (testing scenario/use case) |
+| `knowledgeBaseStatusGuide` | Guide for interpreting status output and troubleshooting issues | none |
+| `sessionManagementGuide` | Guide for session management and fact lifecycle best practices | none |
+| `workflowGuide` | Generate complete end-to-end workflow examples from specification to execution | `workflowType` (business process type) |
 
 ## Architecture
 
