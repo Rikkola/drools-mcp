@@ -8,16 +8,24 @@ import dev.langchain4j.model.anthropic.AnthropicTokenUsage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import org.drools.agentic.example.config.ChatModels;
+import org.drools.agentic.example.agents.DroolsAgent;
+import org.drools.agentic.example.agents.FileStorageAgentInterface;
+import org.drools.agentic.example.agents.DroolsDRLAuthoringAgent;
+import dev.langchain4j.agentic.AgenticServices;
+import dev.langchain4j.agentic.UntypedAgent;
 
 public class MainAgent {
 
-    ChatModel model = ChatModels.createFromEnvironment();
 
-    public String requests () {
-        String answer = model.chat("What is the capital of Germany?");
+    public UntypedAgent createAgentWorkflow(ChatModel planningModel, ChatModel codeGenModel) {
+        var droolsAuthoringAgent = DroolsDRLAuthoringAgent.create(codeGenModel);
+        var fileStorageAgent = FileStorageAgentInterface.create(codeGenModel);
 
-        return answer;
+        UntypedAgent agentWorkflow = AgenticServices
+                .sequenceBuilder()
+                .subAgents(droolsAuthoringAgent, fileStorageAgent)
+                .build();
+
+        return agentWorkflow;
     }
 }
-
-

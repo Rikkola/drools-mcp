@@ -6,44 +6,44 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Granite-optimized wrapper for SupervisorAgent that provides enhanced prompting
- * and error handling specifically designed for Granite code models.
+ * Drools supervisor agent that provides enhanced prompting and error handling
+ * specifically designed for working with Drools DRL code generation.
  * 
- * This wrapper addresses issues where Granite models tend to hallucinate agent names
- * instead of using the provided ones from the agent list.
+ * This wrapper addresses issues with agent coordination and provides robust
+ * error handling for DRL authoring tasks.
  */
-public class GraniteOptimizedSupervisorAgent {
+public class DroolsSupervisorAgent {
     private final SupervisorAgent delegate;
     private static final int MAX_RETRIES = 2;
     
     // Pattern to extract the user request from error scenarios
     private static final Pattern REQUEST_PATTERN = Pattern.compile("Create a ([^.]+)\\.");
     
-    public GraniteOptimizedSupervisorAgent(SupervisorAgent delegate) {
+    public DroolsSupervisorAgent(SupervisorAgent delegate) {
         this.delegate = delegate;
     }
     
     /**
-     * Invokes the supervisor with Granite-optimized prompting and retry logic.
+     * Invokes the supervisor with Drools-optimized prompting and retry logic.
      * 
      * @param request The user request
      * @return The supervisor's response
      */
     public String invoke(String request) {
         // First attempt with enhanced prompting
-        String enhancedRequest = buildGraniteOptimizedPrompt(request);
+        String enhancedRequest = buildDroolsOptimizedPrompt(request);
         
         try {
             return delegate.invoke(enhancedRequest);
         } catch (Exception e) {
-            System.err.println("⚠️  First attempt failed with Granite model: " + e.getMessage());
+            System.err.println("⚠️  First attempt failed: " + e.getMessage());
             
             // Check if it's an invalid agent name error
             if (e.getMessage().contains("No agent found with name:")) {
                 return retryWithExplicitPrompt(request);
             }
             
-            // Check if it's a JSON parsing error (common with Granite)
+            // Check if it's a JSON parsing error
             if (e.getMessage().contains("Failed to parse") && e.getMessage().contains("into")) {
                 return retryWithJsonFixPrompt(request);
             }
@@ -54,11 +54,11 @@ public class GraniteOptimizedSupervisorAgent {
     }
     
     /**
-     * Builds a Granite-optimized prompt with explicit instructions and completion detection.
+     * Builds a Drools-optimized prompt with explicit instructions and completion detection.
      */
-    private String buildGraniteOptimizedPrompt(String request) {
+    private String buildDroolsOptimizedPrompt(String request) {
         return String.format("""
-            🎯 GRANITE MODEL INSTRUCTIONS:
+            🎯 DROOLS SUPERVISOR INSTRUCTIONS:
             
             You are a supervisor coordinating ONE agent: "handleRequest"
             
@@ -92,13 +92,13 @@ public class GraniteOptimizedSupervisorAgent {
     }
     
     /**
-     * Retry mechanism for JSON formatting issues common with Granite models.
+     * Retry mechanism for JSON formatting issues.
      */
     private String retryWithJsonFixPrompt(String request) {
-        System.out.println("🔧 Retrying with JSON format correction for Granite...");
+        System.out.println("🔧 Retrying with JSON format correction...");
         
         String jsonFixRequest = String.format("""
-            GRANITE MODEL - JSON FORMAT ERROR DETECTED
+            DROOLS SUPERVISOR - JSON FORMAT ERROR DETECTED
             
             📋 TASK: Select "handleRequest" for this request: %s
             
@@ -142,10 +142,10 @@ public class GraniteOptimizedSupervisorAgent {
      * Retry mechanism with even more explicit prompting when the first attempt fails.
      */
     private String retryWithExplicitPrompt(String request) {
-        System.out.println("🔄 Retrying with explicit Granite prompting...");
+        System.out.println("🔄 Retrying with explicit prompting...");
         
         String ultraExplicitRequest = String.format("""
-            GRANITE MODEL ALERT: Previous attempt failed because you used wrong agent name.
+            DROOLS SUPERVISOR ALERT: Previous attempt failed because you used wrong agent name.
             
             📋 AVAILABLE AGENTS: handleRequest, done
             
@@ -219,9 +219,9 @@ public class GraniteOptimizedSupervisorAgent {
     }
     
     /**
-     * Factory method to create a Granite-optimized supervisor agent.
+     * Factory method to create a Drools supervisor agent.
      */
-    public static GraniteOptimizedSupervisorAgent create(SupervisorAgent supervisor) {
-        return new GraniteOptimizedSupervisorAgent(supervisor);
+    public static DroolsSupervisorAgent create(SupervisorAgent supervisor) {
+        return new DroolsSupervisorAgent(supervisor);
     }
 }
