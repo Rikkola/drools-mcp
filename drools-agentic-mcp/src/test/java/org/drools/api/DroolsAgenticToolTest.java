@@ -17,9 +17,15 @@ public class DroolsAgenticToolTest {
     }
 
     @Test 
-    public void testImproveKnowledgeBase_BasicRequirements() {
+    public void testImproveKnowledgeBase_BasicSpecification() {
         // This test might fail due to model requirements, but should not crash
-        String result = droolsAgenticTool.improveKnowledgeBase("Create a simple Person rule");
+        String specification = """
+            Domain Model: Person entity with name (string) and age (integer) attributes.
+            Business Rules: Classify persons as adult if age >= 18, minor otherwise.
+            Constraints: Age must be non-negative. Name cannot be empty.
+            Example: Person(name="John", age=25) should be classified as adult.
+            """;
+        String result = droolsAgenticTool.improveKnowledgeBase(specification);
         
         // Should return a valid JSON response even if it fails
         assertNotNull(result);

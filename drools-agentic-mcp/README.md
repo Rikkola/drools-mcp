@@ -4,8 +4,10 @@ A Quarkus-based MCP (Model Context Protocol) server that provides AI assistants 
 
 ## Features
 
-### 🤖 AI-Powered Rule Development
-- **improveKnowledgeBase**: Uses DroolsWorkflowOrchestrator multi-agent system to autonomously create and modify Drools rules
+### 🤖 AI-Powered Business Logic Development
+- **improveKnowledgeBase**: Analyzes comprehensive domain specifications and implements sophisticated decision-making logic
+- Takes detailed requirements including domain models, constraints, examples, and business rules
+- Uses DroolsWorkflowOrchestrator multi-agent system for autonomous implementation
 - Integrates DRL authoring, file storage, and knowledge base management agents
 - Supports Ollama models (Granite, Granite3-MoE) for planning and code generation
 
@@ -19,11 +21,17 @@ A Quarkus-based MCP (Model Context Protocol) server that provides AI assistants 
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
-| `improveKnowledgeBase` | Create/modify rules using AI agents | `requirements` (string) |
+| `improveKnowledgeBase` | Implement business logic from detailed specifications | `specification` (comprehensive design document) |
 | `executeRules` | Execute rules with JSON facts | `jsonFacts` (string), `maxActivations` (int) |
 | `executeBatch` | Batch execute with multiple fact sets | `jsonFactBatches` (string), `maxActivations` (int) |
 | `clearFacts` | Clear all facts from session | none |
 | `getKnowledgeBaseStatus` | Get knowledge base status | none |
+
+## Available MCP Prompts
+
+| Prompt | Description | Parameters |
+|--------|-------------|------------|
+| `businessLogicSpecificationGuide` | Generate comprehensive guide for creating business logic specifications | `domain` (business domain/use case) |
 
 ## Architecture
 
@@ -40,20 +48,28 @@ A Quarkus-based MCP (Model Context Protocol) server that provides AI assistants 
 ## Usage Example
 
 ```json
-// 1. Create rules using AI
+// 1. Get specification guide for your domain
 {
-  "tool": "improveKnowledgeBase",
+  "prompt": "businessLogicSpecificationGuide",
   "parameters": {
-    "requirements": "Create a Person rule that checks if age > 18 for adult classification"
+    "domain": "e-commerce"
   }
 }
 
-// 2. Check knowledge base status
+// 2. Implement business logic from detailed specification
+{
+  "tool": "improveKnowledgeBase", 
+  "parameters": {
+    "specification": "Domain Model: Person entity with name (string), age (integer), email (string) attributes. Business Rules: 1) Classify as adult if age >= 18, 2) Email must contain @ symbol, 3) Premium customers get 10% discount if order > $100. Constraints: Age non-negative, name not empty. Examples: Person(name='John', age=25, email='john@example.com') with Order(amount=150) should receive premium discount."
+  }
+}
+
+// 3. Check knowledge base status
 {
   "tool": "getKnowledgeBaseStatus"
 }
 
-// 3. Execute rules with facts
+// 4. Execute rules with facts
 {
   "tool": "executeRules", 
   "parameters": {
