@@ -6,12 +6,9 @@ import org.drools.exception.DefinitionNotFoundException;
 import org.drools.exception.DRLExecutionException;
 import org.drools.exception.DRLValidationException;
 import org.drools.model.JsonResponseBuilder;
-import org.drools.service.DefinitionManagementService;
-import org.drools.service.DRLExecutionService;
-import org.drools.service.DRLValidationService;
-import org.drools.storage.DefinitionStorage;
 import org.drools.agentic.example.workflows.MainWorkflow;
 import org.drools.agentic.example.config.ChatModels;
+import org.drools.agentic.example.services.execution.KnowledgeRunnerService;
 import dev.langchain4j.agentic.UntypedAgent;
 import dev.langchain4j.data.message.UserMessage;
 
@@ -23,51 +20,11 @@ import java.util.Map;
 public class DroolsAgenticTool {
 
     private final MainWorkflow mainWorkflow;
-    private final DRLExecutionService drlExecutionService;
-    private final DefinitionManagementService definitionManagementService;
+    private final KnowledgeRunnerService knowledgeRunnerService;
 
     public DroolsAgenticTool() {
         this.mainWorkflow = new MainWorkflow();
-        this.drlExecutionService = new DRLExecutionService();
-        this.definitionManagementService = new DefinitionManagementService();
-    }
-
-    @Tool(description = "Provides the Domain model definitions currently stored in the knowledge base")
-    public String getModel() {
-        try {
-            List<DefinitionStorage.DroolsDefinition> definitions = definitionManagementService.getAllDefinitions();
-            if (definitions.isEmpty()) {
-                return "No domain model definitions found in the knowledge base.";
-            }
-            
-            return JsonResponseBuilder.create()
-                .success()
-                .definitions(definitions)
-                .build();
-        } catch (Exception e) {
-            return JsonResponseBuilder.create()
-                .error("Error retrieving domain model: " + e.getMessage())
-                .build();
-        }
-    }
-
-    @Tool(description = "Execute rules against JSON input. The JSON format needs to match the existing domain model.")
-    public String runKnowledgeBase(@ToolArg(description = "JSON input matching the domain model") String json) {
-        try {
-            List<Object> facts = drlExecutionService.executeDRLWithJsonFactsAgainstStoredDefinitions(json, 0, definitionManagementService);
-            return JsonResponseBuilder.create()
-                .success()
-                .facts(facts)
-                .build();
-        } catch (DRLExecutionException e) {
-            return JsonResponseBuilder.create()
-                .error("Rule execution failed: " + e.getMessage())
-                .build();
-        } catch (Exception e) {
-            return JsonResponseBuilder.create()
-                .error("Unexpected error: " + e.getMessage())
-                .build();
-        }
+        this.knowledgeRunnerService = new KnowledgeRunnerService();
     }
 
     @Tool(description = "Improve the knowledge base by creating new rules or modifying existing ones based on requirements")
@@ -93,6 +50,76 @@ public class DroolsAgenticTool {
         } catch (Exception e) {
             return JsonResponseBuilder.create()
                 .error("Error improving knowledge base: " + e.getMessage())
+                .build();
+        }
+    }
+
+    @Tool(description = "Execute rules with JSON facts using the shared knowledge base")
+    public String executeRules(@ToolArg(description = "JSON facts to insert and execute rules against") String jsonFacts,
+                              @ToolArg(description = "Maximum rule activations (0 for unlimited)") Integer maxActivations) {
+        try {
+            String result = knowledgeRunnerService.executeRules(jsonFacts, maxActivations);
+            
+            return JsonResponseBuilder.create()
+                .success()
+                .field("executionResult", result)
+                .build();
+                
+        } catch (Exception e) {
+            return JsonResponseBuilder.create()
+                .error("Rule execution failed: " + e.getMessage())
+                .build();
+        }
+    }
+
+    @Tool(description = "Get status and information about the shared knowledge base")
+    public String getKnowledgeBaseStatus() {
+        try {
+            String status = knowledgeRunnerService.getKnowledgeBaseStatus();
+            
+            return JsonResponseBuilder.create()
+                .success()
+                .field("knowledgeBaseStatus", status)
+                .build();
+                
+        } catch (Exception e) {
+            return JsonResponseBuilder.create()
+                .error("Failed to get knowledge base status: " + e.getMessage())
+                .build();
+        }
+    }
+
+    @Tool(description = "Clear all facts from the shared knowledge base session")
+    public String clearFacts() {
+        try {
+            String result = knowledgeRunnerService.clearFacts();
+            
+            return JsonResponseBuilder.create()
+                .success()
+                .field("clearResult", result)
+                .build();
+                
+        } catch (Exception e) {
+            return JsonResponseBuilder.create()
+                .error("Failed to clear facts: " + e.getMessage())
+                .build();
+        }
+    }
+
+    @Tool(description = "Execute rules multiple times with different fact sets in batch mode")
+    public String executeBatch(@ToolArg(description = "JSON array of fact batches to process") String jsonFactBatches,
+                              @ToolArg(description = "Maximum rule activations per batch (0 for unlimited)") Integer maxActivations) {
+        try {
+            String result = knowledgeRunnerService.executeBatch(jsonFactBatches, maxActivations);
+            
+            return JsonResponseBuilder.create()
+                .success()
+                .field("batchExecutionResult", result)
+                .build();
+                
+        } catch (Exception e) {
+            return JsonResponseBuilder.create()
+                .error("Batch execution failed: " + e.getMessage())
                 .build();
         }
     }

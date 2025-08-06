@@ -16,20 +16,20 @@ public class DroolsAgenticToolTest {
         droolsAgenticTool = new DroolsAgenticTool();
     }
 
-    @Test
-    public void testGetModel_EmptyKnowledgeBase() {
-        String result = droolsAgenticTool.getModel();
+    @Test 
+    public void testImproveKnowledgeBase_BasicRequirements() {
+        // This test might fail due to model requirements, but should not crash
+        String result = droolsAgenticTool.improveKnowledgeBase("Create a simple Person rule");
         
-        // Should return a valid response
+        // Should return a valid JSON response even if it fails
         assertNotNull(result);
         assertFalse(result.isEmpty());
-        // Just check it doesn't crash
-        System.out.println("getModel result: " + result);
+        assertTrue(result.contains("\"status\""));
     }
 
     @Test
-    public void testRunKnowledgeBase_EmptyInput() {
-        String result = droolsAgenticTool.runKnowledgeBase("{}");
+    public void testGetKnowledgeBaseStatus() {
+        String result = droolsAgenticTool.getKnowledgeBaseStatus();
         
         // Should return a valid JSON response
         assertNotNull(result);
@@ -37,12 +37,31 @@ public class DroolsAgenticToolTest {
         assertTrue(result.contains("\"status\""));
     }
 
-    @Test 
-    public void testImproveKnowledgeBase_BasicRequirements() {
-        // This test might fail due to model requirements, but should not crash
-        String result = droolsAgenticTool.improveKnowledgeBase("Create a simple Person rule");
+    @Test
+    public void testExecuteRules_EmptyFacts() {
+        String result = droolsAgenticTool.executeRules("[]", 0);
         
-        // Should return a valid JSON response even if it fails
+        // Should return a valid JSON response even when no knowledge base exists
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertTrue(result.contains("\"status\""));
+    }
+
+    @Test
+    public void testClearFacts() {
+        String result = droolsAgenticTool.clearFacts();
+        
+        // Should return a valid JSON response
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertTrue(result.contains("\"status\""));
+    }
+
+    @Test
+    public void testExecuteBatch_EmptyBatches() {
+        String result = droolsAgenticTool.executeBatch("[[]]", 0);
+        
+        // Should return a valid JSON response even when no knowledge base exists
         assertNotNull(result);
         assertFalse(result.isEmpty());
         assertTrue(result.contains("\"status\""));
