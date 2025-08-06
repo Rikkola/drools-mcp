@@ -30,10 +30,7 @@ public class DroolsKnowledgeBaseService {
     private final ChatModel chatModel;
     private final Path storageRoot;
     
-    // Single knowledge base and session for this application
-    private KieContainer currentKnowledgeBase;
-    private KieSession currentSession;
-    private String knowledgeBaseName;
+    private final KnowledgeBaseStorage storage = KnowledgeBaseStorage.getInstance();
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     public DroolsKnowledgeBaseService(ChatModel chatModel) {
@@ -55,27 +52,17 @@ public class DroolsKnowledgeBaseService {
             }
             
             String drlContent = Files.readString(filePath);
-            return buildKnowledgeBaseFromContent(drlContent, filename);
+            return buildKnowledgeBaseFromContent(drlContent, "main-kb");
             
         } catch (IOException e) {
             return "❌ Error reading DRL file " + filename + ": " + e.getMessage();
         }
     }
     
-    @Tool("Build and store a Drools knowledge base from DRL content")
-    public String buildKnowledgeBaseFromContent(
-            @P("The DRL content to build") String drlContent,
-            @P("Name for the knowledge base (will be used as identifier)") String name) {
+    private String buildKnowledgeBaseFromContent( String drlContent ) {
         try {
-            if (name == null || name.trim().isEmpty()) {
-                name = "main-kb";
-            }
             
-            // Dispose existing session if any
-            if (currentSession != null) {
-                currentSession.dispose();
-                currentSession = null;
-            }
+            // Previous knowledge base will be disposed by shared storage
             
             StringBuilder response = new StringBuilder();
             response.append("🏗️ Building and Storing Drools Knowledge Base: ").append(name).append("\n");
@@ -101,10 +88,12 @@ public class DroolsKnowledgeBaseService {
                 return response.toString();
             }
             
-            // Create container and store as current
-            currentKnowledgeBase = ks.newKieContainer(kieBuilder.getKieModule().getReleaseId());
-            currentSession = currentKnowledgeBase.newKieSession();
-            knowledgeBaseName = name;
+            // Create container and session, store in shared storage
+            KieContainer kieContainer = ks.newKieContainer(kieBuilder.getKieModule().getReleaseId());
+            KieSession kieSession = kieContainer.newKieSession();
+            
+            // Store in shared storage
+            storage.store(name, kieContainer, kieSession, resourceName);
             
             response.append("✅ Knowledge Base Built and Stored Successfully!\n");
             response.append("-".repeat(45) + "\n");
@@ -113,7 +102,7 @@ public class DroolsKnowledgeBaseService {
             response.append("  • Release ID: ").append(kieBuilder.getKieModule().getReleaseId()).append("\n");
             response.append("  • Resource: ").append(resourceName).append("\n");
             response.append("  • Session Created: Yes\n");
-            response.append("  • Session ID: ").append(currentSession.getId()).append("\n");
+            response.append("  • Session ID: ").append(kieSession.getId()).append("\n");
             
             // Show any warnings
             if (kieBuilder.getResults().hasMessages(Message.Level.WARNING)) {
@@ -153,104 +142,30 @@ public class DroolsKnowledgeBaseService {
         response.append("📚 Current Knowledge Base Status:\n");
         response.append("=".repeat(33) + "\n");
         
-        if (currentKnowledgeBase == null) {
+        if (!storage.hasKnowledgeBase()) {
             response.append("No knowledge base currently loaded.\n");
             response.append("Use 'buildKnowledgeBaseFromFile' or 'buildKnowledgeBaseFromContent' to create one.\n");
             return response.toString();
         }
         
+        KnowledgeBaseStorage.KnowledgeBaseInfo info = storage.getInfo();
         response.append("📋 Knowledge Base Details:\n");
-        response.append("  • Name: ").append(knowledgeBaseName != null ? knowledgeBaseName : "Unknown").append("\n");
-        response.append("  • Release ID: ").append(currentKnowledgeBase.getReleaseId()).append("\n");
-        response.append("  • Session Active: ").append(currentSession != null ? "Yes" : "No").append("\n");
-        
-        if (currentSession != null) {
-            response.append("  • Session ID: ").append(currentSession.getId()).append("\n");
-            response.append("  • Facts in Memory: ").append(currentSession.getFactCount()).append("\n");
-        }
+        response.append("  • Name: ").append(info.name()).append("\n");
+        response.append("  • Release ID: ").append(info.releaseId()).append("\n");
+        response.append("  • Session Active: ").append(info.sessionActive() ? "Yes" : "No").append("\n");
+        response.append("  • Session ID: ").append(info.sessionId()).append("\n");
+        response.append("  • Facts in Memory: ").append(info.factCount()).append("\n");
+        response.append("  • Created: ").append(info.createdTime()).append("\n");
         
         response.append("\n🎯 Ready for rule execution!\n");
         
         return response.toString();
     }
     
-    @Tool("Execute rules with JSON facts")
-    public String executeRules(
-            @P("JSON facts to insert (array format)") String jsonFacts,
-            @P("Maximum rule activations (0 for unlimited)") int maxActivations) {
-        try {
-            if (currentSession == null) {
-                return "❌ No active session found. Please build a knowledge base first using 'buildKnowledgeBaseFromFile' or 'buildKnowledgeBaseFromContent'.";
-            }
-            
-            StringBuilder response = new StringBuilder();
-            response.append("⚡ Executing Rules:\n");
-            response.append("=".repeat(18) + "\n\n");
-            
-            // Parse and insert facts
-            List<Map<String, Object>> facts = objectMapper.readValue(jsonFacts, new TypeReference<List<Map<String, Object>>>() {});
-            
-            response.append("📊 Inserting Facts:\n");
-            response.append("-".repeat(17) + "\n");
-            for (Map<String, Object> fact : facts) {
-                currentSession.insert(fact);
-                response.append("  • ").append(fact).append("\n");
-            }
-            
-            // Fire rules
-            response.append("\n🔥 Firing Rules:\n");
-            response.append("-".repeat(15) + "\n");
-            int rulesCount;
-            if (maxActivations > 0) {
-                rulesCount = currentSession.fireAllRules(maxActivations);
-            } else {
-                rulesCount = currentSession.fireAllRules();
-            }
-            
-            response.append("  • Rules Fired: ").append(rulesCount).append("\n");
-            response.append("  • Facts in Working Memory: ").append(currentSession.getFactCount()).append("\n");
-            
-            response.append("\n✅ Rule execution completed successfully!\n");
-            response.append("Knowledge base '").append(knowledgeBaseName).append("' session remains active for further operations.\n");
-            
-            return response.toString();
-            
-        } catch (Exception e) {
-            return "❌ Rule execution failed: " + e.getMessage();
-        }
-    }
-    
-    @Tool("Clear all facts from the session")
-    public String clearFacts() {
-        try {
-            if (currentSession == null) {
-                return "❌ No active session found.";
-            }
-            
-            // Get current fact count
-            long factCount = currentSession.getFactCount();
-            
-            // Clear all facts
-            currentSession.getFactHandles().forEach(currentSession::delete);
-            
-            return "✅ Cleared " + factCount + " facts from the session.\n" +
-                   "Session is ready for new fact insertions.";
-                   
-        } catch (Exception e) {
-            return "❌ Failed to clear facts: " + e.getMessage();
-        }
-    }
-    
     @Tool("Dispose current knowledge base and session")
     public String disposeKnowledgeBase() {
         try {
-            if (currentSession != null) {
-                currentSession.dispose();
-                currentSession = null;
-            }
-            
-            currentKnowledgeBase = null;
-            knowledgeBaseName = null;
+            storage.dispose();
             
             return "✅ Knowledge base and session disposed successfully.\n" +
                    "Resources have been freed. You can now create a new knowledge base.";

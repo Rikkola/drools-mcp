@@ -15,44 +15,37 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Non-AI agent that builds knowledge bases and executes rules deterministically.
+ * Non-AI agent that executes rules from shared knowledge base storage.
  * This agent performs pure Java operations without any LLM calls.
+ * Uses shared storage for execution-only operations.
  */
 public class KnowledgeRunnerAgent {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Agent(description = "Build a knowledge base from DRL content and execute rules with facts", 
+    private final KnowledgeBaseStorage storage = KnowledgeBaseStorage.getInstance();
+
+    @Agent(description = "Execute rules with facts using the shared knowledge base", 
            outputName = "executionResult")
-    public String buildAndExecute(@V("drlContent") String drlContent,
-                                 @V("facts") String jsonFacts,
-                                 @V("maxActivations") Integer maxActivations) {
+    public String executeRules(@V("facts") String jsonFacts,
+                              @V("maxActivations") Integer maxActivations) {
         try {
             StringBuilder response = new StringBuilder();
-            response.append("🚀 Knowledge Base Build and Execution\n");
-            response.append("=".repeat(40) + "\n\n");
+            response.append("🚀 Knowledge Base Execution\n");
+            response.append("=".repeat(28) + "\n\n");
 
-            // Build knowledge base
-            KieServices ks = KieServices.Factory.get();
-            KieFileSystem kfs = ks.newKieFileSystem();
-            kfs.write("src/main/resources/rules.drl", drlContent);
-            
-            KieBuilder kieBuilder = ks.newKieBuilder(kfs).buildAll();
-            
-            // Check for build errors
-            if (kieBuilder.getResults().hasMessages(Message.Level.ERROR)) {
-                response.append("❌ Knowledge Base Build Failed:\n");
-                for (Message message : kieBuilder.getResults().getMessages(Message.Level.ERROR)) {
-                    response.append("• ").append(message.getText()).append("\n");
-                }
+            // Check if knowledge base is available
+            if (!storage.hasKnowledgeBase() || !storage.hasSession()) {
+                response.append("❌ No knowledge base available for execution.\n");
+                response.append("Please use DroolsKnowledgeBaseService to build a knowledge base first.\n");
                 return response.toString();
             }
             
-            // Create session and execute
-            KieContainer kieContainer = ks.newKieContainer(kieBuilder.getKieModule().getReleaseId());
-            KieSession kieSession = kieContainer.newKieSession();
+            KieSession kieSession = storage.getSession();
+            KnowledgeBaseStorage.KnowledgeBaseInfo info = storage.getInfo();
             
-            response.append("✅ Knowledge Base Built Successfully!\n\n");
+            response.append("📋 Using Knowledge Base: ").append(info.name()).append("\n");
+            response.append("📋 Session ID: ").append(info.sessionId()).append("\n\n");
             
             // Parse and insert facts
             List<Map<String, Object>> facts = objectMapper.readValue(jsonFacts, 
@@ -76,10 +69,8 @@ public class KnowledgeRunnerAgent {
             response.append("  • Rules Fired: ").append(rulesCount).append("\n");
             response.append("  • Facts in Memory: ").append(kieSession.getFactCount()).append("\n");
             
-            // Cleanup
-            kieSession.dispose();
-            
             response.append("\n✅ Execution completed successfully!\n");
+            response.append("Session remains active in shared storage for further operations.\n");
             
             return response.toString();
             
@@ -88,112 +79,120 @@ public class KnowledgeRunnerAgent {
         }
     }
 
-    @Agent(description = "Validate DRL syntax without execution", 
-           outputName = "validationResult")
-    public String validateDRL(@V("drlContent") String drlContent) {
-        try {
-            StringBuilder response = new StringBuilder();
-            response.append("🔍 DRL Validation\n");
-            response.append("=".repeat(17) + "\n\n");
-            
-            KieServices ks = KieServices.Factory.get();
-            KieFileSystem kfs = ks.newKieFileSystem();
-            kfs.write("src/main/resources/rules.drl", drlContent);
-            
-            KieBuilder kieBuilder = ks.newKieBuilder(kfs).buildAll();
-            
-            if (kieBuilder.getResults().hasMessages(Message.Level.ERROR)) {
-                response.append("❌ Validation Failed:\n");
-                for (Message message : kieBuilder.getResults().getMessages(Message.Level.ERROR)) {
-                    response.append("• ").append(message.getText()).append("\n");
-                }
-            } else {
-                response.append("✅ Validation Passed!\n");
-                response.append("DRL syntax is valid and ready for execution.\n");
-            }
-            
-            // Show warnings if any
-            if (kieBuilder.getResults().hasMessages(Message.Level.WARNING)) {
-                response.append("\n⚠️ Warnings:\n");
-                for (Message message : kieBuilder.getResults().getMessages(Message.Level.WARNING)) {
-                    response.append("• ").append(message.getText()).append("\n");
-                }
-            }
-            
-            return response.toString();
-            
-        } catch (Exception e) {
-            return "❌ Validation error: " + e.getMessage();
-        }
-    }
-
-    @Agent(description = "Count DRL elements in content", 
-           outputName = "elementCounts")
-    public String analyzeDRL(@V("drlContent") String drlContent) {
+    @Agent(description = "Get status and info about the shared knowledge base", 
+           outputName = "knowledgeBaseStatus")
+    public String getKnowledgeBaseStatus() {
         StringBuilder response = new StringBuilder();
-        response.append("📊 DRL Content Analysis\n");
-        response.append("=".repeat(24) + "\n\n");
+        response.append("📚 Shared Knowledge Base Status\n");
+        response.append("=".repeat(32) + "\n\n");
         
-        long ruleCount = drlContent.lines()
-            .filter(line -> line.trim().startsWith("rule "))
-            .count();
-        long declareCount = drlContent.lines()
-            .filter(line -> line.trim().startsWith("declare "))
-            .count();
-        long globalCount = drlContent.lines()
-            .filter(line -> line.trim().startsWith("global "))
-            .count();
-        long functionCount = drlContent.lines()
-            .filter(line -> line.trim().startsWith("function "))
-            .count();
-        long queryCount = drlContent.lines()
-            .filter(line -> line.trim().startsWith("query "))
-            .count();
+        if (!storage.hasKnowledgeBase()) {
+            response.append("❌ No knowledge base available in shared storage.\n");
+            response.append("Please use DroolsKnowledgeBaseService to build a knowledge base first.\n");
+            return response.toString();
+        }
         
-        response.append("📋 Element Counts:\n");
-        response.append("  • Rules: ").append(ruleCount).append("\n");
-        response.append("  • Declared Types: ").append(declareCount).append("\n");
-        response.append("  • Globals: ").append(globalCount).append("\n");
-        response.append("  • Functions: ").append(functionCount).append("\n");
-        response.append("  • Queries: ").append(queryCount).append("\n");
+        KnowledgeBaseStorage.KnowledgeBaseInfo info = storage.getInfo();
+        response.append("📋 Knowledge Base Details:\n");
+        response.append("  • Name: ").append(info.name()).append("\n");
+        response.append("  • Release ID: ").append(info.releaseId()).append("\n");
+        response.append("  • Session Active: ").append(info.sessionActive() ? "Yes" : "No").append("\n");
+        response.append("  • Session ID: ").append(info.sessionId()).append("\n");
+        response.append("  • Facts in Memory: ").append(info.factCount()).append("\n");
+        response.append("  • Created: ").append(info.createdTime()).append("\n");
+        response.append("  • Source: ").append(info.sourceInfo()).append("\n");
         
-        long totalLines = drlContent.lines().count();
-        long nonEmptyLines = drlContent.lines()
-            .filter(line -> !line.trim().isEmpty())
-            .count();
-        
-        response.append("\n📝 Content Stats:\n");
-        response.append("  • Total Lines: ").append(totalLines).append("\n");
-        response.append("  • Non-empty Lines: ").append(nonEmptyLines).append("\n");
+        response.append("\n✅ Knowledge base is ready for execution!\n");
         
         return response.toString();
     }
 
-    @Agent(description = "Format facts for rule execution", 
-           outputName = "formattedFacts")
-    public String formatFacts(@V("rawFacts") String rawFacts) {
+    @Agent(description = "Clear all facts from the shared session", 
+           outputName = "factsClearResult")
+    public String clearFacts() {
         try {
-            // Parse the input facts
-            List<Map<String, Object>> facts = objectMapper.readValue(rawFacts, 
-                new TypeReference<List<Map<String, Object>>>() {});
-            
             StringBuilder response = new StringBuilder();
-            response.append("🔧 Facts Formatting\n");
-            response.append("=".repeat(19) + "\n\n");
+            response.append("🧹 Clearing Facts from Session\n");
+            response.append("=".repeat(31) + "\n\n");
             
-            response.append("📊 Formatted Facts:\n");
-            for (int i = 0; i < facts.size(); i++) {
-                Map<String, Object> fact = facts.get(i);
-                response.append("  ").append(i + 1).append(". ").append(fact).append("\n");
+            if (!storage.hasSession()) {
+                response.append("❌ No active session found in shared storage.\n");
+                return response.toString();
             }
             
-            response.append("\nTotal facts: ").append(facts.size()).append("\n");
-            response.append("✅ Facts formatted successfully for rule execution.\n");
+            long clearedCount = storage.clearFacts();
+            
+            response.append("✅ Cleared ").append(clearedCount).append(" facts from the session.\n");
+            response.append("Session remains active and ready for new fact insertions.\n");
             
             return response.toString();
             
         } catch (Exception e) {
-            return "❌ Facts formatting failed: " + e.getMessage();
+            return "❌ Failed to clear facts: " + e.getMessage();
+        }
+    }
+
+    @Agent(description = "Execute rules multiple times with different fact sets", 
+           outputName = "batchExecutionResult")
+    public String executeBatch(@V("factBatches") String jsonFactBatches,
+                              @V("maxActivations") Integer maxActivations) {
+        try {
+            StringBuilder response = new StringBuilder();
+            response.append("🚀 Batch Rule Execution\n");
+            response.append("=".repeat(23) + "\n\n");
+            
+            if (!storage.hasKnowledgeBase() || !storage.hasSession()) {
+                response.append("❌ No knowledge base available for execution.\n");
+                response.append("Please use DroolsKnowledgeBaseService to build a knowledge base first.\n");
+                return response.toString();
+            }
+            
+            // Parse batch of fact sets
+            List<List<Map<String, Object>>> factBatches = objectMapper.readValue(jsonFactBatches, 
+                new TypeReference<List<List<Map<String, Object>>>>() {});
+            
+            KieSession kieSession = storage.getSession();
+            KnowledgeBaseStorage.KnowledgeBaseInfo info = storage.getInfo();
+            
+            response.append("📋 Using Knowledge Base: ").append(info.name()).append("\n");
+            response.append("📋 Processing ").append(factBatches.size()).append(" fact batches\n\n");
+            
+            int batchNumber = 1;
+            int totalRulesFired = 0;
+            
+            for (List<Map<String, Object>> facts : factBatches) {
+                response.append("🔄 Batch ").append(batchNumber).append(":\n");
+                
+                // Clear previous facts
+                storage.clearFacts();
+                
+                // Insert new facts
+                for (Map<String, Object> fact : facts) {
+                    kieSession.insert(fact);
+                }
+                
+                // Fire rules
+                int rulesCount;
+                if (maxActivations != null && maxActivations > 0) {
+                    rulesCount = kieSession.fireAllRules(maxActivations);
+                } else {
+                    rulesCount = kieSession.fireAllRules();
+                }
+                
+                response.append("  • Facts: ").append(facts.size()).append("\n");
+                response.append("  • Rules Fired: ").append(rulesCount).append("\n\n");
+                
+                totalRulesFired += rulesCount;
+                batchNumber++;
+            }
+            
+            response.append("✅ Batch execution completed successfully!\n");
+            response.append("Total rules fired across all batches: ").append(totalRulesFired).append("\n");
+            
+            return response.toString();
+            
+        } catch (Exception e) {
+            return "❌ Batch execution failed: " + e.getMessage();
         }
     }
 }
