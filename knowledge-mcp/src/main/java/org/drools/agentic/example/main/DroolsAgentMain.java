@@ -6,7 +6,6 @@ import org.drools.agentic.example.agents.DroolsAgent;
 import org.drools.agentic.example.agents.DroolsSupervisorAgent;
 import org.drools.agentic.example.agents.DRLExecutionAgent;
 import org.drools.agentic.example.config.ChatModels;
-import org.drools.agentic.example.services.DefinitionStorageService;
 import org.drools.agentic.example.services.DRLExecutionToolService;
 import org.drools.agentic.example.services.DRLValidationToolService;
 import org.drools.storage.DefinitionStorage;
