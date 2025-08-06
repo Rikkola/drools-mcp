@@ -30,6 +30,10 @@ public class KnowledgeRunnerService {
            outputName = "executionResult")
     public String executeRules(@V("facts") String jsonFacts,
                               @V("maxActivations") Integer maxActivations) {
+        // Note: jsonFacts should be a JSON array where each object can optionally include
+        // a '_type' field to specify the fact type for dynamic object creation.
+        // Without '_type', facts are inserted as Map objects.
+        // Example: [{"_type":"Person", "name":"John", "age":25}, {"name":"Jane", "age":30}]
         try {
             StringBuilder response = new StringBuilder();
             response.append("🚀 Knowledge Base Execution\n");
@@ -137,6 +141,9 @@ public class KnowledgeRunnerService {
            outputName = "batchExecutionResult")
     public String executeBatch(@V("factBatches") String jsonFactBatches,
                               @V("maxActivations") Integer maxActivations) {
+        // Note: jsonFactBatches should be a JSON array of fact arrays, where each fact
+        // can optionally include a '_type' field for dynamic object creation.
+        // Example: [[[{"_type":"Person", "name":"John"}], [{"_type":"Order", "amount":100}]]]
         try {
             StringBuilder response = new StringBuilder();
             response.append("🚀 Batch Rule Execution\n");

@@ -59,7 +59,7 @@ public class DroolsAgenticTool {
     }
 
     @Tool(description = "Execute rules with JSON facts using the shared knowledge base")
-    public String executeRules(@ToolArg(description = "JSON facts to insert and execute rules against") String jsonFacts,
+    public String executeRules(@ToolArg(description = "JSON facts to insert and execute rules against. Each fact can optionally include a '_type' field to specify the object type for dynamic object creation. Example: [{\"_type\":\"Person\", \"name\":\"John\", \"age\":25}]") String jsonFacts,
                               @ToolArg(description = "Maximum rule activations (0 for unlimited)") Integer maxActivations) {
         try {
             String result = knowledgeRunnerService.executeRules(jsonFacts, maxActivations);
@@ -111,7 +111,7 @@ public class DroolsAgenticTool {
     }
 
     @Tool(description = "Execute rules multiple times with different fact sets in batch mode")
-    public String executeBatch(@ToolArg(description = "JSON array of fact batches to process") String jsonFactBatches,
+    public String executeBatch(@ToolArg(description = "JSON array of fact batches to process. Each fact can optionally include a '_type' field for dynamic object creation. Example: [[[{\"_type\":\"Person\", \"name\":\"John\"}], [{\"name\":\"Jane\", \"age\":30}]]]") String jsonFactBatches,
                               @ToolArg(description = "Maximum rule activations per batch (0 for unlimited)") Integer maxActivations) {
         try {
             String result = knowledgeRunnerService.executeBatch(jsonFactBatches, maxActivations);
@@ -217,11 +217,24 @@ public class DroolsAgenticTool {
             ## JSON Format Requirements
             Facts must be provided as a JSON array of objects where each object represents an entity instance.
             
-            ## Basic Structure
+            ## Basic Structure with _type Field (Recommended)
             ```json
             [
               {
-                "entityType": "ObjectType",
+                "_type": "ObjectType",
+                "attribute1": "value1",
+                "attribute2": "value2"
+              }
+            ]
+            ```
+            
+            ⚠️ **Important**: Include the `_type` field to enable dynamic object creation and proper rule matching.
+            Without `_type`, facts are inserted as generic Map objects which may not match typed rule patterns.
+            
+            ## Alternative Structure (Map Objects)
+            ```json
+            [
+              {
                 "attribute1": "value1",
                 "attribute2": "value2"
               }
@@ -241,6 +254,7 @@ public class DroolsAgenticTool {
             ```json
             [
               {
+                "_type": "Person",
                 "name": "Alice Johnson",
                 "age": 30,
                 "email": "alice@example.com",
@@ -248,6 +262,7 @@ public class DroolsAgenticTool {
                 "registrationDate": "2023-06-15"
               },
               {
+                "_type": "Person",
                 "name": "Bob Smith", 
                 "age": 17,
                 "email": "bob@example.com",
@@ -261,6 +276,7 @@ public class DroolsAgenticTool {
             ```json
             [
               {
+                "_type": "Order",
                 "orderId": "ORD-001",
                 "amount": 150.75,
                 "currency": "USD",
@@ -276,6 +292,7 @@ public class DroolsAgenticTool {
             ```json
             [
               {
+                "_type": "Customer",
                 "name": "Premium Customer",
                 "totalSpent": 1500.00,
                 "membershipLevel": "GOLD",
@@ -291,12 +308,14 @@ public class DroolsAgenticTool {
             
             ## Validation Checklist
             ✓ Valid JSON syntax (use JSON validator)
+            ✓ Include `_type` field for proper object creation
             ✓ Consistent attribute names across objects
             ✓ Appropriate data types for each field
             ✓ Required fields are present
             ✓ Realistic test data values
             
             ## Common Mistakes to Avoid
+            ❌ Missing `_type` field (leads to Map objects instead of typed objects)
             ❌ Single quotes instead of double quotes
             ❌ Trailing commas in JSON
             ❌ Missing quotes on string values
