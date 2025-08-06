@@ -1,11 +1,16 @@
 package org.drools.agentic.example.main;
 
+import dev.langchain4j.agentic.supervisor.SupervisorAgent;
 import dev.langchain4j.model.chat.ChatModel;
+import org.drools.agentic.example.agents.DroolsService;
+import org.drools.agentic.example.agents.DroolsSupervisor;
+import org.drools.agentic.example.agents.DRLExecutionAgent;
 import org.drools.agentic.example.config.ChatModels;
-import org.drools.agentic.example.examples.MainAgent;
-import java.util.Map;
+import org.drools.agentic.example.services.DRLExecutionToolService;
+import org.drools.agentic.example.services.DRLValidationToolService;
+import org.drools.storage.DefinitionStorage;
 
-public class MainAgentRunner {
+public class DroolsWorkflowMain {
 
     public static void main(String[] args) {
         // Choose models based on environment or preference
@@ -15,20 +20,17 @@ public class MainAgentRunner {
         System.out.println("Using planning model: " + planningModel.getClass().getSimpleName());
         System.out.println("Using code generation model: " + codeGenModel.getClass().getSimpleName());
 
-        // Create the MainAgent instance
-        MainAgent mainAgent = new MainAgent();
-        
-        // Example: Create agent workflow and invoke with demo request
-        System.out.println("=== MainAgent Demo ===");
-        var agentWorkflow = mainAgent.createAgentWorkflow(planningModel, codeGenModel);
-        
-        Map<String, Object> input = Map.of(
-            "request", "Create a simple Person DRL rule with fields name, age, and adult, then save it to a file called person-rules.drl"
-        );
-        
-        Object result = agentWorkflow.invoke(input);
-        System.out.println("MainAgent Result:");
-        System.out.println(result);
+        // Create the supervisor agent using DroolsService factory method with separate models
+        DroolsSupervisor droolsSupervisorAgent = DroolsService.createDroolsSupervisorAgent(planningModel, codeGenModel);
+
+        // Example 1: Use supervisor agent for complete workflow
+        System.out.println("=== Supervisor Agent Demo ===");
+        String result1 = droolsSupervisorAgent.invoke("""
+            Create a Person type with name, age, and adult fields. Then create rules that check if a person is an adult or not.
+            """);
+        System.out.println("Supervisor Result:");
+        System.out.println(result1);
+
     }
 
     /**

@@ -13,12 +13,12 @@ import java.util.stream.Collectors;
  * File storage agent that provides file operations functionality.
  * Can create, read, write, delete files and manage directories.
  */
-public class FileStorageAgent {
+public class FileStorageService {
 
     private final ChatModel chatModel;
     private final Path storageRoot;
 
-    public FileStorageAgent(ChatModel chatModel) {
+    public FileStorageService(ChatModel chatModel) {
         this.chatModel = chatModel;
         this.storageRoot = Paths.get(System.getProperty("user.home"), ".drools-agent-storage");
         try {
@@ -157,9 +157,9 @@ public class FileStorageAgent {
     }
 
     /**
-     * Factory method to create a FileStorageAgent with the provided chat model.
+     * Factory method to create a FileStorageService with the provided chat model.
      */
-    public static FileStorageAgent create(ChatModel chatModel) {
-        return new FileStorageAgent(chatModel);
+    public static FileStorageService create(ChatModel chatModel) {
+        return new FileStorageService(chatModel);
     }
 }

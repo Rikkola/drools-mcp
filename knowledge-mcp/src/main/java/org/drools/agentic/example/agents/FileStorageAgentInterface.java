@@ -32,7 +32,7 @@ public interface FileStorageAgentInterface {
      * Factory method to create a FileStorageAgentInterface with the provided chat model.
      */
     static FileStorageAgentInterface create(ChatModel chatModel) {
-        FileStorageAgent fileStorageService = new FileStorageAgent(chatModel);
+        FileStorageService fileStorageService = new FileStorageService(chatModel);
         
         return AgenticServices.agentBuilder(FileStorageAgentInterface.class)
                 .chatModel(chatModel)

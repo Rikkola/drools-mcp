@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# MainAgent Runner Script
+# MainWorkflow Runner Script
 # Usage: ./run-main-agent.sh [options]
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-echo "🚀 Running Main Agent Example..."
+echo "🚀 Running Main Workflow Example..."
 echo "📍 Working directory: $SCRIPT_DIR"
 
 # Check if project is built
@@ -21,7 +21,7 @@ if [ ! -d "knowledge-mcp/target/classes" ]; then
 fi
 
 # Run the agent
-echo "🎯 Starting MainAgentRunner..."
+echo "🎯 Starting MainWorkflowRunner..."
 echo "📋 Arguments: $*"
 echo "🌍 Environment variables:"
 [ -n "$ANTHROPIC_API_KEY" ] && echo "   - ANTHROPIC_API_KEY: ****" || echo "   - ANTHROPIC_API_KEY: (not set)"
@@ -30,9 +30,9 @@ echo "🌍 Environment variables:"
 echo ""
 
 mvn exec:java -pl knowledge-mcp \
-    -Dexec.mainClass="org.drools.agentic.example.main.MainAgentRunner" \
+    -Dexec.mainClass="org.drools.agentic.example.main.MainWorkflowRunner" \
     -Dexec.args="$*" \
     -q
 
 echo ""
-echo "🏁 MainAgent execution completed."
+echo "🏁 MainWorkflow execution completed."

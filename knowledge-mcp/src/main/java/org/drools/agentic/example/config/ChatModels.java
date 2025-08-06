@@ -39,15 +39,15 @@ import java.time.Duration;
  * 
  * <h3>Command Line Usage:</h3>
  * <pre>
- * java DroolsAgentMain                   # Use default Granite model (granite-code:20b)
- * java DroolsAgentMain --granite         # Use Granite code model (default)
- * java DroolsAgentMain --ollama          # Use default Ollama (llama3.2:3b)
- * java DroolsAgentMain --ollama-8b       # Use Llama 8B model
- * java DroolsAgentMain --codellama       # Use CodeLlama model
- * java DroolsAgentMain --anthropic       # Use Anthropic Claude
- * java DroolsAgentMain --auto            # Auto-select from environment
- * java DroolsAgentMain --ollama-model mistral:7b   # Custom model
- * java DroolsAgentMain --ollama-url http://remote:11434 llama3.2:3b
+ * java DroolsWorkflowMain                   # Use default Granite model (granite-code:20b)
+ * java DroolsWorkflowMain --granite         # Use Granite code model (default)
+ * java DroolsWorkflowMain --ollama          # Use default Ollama (llama3.2:3b)
+ * java DroolsWorkflowMain --ollama-8b       # Use Llama 8B model
+ * java DroolsWorkflowMain --codellama       # Use CodeLlama model
+ * java DroolsWorkflowMain --anthropic       # Use Anthropic Claude
+ * java DroolsWorkflowMain --auto            # Auto-select from environment
+ * java DroolsWorkflowMain --ollama-model mistral:7b   # Custom model
+ * java DroolsWorkflowMain --ollama-url http://remote:11434 llama3.2:3b
  * </pre>
  */
 public class ChatModels {

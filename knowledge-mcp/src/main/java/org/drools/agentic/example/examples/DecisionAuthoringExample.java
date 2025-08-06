@@ -9,7 +9,7 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import org.drools.agentic.example.config.ChatModels;
 
-public class DecisionAuthoringAgent {
+public class DecisionAuthoringExample {
 
     ChatModel model = ChatModels.createFromEnvironment();
 

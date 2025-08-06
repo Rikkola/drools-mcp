@@ -12,14 +12,14 @@ import java.util.regex.Pattern;
  * This wrapper addresses issues with agent coordination and provides robust
  * error handling for DRL authoring tasks.
  */
-public class DroolsSupervisorAgent {
+public class DroolsSupervisor {
     private final SupervisorAgent delegate;
     private static final int MAX_RETRIES = 2;
     
     // Pattern to extract the user request from error scenarios
     private static final Pattern REQUEST_PATTERN = Pattern.compile("Create a ([^.]+)\\.");
     
-    public DroolsSupervisorAgent(SupervisorAgent delegate) {
+    public DroolsSupervisor(SupervisorAgent delegate) {
         this.delegate = delegate;
     }
     
@@ -221,7 +221,7 @@ public class DroolsSupervisorAgent {
     /**
      * Factory method to create a Drools supervisor agent.
      */
-    public static DroolsSupervisorAgent create(SupervisorAgent supervisor) {
-        return new DroolsSupervisorAgent(supervisor);
+    public static DroolsSupervisor create(SupervisorAgent supervisor) {
+        return new DroolsSupervisor(supervisor);
     }
 }
