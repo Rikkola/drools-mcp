@@ -2,12 +2,12 @@ package org.drools.agentic.example.main;
 
 import dev.langchain4j.agentic.supervisor.SupervisorAgent;
 import dev.langchain4j.model.chat.ChatModel;
-import org.drools.agentic.example.agents.DroolsService;
-import org.drools.agentic.example.agents.DroolsSupervisor;
+import org.drools.agentic.example.orchestration.DroolsService;
+import org.drools.agentic.example.orchestration.DroolsSupervisor;
 import org.drools.agentic.example.agents.DRLExecutionAgent;
 import org.drools.agentic.example.config.ChatModels;
-import org.drools.agentic.example.services.DRLExecutionToolService;
-import org.drools.agentic.example.services.DRLValidationToolService;
+import org.drools.agentic.example.services.execution.DRLExecutionToolService;
+import org.drools.agentic.example.services.authoring.DRLValidationToolService;
 import org.drools.storage.DefinitionStorage;
 
 public class DroolsWorkflowMain {

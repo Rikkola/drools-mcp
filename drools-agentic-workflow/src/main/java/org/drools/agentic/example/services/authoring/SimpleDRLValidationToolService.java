@@ -1,4 +1,4 @@
-package org.drools.agentic.example.services;
+package org.drools.agentic.example.services.authoring;
 
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;

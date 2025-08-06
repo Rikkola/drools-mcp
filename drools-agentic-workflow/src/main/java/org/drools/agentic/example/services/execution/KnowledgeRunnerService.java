@@ -1,4 +1,4 @@
-package org.drools.agentic.example.agents;
+package org.drools.agentic.example.services.execution;
 
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.service.V;
@@ -10,6 +10,7 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.drools.agentic.example.storage.KnowledgeBaseStorage;
 
 import java.util.List;
 import java.util.Map;
@@ -19,7 +20,7 @@ import java.util.Map;
  * This agent performs pure Java operations without any LLM calls.
  * Uses shared storage for execution-only operations.
  */
-public class KnowledgeRunnerAgent {
+public class KnowledgeRunnerService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 

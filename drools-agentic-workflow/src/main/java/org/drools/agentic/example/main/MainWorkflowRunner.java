@@ -2,7 +2,7 @@ package org.drools.agentic.example.main;
 
 import dev.langchain4j.model.chat.ChatModel;
 import org.drools.agentic.example.config.ChatModels;
-import org.drools.agentic.example.examples.MainWorkflow;
+import org.drools.agentic.example.workflows.MainWorkflow;
 import java.util.Map;
 
 public class MainWorkflowRunner {

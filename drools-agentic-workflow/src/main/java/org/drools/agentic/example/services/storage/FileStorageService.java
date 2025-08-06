@@ -1,4 +1,4 @@
-package org.drools.agentic.example.agents;
+package org.drools.agentic.example.services.storage;
 
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;

@@ -5,6 +5,7 @@ import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
+import org.drools.agentic.example.services.knowledge.DroolsKnowledgeBaseService;
 
 /**
  * Drools Knowledge Base agent interface for building and managing Drools knowledge bases.

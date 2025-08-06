@@ -1,4 +1,4 @@
-package org.drools.agentic.example.agents;
+package org.drools.agentic.example.orchestration;
 
 import dev.langchain4j.agentic.supervisor.SupervisorAgent;
 

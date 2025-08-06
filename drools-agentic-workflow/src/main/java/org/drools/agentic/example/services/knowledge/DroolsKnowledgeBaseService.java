@@ -1,4 +1,4 @@
-package org.drools.agentic.example.agents;
+package org.drools.agentic.example.services.knowledge;
 
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.drools.agentic.example.storage.KnowledgeBaseStorage;
 
 /**
  * Drools knowledge base service that builds and manages Drools knowledge bases from DRL files.

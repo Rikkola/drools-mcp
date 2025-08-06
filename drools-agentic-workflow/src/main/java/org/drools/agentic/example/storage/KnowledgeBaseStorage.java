@@ -1,4 +1,4 @@
-package org.drools.agentic.example.agents;
+package org.drools.agentic.example.storage;
 
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;

@@ -7,8 +7,8 @@ import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import org.drools.agentic.example.config.ChatModels;
-import org.drools.agentic.example.services.SimpleDRLExecutionToolService;
-import org.drools.agentic.example.services.SimpleDRLValidationToolService;
+import org.drools.agentic.example.services.execution.SimpleDRLExecutionToolService;
+import org.drools.agentic.example.services.authoring.SimpleDRLValidationToolService;
 
 /**
  * Drools DRL authoring agent interface for generating DRL code from natural language.

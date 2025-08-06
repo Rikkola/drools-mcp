@@ -3,6 +3,7 @@ package org.drools.agentic.example.agents;
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.model.chat.ChatModel;
+import org.drools.agentic.example.services.storage.FileStorageService;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
@@ -10,7 +11,7 @@ import dev.langchain4j.service.V;
 /**
  * File storage agent interface for handling file operations.
  */
-public interface FileStorageAgentInterface {
+public interface FileStorageAgent {
     
     @SystemMessage("""
         You are a file storage agent that can perform file operations like creating, reading, writing, and managing files.
@@ -31,10 +32,10 @@ public interface FileStorageAgentInterface {
     /**
      * Factory method to create a FileStorageAgentInterface with the provided chat model.
      */
-    static FileStorageAgentInterface create(ChatModel chatModel) {
+    static FileStorageAgent create(ChatModel chatModel) {
         FileStorageService fileStorageService = new FileStorageService(chatModel);
         
-        return AgenticServices.agentBuilder(FileStorageAgentInterface.class)
+        return AgenticServices.agentBuilder(FileStorageAgent.class)
                 .chatModel(chatModel)
                 .tools(fileStorageService)
                 .build();
