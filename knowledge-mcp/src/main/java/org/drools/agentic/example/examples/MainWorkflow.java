@@ -11,6 +11,7 @@ import org.drools.agentic.example.config.ChatModels;
 import org.drools.agentic.example.agents.DroolsService;
 import org.drools.agentic.example.agents.FileStorageAgentInterface;
 import org.drools.agentic.example.agents.DroolsDRLAuthoringAgent;
+import org.drools.agentic.example.agents.DroolsKnowledgeBaseAgent;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.agentic.UntypedAgent;
 
@@ -21,10 +22,11 @@ public class MainWorkflow {
         // Use the factory method that includes tools
         var droolsAuthoringAgent = DroolsDRLAuthoringAgent.create(codeGenModel);
         var fileStorageAgent = FileStorageAgentInterface.create(codeGenModel);
+        var knowledgeBaseAgent = DroolsKnowledgeBaseAgent.create(codeGenModel);
 
         UntypedAgent agentWorkflow = AgenticServices
                 .sequenceBuilder()
-                .subAgents(droolsAuthoringAgent, fileStorageAgent)
+                .subAgents(droolsAuthoringAgent, fileStorageAgent, knowledgeBaseAgent)
                 .outputName("result")
                 .build();
 
