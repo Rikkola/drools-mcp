@@ -3,7 +3,7 @@ package org.drools.agentic.example.orchestration;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.agentic.supervisor.SupervisorAgent;
 import dev.langchain4j.model.chat.ChatModel;
-import org.drools.agentic.example.agents.DroolsDRLAuthoringAgent;
+import org.drools.agentic.example.agents.DRLAuthoringAgent;
 
 public class DroolsService {
 
@@ -18,7 +18,7 @@ public class DroolsService {
      */
     public static DroolsSupervisor createDroolsSupervisorAgent(ChatModel planningModel, ChatModel codeGenModel) {
         // Create individual specialized agents with the code generation model
-        DroolsDRLAuthoringAgent authoringAgent = DroolsDRLAuthoringAgent.create(codeGenModel);
+        DRLAuthoringAgent authoringAgent = DRLAuthoringAgent.create(codeGenModel);
 
         // Build the base supervisor agent that coordinates the specialized agents
         SupervisorAgent baseSupervisor = AgenticServices.supervisorBuilder()

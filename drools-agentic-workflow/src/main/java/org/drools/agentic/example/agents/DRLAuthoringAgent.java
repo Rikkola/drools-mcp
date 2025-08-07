@@ -16,7 +16,7 @@ import org.drools.agentic.example.services.registry.FactTypeRegistryToolService;
  * Drools DRL authoring agent interface for generating DRL code from natural language.
  * Enhanced with fact type registry capabilities for reusing and managing fact type declarations.
  */
-public interface DroolsDRLAuthoringAgent {
+public interface DRLAuthoringAgent {
 
     @SystemMessage("""
         You are an advanced Drools DRL language authoring agent with fact type registry capabilities.
@@ -71,41 +71,41 @@ public interface DroolsDRLAuthoringAgent {
     String handleRequest(@V("request") String request);
 
     /**
-     * Creates a DroolsDRLAuthoringAgent with registry, validation and execution tools.
+     * Creates a DRLAuthoringAgent with registry, validation and execution tools.
      * 
      * @param chatModel The chat model to use for the agent (must support tools)
      * @param registry The fact type registry to use (can be pre-loaded with existing types)
      * @return A configured agent with fact type registry capabilities
      */
-    static DroolsDRLAuthoringAgent create(ChatModel chatModel, FactTypeRegistry registry) {
+    static DRLAuthoringAgent create(ChatModel chatModel, FactTypeRegistry registry) {
         SimpleDRLValidationToolService validationService = new SimpleDRLValidationToolService();
         SimpleDRLExecutionToolService executionService = new SimpleDRLExecutionToolService();
         FactTypeRegistryToolService registryService = new FactTypeRegistryToolService(registry);
 
-        return AgenticServices.agentBuilder(DroolsDRLAuthoringAgent.class)
+        return AgenticServices.agentBuilder(DRLAuthoringAgent.class)
                 .chatModel(chatModel)
                 .tools(validationService, executionService, registryService)
                 .build();
     }
 
     /**
-     * Creates a DroolsDRLAuthoringAgent with simple validation and execution tools.
+     * Creates a DRLAuthoringAgent with simple validation and execution tools.
      * This is the backward-compatible method that creates an agent with an empty registry.
      * 
      * @param chatModel The chat model to use for the agent (must support tools)
-     * @return A configured DroolsDRLAuthoringAgent with validation and execution tools
+     * @return A configured DRLAuthoringAgent with validation and execution tools
      */
-    static DroolsDRLAuthoringAgent create(ChatModel chatModel) {
+    static DRLAuthoringAgent create(ChatModel chatModel) {
         return create(chatModel, new InMemoryFactTypeRegistry());
     }
 
     /**
-     * Creates a DroolsDRLAuthoringAgent with an empty registry.
+     * Creates a DRLAuthoringAgent with an empty registry.
      * 
      * @param chatModel The chat model to use for the agent
      * @return A configured agent with an empty fact type registry
      */
-    static DroolsDRLAuthoringAgent createWithEmptyRegistry(ChatModel chatModel) {
+    static DRLAuthoringAgent createWithEmptyRegistry(ChatModel chatModel) {
         return create(chatModel, new InMemoryFactTypeRegistry());
     }
 }
