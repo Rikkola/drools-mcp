@@ -15,7 +15,7 @@ import org.drools.agentic.example.services.validation.DRLValidatorService;
  * - Non-AI for fast, reliable syntax validation
  * - Guaranteed working DRL through iterative refinement
  */
-public class DRLHybridLoopExample {
+public class DRLHybridLoopExampleMain {
 
     public static void main(String[] args) {
         // Configure the chat model (requires OpenAI API key)

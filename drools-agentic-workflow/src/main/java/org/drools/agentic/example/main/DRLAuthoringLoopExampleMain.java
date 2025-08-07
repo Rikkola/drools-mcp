@@ -12,7 +12,7 @@ import org.drools.agentic.example.registry.InMemoryFactTypeRegistry;
  * This example shows how the new loop-based approach provides guaranteed working DRL
  * by iteratively refining the code through validation and execution cycles.
  */
-public class DRLAuthoringLoopExample {
+public class DRLAuthoringLoopExampleMain {
 
     public static void main(String[] args) {
         // Configure the chat model (requires OpenAI API key)
