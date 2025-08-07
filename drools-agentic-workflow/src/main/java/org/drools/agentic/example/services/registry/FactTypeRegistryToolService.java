@@ -12,8 +12,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Tool service that provides fact type registry capabilities to AI agents.
- * Enables agents to query, create, and modify fact type declarations.
+ * Minimal tool service for fact type registry with only 5 essential tools.
+ * Simplified for better LLM performance and reduced cognitive load.
+ * 
+ * WORKFLOW:
+ * 1. STEP 1: getExistingFactTypes() - Check what already exists
+ * 2. STEP 2: updateFactType() - Create new or modify existing types
+ * 3. STEP 2b: addFieldToFactType() - Add single field to existing type
+ * 4. STEP 3: generateAllDRLDeclarations() - Get all DRL declare blocks
+ * 5. STEP 3b: generateDRLDeclarations(names) - Get specific DRL declare blocks
  */
 public class FactTypeRegistryToolService {
     
@@ -25,16 +32,8 @@ public class FactTypeRegistryToolService {
         this.objectMapper = new ObjectMapper();
     }
 
-    @Tool("Get all existing fact type names in the registry")
-    public String getExistingFactTypeNames() {
-        Set<String> typeNames = registry.getAllFactTypeNames();
-        if (typeNames.isEmpty()) {
-            return "No fact types are currently registered.";
-        }
-        return "Registered fact types: " + String.join(", ", typeNames);
-    }
 
-    @Tool("Get detailed information about all existing fact types")
+    @Tool("STEP 1: Check what fact types already exist. Always call this FIRST before creating new types. Shows all existing fact types with their fields and details. NO PARAMETERS NEEDED. Example: If you see Person type with name/age fields, you can reuse it instead of creating a new one.")
     public String getExistingFactTypes() {
         if (registry.size() == 0) {
             return "No fact types are currently registered.";
@@ -45,27 +44,12 @@ public class FactTypeRegistryToolService {
                 .collect(Collectors.joining("\n\n"));
     }
 
-    @Tool("Get details of a specific fact type by name")
-    public String getFactType(@P("typeName") String typeName) {
-        Optional<FactTypeDefinition> factType = registry.getFactType(typeName);
-        
-        if (factType.isEmpty()) {
-            return "Fact type '" + typeName + "' not found in registry.";
-        }
-        
-        return formatFactType(factType.get());
-    }
 
-    @Tool("Check if a fact type exists in the registry")
-    public String hasFactType(@P("typeName") String typeName) {
-        boolean exists = registry.hasFactType(typeName);
-        return "Fact type '" + typeName + "' " + (exists ? "exists" : "does not exist") + " in registry.";
-    }
 
-    @Tool("Create or update a fact type with field definitions")
-    public String updateFactType(@P("typeName") String typeName, 
-                                @P("packageName") String packageName,
-                                @P("fieldsJson") String fieldsJson) {
+    @Tool("STEP 2: Create a new fact type OR modify an existing one. EXAMPLE: typeName='Person', packageName='com.example', fieldsJson='{\"name\":\"String\", \"age\":\"int\", \"active\":\"boolean\"}' creates Person with 3 fields. Use String, int, boolean, double as field types.")
+    public String updateFactType(@P("typeName - The name of the fact type to create or update. Example: 'Person', 'Order', 'Customer'") String typeName, 
+                                @P("packageName - The Java package name for the fact type. Example: 'com.example', 'org.drools.facts'") String packageName,
+                                @P("fieldsJson - JSON object with field definitions. Format: {\"fieldName\":\"fieldType\"}. Example: '{\"name\":\"String\", \"age\":\"int\", \"active\":\"boolean\"}'. Use String, int, boolean, double, Date as types.") String fieldsJson) {
         try {
             FactTypeDefinition definition = new FactTypeDefinition(typeName, packageName);
             
@@ -116,11 +100,11 @@ public class FactTypeRegistryToolService {
         }
     }
 
-    @Tool("Add a single field to an existing fact type")
-    public String addFieldToFactType(@P("typeName") String typeName,
-                                   @P("fieldName") String fieldName,
-                                   @P("fieldType") String fieldType,
-                                   @P("defaultValue") String defaultValue) {
+    @Tool("STEP 2b: Add ONE field to an existing fact type. EXAMPLE: typeName='Person', fieldName='email', fieldType='String', defaultValue='' adds email field to existing Person type. Only works if Person already exists. Use String, int, boolean, double as fieldType.")
+    public String addFieldToFactType(@P("typeName - Name of existing fact type to extend. Example: 'Person' (must already exist in registry)") String typeName,
+                                   @P("fieldName - Name of the new field to add. Example: 'email', 'phoneNumber', 'address'") String fieldName,
+                                   @P("fieldType - Java type for the field. Use: String, int, boolean, double, Date. Example: 'String' for text, 'int' for numbers") String fieldType,
+                                   @P("defaultValue - Default value for the field. Can be empty string. Example: '' for no default, 'false' for boolean, '0' for numbers") String defaultValue) {
         Optional<FactTypeDefinition> existing = registry.getFactType(typeName);
         
         if (existing.isEmpty()) {
@@ -136,18 +120,8 @@ public class FactTypeRegistryToolService {
         return "Added field '" + fieldName + " : " + fieldType + "' to fact type '" + typeName + "'.";
     }
 
-    @Tool("Remove a fact type from the registry")
-    public String removeFactType(@P("typeName") String typeName) {
-        boolean removed = registry.removeFactType(typeName);
-        
-        if (removed) {
-            return "Successfully removed fact type '" + typeName + "' from registry.";
-        } else {
-            return "Fact type '" + typeName + "' not found in registry.";
-        }
-    }
 
-    @Tool("Generate DRL declare blocks for all registered fact types")
+    @Tool("STEP 3: Generate DRL 'declare' blocks for ALL fact types. Call this AFTER creating fact types. NO PARAMETERS NEEDED. Returns ready-to-use DRL code like 'declare Person name: String; age: int; end'. Use this to get declare blocks for ALL types.")
     public String generateAllDRLDeclarations() {
         if (registry.size() == 0) {
             return "No fact types registered to generate declarations for.";
@@ -156,8 +130,8 @@ public class FactTypeRegistryToolService {
         return registry.generateDRLDeclarations();
     }
 
-    @Tool("Generate DRL declare blocks for specific fact types")
-    public String generateDRLDeclarations(@P("typeNames") String typeNamesCommaDelimited) {
+    @Tool("STEP 3b: Generate DRL 'declare' blocks for SPECIFIC fact types only. EXAMPLE: typeNames='Person,Order' generates declare blocks for only Person and Order types. Use comma-separated list. Use this when you want specific types, not all.")
+    public String generateDRLDeclarations(@P("typeNames - Comma-separated list of fact type names. Example: 'Person,Order' or 'Customer,Product,Invoice'. No spaces around commas.") String typeNamesCommaDelimited) {
         Set<String> typeNames = Set.of(typeNamesCommaDelimited.split(","));
         typeNames = typeNames.stream().map(String::trim).collect(Collectors.toSet());
         
@@ -170,47 +144,8 @@ public class FactTypeRegistryToolService {
         return declarations;
     }
 
-    @Tool("Load fact types from existing DRL content")
-    public String loadFromDRL(@P("drlContent") String drlContent, 
-                             @P("packageName") String packageName) {
-        try {
-            int loadedCount = registry.loadFromDRL(drlContent, packageName);
-            
-            if (loadedCount == 0) {
-                return "No fact type declarations found in the provided DRL content.";
-            }
-            
-            return "Successfully loaded " + loadedCount + " fact type(s) from DRL content.";
-            
-        } catch (Exception e) {
-            return "Error loading from DRL: " + e.getMessage();
-        }
-    }
 
-    @Tool("Get registry statistics and summary")
-    public String getRegistryInfo() {
-        int count = registry.size();
-        
-        if (count == 0) {
-            return "Registry is empty - no fact types registered.";
-        }
-        
-        Set<String> typeNames = registry.getAllFactTypeNames();
-        int totalFields = registry.getAllFactTypes().stream()
-                .mapToInt(def -> def.getFields().size())
-                .sum();
-        
-        return String.format("Registry contains %d fact type(s) with %d total fields:\n%s", 
-                           count, totalFields, String.join(", ", typeNames));
-    }
 
-    @Tool("Clear all fact types from the registry")
-    public String clearRegistry() {
-        int previousCount = registry.size();
-        registry.clear();
-        
-        return "Cleared registry. Removed " + previousCount + " fact type(s).";
-    }
 
     /**
      * Formats a fact type definition for human-readable output.
