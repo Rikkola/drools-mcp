@@ -95,15 +95,6 @@ public class DRLAuthoringAgent {
         return create(chatModel, new InMemoryFactTypeRegistry());
     }
 
-    /**
-     * Creates a DRLAuthoringAgent with an empty registry.
-     * 
-     * @param chatModel The chat model to use for the agent
-     * @return A configured agent with an empty fact type registry
-     */
-    public static UntypedAgent createWithEmptyRegistry(ChatModel chatModel) {
-        return create(chatModel, new InMemoryFactTypeRegistry());
-    }
 
     /**
      * Creates a loop-based DRL authoring agent that iteratively refines DRL code.
@@ -119,24 +110,4 @@ public class DRLAuthoringAgent {
         return DRLAuthoringLoop.create(chatModel, registry, maxIterations);
     }
 
-    /**
-     * Creates a loop-based DRL authoring agent with default settings.
-     * 
-     * @param chatModel The chat model to use for the agent (must support tools)
-     * @param registry The fact type registry to use
-     * @return A loop-based DRL authoring agent with 3 max iterations
-     */
-    public static UntypedAgent createLoopBasedAgent(ChatModel chatModel, FactTypeRegistry registry) {
-        return DRLAuthoringLoop.create(chatModel, registry);
-    }
-
-    /**
-     * Creates a loop-based DRL authoring agent with empty registry.
-     * 
-     * @param chatModel The chat model to use for the agent (must support tools)
-     * @return A loop-based DRL authoring agent with empty registry
-     */
-    public static UntypedAgent createLoopBasedAgent(ChatModel chatModel) {
-        return DRLAuthoringLoop.create(chatModel);
-    }
 }

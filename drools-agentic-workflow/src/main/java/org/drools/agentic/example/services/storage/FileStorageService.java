@@ -156,10 +156,4 @@ public class FileStorageService {
         }
     }
 
-    /**
-     * Factory method to create a FileStorageService with the provided chat model.
-     */
-    public static FileStorageService create(ChatModel chatModel) {
-        return new FileStorageService(chatModel);
-    }
 }

@@ -40,13 +40,4 @@ public class DroolsWorkflowOrchestratorAgent {
         return agentWorkflow;
     }
 
-    /**
-     * Creates a sequential agent workflow using the same model for both planning and code generation.
-     * 
-     * @param chatModel ChatModel for both planning and code generation tasks
-     * @return Configured UntypedAgent workflow
-     */
-    public static UntypedAgent create(ChatModel chatModel) {
-        return create(chatModel, chatModel);
-    }
 }

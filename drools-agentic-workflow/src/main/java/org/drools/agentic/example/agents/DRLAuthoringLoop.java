@@ -83,14 +83,4 @@ public class DRLAuthoringLoop {
         return create(chatModel, new InMemoryFactTypeRegistry());
     }
 
-    /**
-     * Creates a loop-based DRL authoring workflow with custom iteration limit and empty registry.
-     * 
-     * @param chatModel The chat model to use for all agents (must support tools)
-     * @param maxIterations Maximum number of loop iterations
-     * @return A configured loop-based DRL authoring agent
-     */
-    public static UntypedAgent createWithMaxIterations(ChatModel chatModel, int maxIterations) {
-        return create(chatModel, new InMemoryFactTypeRegistry(), maxIterations);
-    }
 }

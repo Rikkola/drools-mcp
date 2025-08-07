@@ -42,18 +42,4 @@ public interface DRLValidatorAgent {
     @Agent("DRL code validator for loop workflow")
     String validateDRL(@V("cognisphere") Object cognisphere);
 
-    /**
-     * Creates a DRLValidatorAgent with validation tools.
-     * 
-     * @param chatModel The chat model to use for the agent (must support tools)
-     * @return A configured DRL validator agent
-     */
-    static DRLValidatorAgent create(ChatModel chatModel) {
-        SimpleDRLValidationToolService validationService = new SimpleDRLValidationToolService();
-
-        return AgenticServices.agentBuilder(DRLValidatorAgent.class)
-                .chatModel(chatModel)
-                .tools(validationService)
-                .build();
-    }
 }
