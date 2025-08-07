@@ -1,4 +1,4 @@
-package org.drools.agentic.example;
+package org.drools.agentic.example.main;
 
 import dev.langchain4j.agentic.UntypedAgent;
 import dev.langchain4j.model.openai.OpenAiChatModel;
