@@ -187,6 +187,162 @@ public class ModelSelector {
     }
 
     /**
+     * Creates a single ChatModel for workflows where planning model = chat model.
+     * Supports the same argument patterns as DroolsWorkflowMain.
+     * 
+     * @param args Command line arguments
+     * @return Configured ChatModel for unified usage
+     */
+    public static ChatModel createSingleModelFromArgs(String[] args) {
+        // Check command line arguments first
+        for (String arg : args) {
+            if (arg.startsWith("--model=")) {
+                String modelName = arg.substring("--model=".length());
+                System.out.println("Using custom model: " + modelName);
+                return ChatModels.createOllamaModel(modelName);
+            }
+            switch (arg.toLowerCase()) {
+                case "--granite":
+                case "-g":
+                    System.out.println("Using Granite model (granite-code:20b)");
+                    return createChatModel(ModelType.GRANITE_CODE);
+                    
+                case "--qwen":
+                case "--qwen-coder":
+                    System.out.println("Using Qwen2.5 Coder model (qwen2.5-coder:14b)");
+                    return createChatModel(ModelType.QWEN_CODER);
+                    
+                case "--granite3-moe":
+                    System.out.println("Using Granite3 MoE model (granite3-moe:3b)");
+                    return createChatModel(ModelType.GRANITE3_MOE);
+                    
+                case "--anthropic":
+                case "-a":
+                    System.out.println("Using Anthropic Claude model");
+                    return createChatModel(ModelType.ANTHROPIC_CLAUDE);
+                    
+                case "--auto":
+                    System.out.println("Auto-selecting model from environment");
+                    return ChatModels.createFromEnvironment();
+            }
+        }
+        
+        // Check for model-specific arguments
+        for (int i = 0; i < args.length - 1; i++) {
+            if ("--ollama-model".equals(args[i])) {
+                String modelName = args[i + 1];
+                System.out.println("Using custom Ollama model: " + modelName);
+                return ChatModels.createOllamaModel(modelName);
+            }
+            if ("--ollama-url".equals(args[i])) {
+                String baseUrl = args[i + 1];
+                String modelName = (i + 2 < args.length) ? args[i + 2] : "granite-code:20b";
+                System.out.println("Using Ollama at " + baseUrl + " with model: " + modelName);
+                return ChatModels.createOllamaModel(baseUrl, modelName);
+            }
+        }
+        
+        // Default: use Granite code model (best for planning)
+        System.out.println("Using default Granite model (granite-code:20b)");
+        return createChatModel(ModelType.GRANITE_CODE);
+    }
+
+    /**
+     * Creates planning ChatModel for workflows with separate planning/codegen models.
+     * 
+     * @param args Command line arguments
+     * @return Configured ChatModel for planning tasks
+     */
+    public static ChatModel createPlanningModelFromArgs(String[] args) {
+        // Check command line arguments first
+        for (String arg : args) {
+            if (arg.startsWith("--planning=")) {
+                String modelName = arg.substring("--planning=".length());
+                System.out.println("Using custom planning model: " + modelName);
+                return ChatModels.createOllamaModel(modelName);
+            }
+            switch (arg.toLowerCase()) {
+                case "--granite":
+                case "-g":
+                    System.out.println("Using Granite planning model (granite-code:20b)");
+                    return createChatModel(ModelType.GRANITE_CODE);
+                    
+                case "--anthropic":
+                case "-a":
+                    System.out.println("Using Anthropic Claude planning model");
+                    return createChatModel(ModelType.ANTHROPIC_CLAUDE);
+                    
+                case "--auto":
+                    System.out.println("Auto-selecting planning model from environment");
+                    return ChatModels.createFromEnvironment();
+            }
+        }
+        
+        // Check for model-specific arguments (reuse single model logic)
+        return createSingleModelFromArgs(args);
+    }
+
+    /**
+     * Creates code generation ChatModel for workflows with separate planning/codegen models.
+     * 
+     * @param args Command line arguments
+     * @return Configured ChatModel for code generation tasks
+     */
+    public static ChatModel createCodeGenModelFromArgs(String[] args) {
+        // Check command line arguments first
+        for (String arg : args) {
+            if (arg.startsWith("--codegen=")) {
+                String modelName = arg.substring("--codegen=".length());
+                System.out.println("Using custom code generation model: " + modelName);
+                return ChatModels.createOllamaModel(modelName);
+            }
+            switch (arg.toLowerCase()) {
+                case "--granite3-moe":
+                    System.out.println("Using Granite3 MoE code generation model (granite3-moe:3b)");
+                    return createChatModel(ModelType.GRANITE3_MOE);
+                    
+                case "--granite":
+                case "-g":
+                    System.out.println("Using Granite3 MoE code generation model (granite3-moe:3b)");
+                    return createChatModel(ModelType.GRANITE3_MOE);
+                    
+                case "--qwen":
+                case "--qwen-coder":
+                    System.out.println("Using Qwen2.5 Coder code generation model (qwen2.5-coder:14b)");
+                    return createChatModel(ModelType.QWEN_CODER);
+                    
+                case "--anthropic":
+                case "-a":
+                    System.out.println("Using Anthropic Claude code generation model");
+                    return createChatModel(ModelType.ANTHROPIC_CLAUDE);
+                    
+                case "--auto":
+                    System.out.println("Auto-selecting code generation model from environment");
+                    return ChatModels.createFromEnvironment();
+            }
+        }
+        
+        // Check for model-specific arguments
+        for (int i = 0; i < args.length - 1; i++) {
+            if ("--ollama-model".equals(args[i])) {
+                String modelName = args[i + 1];
+                System.out.println("Using custom Ollama code generation model: " + modelName);
+                return ChatModels.createOllamaModel(modelName);
+            }
+            if ("--ollama-url".equals(args[i])) {
+                String baseUrl = args[i + 1];
+                String modelName = (i + 2 < args.length) ? args[i + 2] : "qwen2.5-coder:14b";
+                System.out.println("Using Ollama at " + baseUrl + " for code generation with model: " + modelName);
+                return ChatModels.createOllamaModel(baseUrl, modelName);
+            }
+        }
+        
+        // Default: use Qwen2.5 Coder model (fast and supports tools)
+        System.out.println("Using default Qwen2.5 Coder code generation model (qwen2.5-coder:14b)");
+        return createChatModel(ModelType.QWEN_CODER);
+    }
+
+    /**
      * Gets a model recommendation based on use case.
      * 
      * @param useCase The intended use case
