@@ -10,7 +10,7 @@ import org.drools.exception.DefinitionNotFoundException;
 import org.drools.exception.DRLExecutionException;
 import org.drools.exception.DRLValidationException;
 import org.drools.model.JsonResponseBuilder;
-import org.drools.agentic.example.workflows.DroolsWorkflowOrchestrator;
+import org.drools.agentic.example.agents.DroolsWorkflowOrchestratorAgent;
 import org.drools.agentic.example.config.ChatModels;
 import org.drools.agentic.example.services.execution.KnowledgeRunnerService;
 import dev.langchain4j.agentic.UntypedAgent;
@@ -23,11 +23,10 @@ import java.util.Map;
 @ApplicationScoped
 public class DroolsAgenticTool {
 
-    private final DroolsWorkflowOrchestrator droolsWorkflowOrchestrator;
+    // No need for instance variable since DroolsWorkflowOrchestratorAgent provides static methods
     private final KnowledgeRunnerService knowledgeRunnerService;
 
     public DroolsAgenticTool() {
-        this.droolsWorkflowOrchestrator = new DroolsWorkflowOrchestrator();
         this.knowledgeRunnerService = new KnowledgeRunnerService();
     }
 
@@ -35,7 +34,7 @@ public class DroolsAgenticTool {
     public String improveKnowledgeBase(@ToolArg(description = "Comprehensive specification including: 1) Domain model (entities, attributes, relationships), 2) Business constraints and validation rules, 3) Decision logic requirements, 4) Example scenarios with expected outcomes, 5) Integration requirements. Provide as much detail as possible - this serves as the design document for implementation.") String specification) {
         try {
             // Create agent workflow with default chat models
-            UntypedAgent agentWorkflow = droolsWorkflowOrchestrator.createAgentWorkflow(
+            UntypedAgent agentWorkflow = DroolsWorkflowOrchestratorAgent.create(
                 ChatModels.OLLAMA_GRANITE_MODEL, 
                 ChatModels.OLLAMA_GRANITE3_MOE_MODEL
             );

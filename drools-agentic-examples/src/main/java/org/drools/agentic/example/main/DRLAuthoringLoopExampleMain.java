@@ -5,6 +5,7 @@ import dev.langchain4j.model.chat.ChatModel;
 import org.drools.agentic.example.agents.DRLAuthoringAgent;
 import org.drools.agentic.example.registry.FactTypeRegistry;
 import org.drools.agentic.example.registry.InMemoryFactTypeRegistry;
+import java.util.Map;
 
 /**
  * Example demonstrating the loop-based DRL authoring workflow.
@@ -35,7 +36,7 @@ public class DRLAuthoringLoopExampleMain {
             Use fact types: Order (id, amount, customerId) and Customer (id, name, totalOrders)
             """;
         
-        String result1 = loopBasedAgent.execute(request1);
+        Object result1 = loopBasedAgent.invoke(Map.of("request", request1));
         System.out.println("Result: " + result1);
         System.out.println();
 
@@ -50,7 +51,7 @@ public class DRLAuthoringLoopExampleMain {
             Use fact types: Claim (id, amount, type, customerId) and Policy (id, type, deductible)
             """;
         
-        String result2 = loopBasedAgent.execute(request2);
+        Object result2 = loopBasedAgent.invoke(Map.of("request", request2));
         System.out.println("Result: " + result2);
         System.out.println();
 
@@ -66,7 +67,7 @@ public class DRLAuthoringLoopExampleMain {
             Use appropriate fact types for loan applications, customer data, and credit information.
             """;
         
-        String result3 = loopBasedAgent.execute(request3);
+        Object result3 = loopBasedAgent.invoke(Map.of("request", request3));
         System.out.println("Result: " + result3);
     }
 }

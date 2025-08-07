@@ -10,7 +10,7 @@ echo "🚀 Running Drools AI Agent..."
 echo "📍 Working directory: $SCRIPT_DIR"
 
 # Check if project is built
-if [ ! -d "knowledge-mcp/target/classes" ]; then
+if [ ! -d "drools-agentic-examples/target/classes" ]; then
     echo "🔨 Building project..."
     mvn clean compile -q
     if [ $? -ne 0 ]; then
@@ -21,7 +21,7 @@ if [ ! -d "knowledge-mcp/target/classes" ]; then
 fi
 
 # Run the agent
-echo "🎯 Starting DroolsAgentMain..."
+echo "🎯 Starting DroolsWorkflowMain..."
 echo "📋 Arguments: $*"
 echo "🌍 Environment variables:"
 [ -n "$ANTHROPIC_API_KEY" ] && echo "   - ANTHROPIC_API_KEY: ****" || echo "   - ANTHROPIC_API_KEY: (not set)"
@@ -29,10 +29,10 @@ echo "🌍 Environment variables:"
 [ -n "$OLLAMA_BASE_URL" ] && echo "   - OLLAMA_BASE_URL: $OLLAMA_BASE_URL" || echo "   - OLLAMA_BASE_URL: (not set)"
 echo ""
 
-mvn exec:java -pl knowledge-mcp \
-    -Dexec.mainClass="org.drools.agentic.example.main.DroolsAgentMain" \
+mvn exec:java -pl drools-agentic-examples \
+    -Dexec.mainClass="org.drools.agentic.example.main.DroolsWorkflowMain" \
     -Dexec.args="$*" \
     -q
 
 echo ""
-echo "🏁 DroolsAgent execution completed."
+echo "🏁 DroolsWorkflowMain execution completed."

@@ -10,7 +10,7 @@ echo "🚀 Running DroolsWorkflowOrchestrator Example..."
 echo "📍 Working directory: $SCRIPT_DIR"
 
 # Check if project is built
-if [ ! -d "drools-agentic-workflow/target/classes" ]; then
+if [ ! -d "drools-agentic-examples/target/classes" ]; then
     echo "🔨 Building project..."
     mvn clean compile -q
     if [ $? -ne 0 ]; then
@@ -29,8 +29,8 @@ echo "🌍 Environment variables:"
 [ -n "$OLLAMA_BASE_URL" ] && echo "   - OLLAMA_BASE_URL: $OLLAMA_BASE_URL" || echo "   - OLLAMA_BASE_URL: (not set)"
 echo ""
 
-mvn exec:java -pl drools-agentic-workflow \
-    -Dexec.mainClass="org.drools.agentic.example.main.DroolsWorkflowOrchestratorRunner" \
+mvn exec:java -pl drools-agentic-examples \
+    -Dexec.mainClass="org.drools.agentic.example.main.DroolsWorkflowOrchestratorExampleMain" \
     -Dexec.args="$*" \
     -q
 

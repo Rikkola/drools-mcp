@@ -6,6 +6,7 @@ import org.drools.agentic.example.agents.DRLAuthoringAgent;
 import org.drools.agentic.example.registry.FactTypeRegistry;
 import org.drools.agentic.example.registry.InMemoryFactTypeRegistry;
 import org.drools.agentic.example.services.validation.DRLValidatorService;
+import java.util.Map;
 
 /**
  * Example demonstrating the hybrid loop-based DRL authoring workflow.
@@ -53,7 +54,7 @@ public class DRLHybridLoopExampleMain {
             """;
         
         long startTime = System.currentTimeMillis();
-        String result1 = hybridAgent.execute(request1);
+        Object result1 = hybridAgent.invoke(Map.of("request", request1));
         long duration = System.currentTimeMillis() - startTime;
         
         System.out.println("Result: " + result1);
@@ -76,7 +77,7 @@ public class DRLHybridLoopExampleMain {
             """;
         
         startTime = System.currentTimeMillis();
-        String result2 = hybridAgent.execute(request2);
+        Object result2 = hybridAgent.invoke(Map.of("request", request2));
         duration = System.currentTimeMillis() - startTime;
         
         System.out.println("Result: " + result2);

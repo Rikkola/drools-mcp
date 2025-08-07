@@ -1,0 +1,51 @@
+package org.drools.agentic.example.agents;
+
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.agentic.AgenticServices;
+import dev.langchain4j.agentic.UntypedAgent;
+
+/**
+ * Agent that orchestrates a sequential workflow of DRL development agents.
+ * 
+ * This agent creates a workflow that chains together:
+ * 1. DRLAuthoringAgent - Creates DRL rules based on specifications
+ * 2. FileStorageAgent - Saves the generated DRL to files
+ * 3. DroolsKnowledgeBaseAgent - Builds and validates the knowledge base
+ * 
+ * The sequential workflow ensures each step completes before the next begins,
+ * providing a reliable end-to-end DRL development automation pipeline.
+ */
+public class DroolsWorkflowOrchestratorAgent {
+
+    /**
+     * Creates a sequential agent workflow for DRL development.
+     * 
+     * @param planningModel ChatModel for planning tasks (currently unused in this sequential workflow)
+     * @param codeGenModel ChatModel for code generation tasks
+     * @return Configured UntypedAgent workflow
+     */
+    public static UntypedAgent create(ChatModel planningModel, ChatModel codeGenModel) {
+        // Use the factory method that includes tools
+        var droolsAuthoringAgent = DRLAuthoringAgent.create(codeGenModel);
+        var fileStorageAgent = FileStorageAgent.create(codeGenModel);
+        var knowledgeBaseAgent = DroolsKnowledgeBaseAgent.create(codeGenModel);
+
+        UntypedAgent agentWorkflow = AgenticServices
+                .sequenceBuilder()
+                .subAgents(droolsAuthoringAgent, fileStorageAgent, knowledgeBaseAgent)
+                .outputName("result")
+                .build();
+
+        return agentWorkflow;
+    }
+
+    /**
+     * Creates a sequential agent workflow using the same model for both planning and code generation.
+     * 
+     * @param chatModel ChatModel for both planning and code generation tasks
+     * @return Configured UntypedAgent workflow
+     */
+    public static UntypedAgent create(ChatModel chatModel) {
+        return create(chatModel, chatModel);
+    }
+}
