@@ -4,6 +4,8 @@ import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.agentic.supervisor.SupervisorAgent;
 import dev.langchain4j.model.chat.ChatModel;
 import org.drools.agentic.example.agents.DRLAuthoringAgent;
+import dev.langchain4j.agentic.UntypedAgent;
+import org.drools.agentic.example.registry.InMemoryFactTypeRegistry;
 
 public class DroolsService {
 
@@ -17,8 +19,8 @@ public class DroolsService {
      * @return A configured DroolsSupervisor ready for use
      */
     public static DroolsSupervisor createDroolsSupervisorAgent(ChatModel planningModel, ChatModel codeGenModel) {
-        // Create individual specialized agents with the code generation model
-        DRLAuthoringAgent authoringAgent = DRLAuthoringAgent.create(codeGenModel);
+        // Create individual specialized agents with the dual model approach
+        UntypedAgent authoringAgent = DRLAuthoringAgent.create(planningModel, codeGenModel, new InMemoryFactTypeRegistry());
 
         // Build the base supervisor agent that coordinates the specialized agents
         SupervisorAgent baseSupervisor = AgenticServices.supervisorBuilder()

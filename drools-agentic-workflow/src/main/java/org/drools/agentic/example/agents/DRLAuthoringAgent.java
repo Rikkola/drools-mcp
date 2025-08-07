@@ -14,89 +14,84 @@ import org.drools.agentic.example.services.authoring.SimpleDRLValidationToolServ
 import org.drools.agentic.example.services.registry.FactTypeRegistryToolService;
 
 /**
- * Drools DRL authoring agent interface for generating DRL code from natural language.
- * Enhanced with fact type registry capabilities for reusing and managing fact type declarations.
+ * Drools DRL authoring orchestration agent that coordinates the DRL development workflow.
+ * This agent acts as a planner/coordinator using the planning model to break down requirements
+ * and delegate actual code generation to the loop-based DRL generation workflow.
  */
-public interface DRLAuthoringAgent {
-
-    @SystemMessage("""
-        You are an advanced Drools DRL language authoring agent with fact type registry capabilities.
-        You can generate complete DRL code while leveraging existing fact type definitions.
-
-        ENHANCED CAPABILITIES:
-        1. Query existing fact type definitions using registry tools
-        2. Reuse existing fact types when they match requirements
-        3. Extend existing fact types by adding new fields when needed
-        4. Create new fact types only when no suitable existing type exists
-        5. Always update the registry with any new or modified fact types
-        6. Ensure consistency across fact type definitions
-
-        CRITICAL WORKFLOW:
-        1. FIRST: Check the registry for existing fact types using getExistingFactTypes()
-        2. ANALYZE: Determine if existing types can be reused or need modification
-        3. REUSE: Use existing compatible fact types directly in your rules
-        4. EXTEND: Add missing fields to existing types using addFieldToFactType()
-        5. CREATE: Only create new fact types when necessary using updateFactType()
-        6. GENERATE: Use generateAllDRLDeclarations() to get the complete declare blocks
-
-        FACT TYPE MANAGEMENT RULES:
-        - Always prefer reusing existing fact types over creating new ones
-        - When extending a fact type, preserve existing field names and types
-        - Use consistent naming conventions across related fact types
-        - Ensure field types are compatible (String, int, boolean, double, java.util.Date, etc.)
-        - Set appropriate default values for new fields
-
-        DRL GENERATION PROCESS:
-        1. Query registry for existing fact types
-        2. Determine which types to use/modify/create based on requirements
-        3. Update registry with any changes
-        4. Generate DRL declarations from registry
-        5. Write business rules that use the declared types
-        6. Validate and test the complete DRL
-
-        EXAMPLE WORKFLOW:
-        Input: "Create rules for customer orders with discounts"
-        1. Check registry: getExistingFactTypes()
-        2. Found existing "Order" type with id, amount fields
-        3. Add discount fields: addFieldToFactType("Order", "discountRate", "double", "0.0")
-        4. Create Customer if needed: updateFactType("Customer", ...)
-        5. Generate declarations: generateAllDRLDeclarations()
-        6. Write business rules using Order and Customer types
-        7. Test with execution tool
-
-        Always include proper package declarations and ensure the '_type' field is present in test JSON data.
-        Format: [{"_type":"Order", "id":"ORD001", "amount":150.0, "discountRate":0.1}]
-        """)
-    @UserMessage("{{request}}")
-    @Agent("An advanced Drools DRL authoring agent with fact type registry")
-    String handleRequest(@V("request") String request);
+public class DRLAuthoringAgent {
 
     /**
-     * Creates a DRLAuthoringAgent with registry, validation and execution tools.
-     * 
-     * @param chatModel The chat model to use for the agent (must support tools)
-     * @param registry The fact type registry to use (can be pre-loaded with existing types)
-     * @return A configured agent with fact type registry capabilities
+     * Planning agent interface for analyzing requirements and coordinating workflow.
      */
-    static DRLAuthoringAgent create(ChatModel chatModel, FactTypeRegistry registry) {
-        SimpleDRLValidationToolService validationService = new SimpleDRLValidationToolService();
-        SimpleDRLExecutionToolService executionService = new SimpleDRLExecutionToolService();
-        FactTypeRegistryToolService registryService = new FactTypeRegistryToolService(registry);
+    public interface DRLPlanningAgent {
+        @SystemMessage("""
+            You are a DRL workflow planning and coordination agent. Your responsibilities are:
+            
+            1. ANALYZE the user request to understand DRL requirements
+            2. PLAN the development approach and identify needed fact types
+            3. COORDINATE with the code generation workflow
+            4. ENSURE quality by reviewing final outputs
+            
+            PLANNING WORKFLOW:
+            1. Break down the user request into specific requirements
+            2. Identify what fact types and rules are needed
+            3. Plan the validation and testing strategy
+            4. Delegate to the loop-based generation workflow
+            5. Review and approve the final DRL output
+            
+            Keep your analysis concise and focused on high-level planning.
+            The actual code generation will be handled by specialized sub-agents.
+            """)
+        @UserMessage("Plan DRL development for: {{request}}")
+        @Agent("DRL workflow planning coordinator")
+        String planDRLWorkflow(@V("request") String request);
+    }
 
-        return AgenticServices.agentBuilder(DRLAuthoringAgent.class)
-                .chatModel(chatModel)
-                .tools(validationService, executionService, registryService)
+    /**
+     * Creates a DRLAuthoringAgent with planning and loop-based generation workflow.
+     * Uses sequenceBuilder to coordinate between planning and generation phases.
+     * 
+     * @param planningModel The chat model to use for planning (should be good at reasoning)
+     * @param codeGenModel The chat model to use for code generation (should be good at tools)
+     * @param registry The fact type registry to use (can be pre-loaded with existing types)
+     * @return A configured orchestration agent with planning and generation workflow
+     */
+    public static UntypedAgent create(ChatModel planningModel, ChatModel codeGenModel, FactTypeRegistry registry) {
+        // Create planning agent for high-level coordination
+        DRLPlanningAgent planningAgent = AgenticServices.agentBuilder(DRLPlanningAgent.class)
+                .chatModel(planningModel)
                 .build();
+        
+        // Create loop-based generation workflow for actual DRL creation
+        UntypedAgent loopGenerationWorkflow = DRLAuthoringLoop.create(codeGenModel, registry);
+        
+        // Sequence: Planning → Loop-based Generation
+        return AgenticServices.sequenceBuilder()
+                .subAgents(planningAgent, loopGenerationWorkflow)
+                .outputName("drl_output")
+                .build();
+    }
+
+    /**
+     * Creates a DRLAuthoringAgent using the same model for both planning and code generation.
+     * This is the single-model convenience method.
+     * 
+     * @param chatModel The chat model to use for both planning and generation
+     * @param registry The fact type registry to use
+     * @return A configured DRLAuthoringAgent with planning and generation workflow
+     */
+    public static UntypedAgent create(ChatModel chatModel, FactTypeRegistry registry) {
+        return create(chatModel, chatModel, registry);
     }
 
     /**
      * Creates a DRLAuthoringAgent with simple validation and execution tools.
      * This is the backward-compatible method that creates an agent with an empty registry.
      * 
-     * @param chatModel The chat model to use for the agent (must support tools)
+     * @param chatModel The chat model to use for both planning and generation
      * @return A configured DRLAuthoringAgent with validation and execution tools
      */
-    static DRLAuthoringAgent create(ChatModel chatModel) {
+    public static UntypedAgent create(ChatModel chatModel) {
         return create(chatModel, new InMemoryFactTypeRegistry());
     }
 
@@ -106,7 +101,7 @@ public interface DRLAuthoringAgent {
      * @param chatModel The chat model to use for the agent
      * @return A configured agent with an empty fact type registry
      */
-    static DRLAuthoringAgent createWithEmptyRegistry(ChatModel chatModel) {
+    public static UntypedAgent createWithEmptyRegistry(ChatModel chatModel) {
         return create(chatModel, new InMemoryFactTypeRegistry());
     }
 
@@ -120,7 +115,7 @@ public interface DRLAuthoringAgent {
      * @param maxIterations Maximum number of refinement iterations (default: 3)
      * @return A loop-based DRL authoring agent that guarantees working DRL
      */
-    static UntypedAgent createLoopBasedAgent(ChatModel chatModel, FactTypeRegistry registry, int maxIterations) {
+    public static UntypedAgent createLoopBasedAgent(ChatModel chatModel, FactTypeRegistry registry, int maxIterations) {
         return DRLAuthoringLoop.create(chatModel, registry, maxIterations);
     }
 
@@ -131,7 +126,7 @@ public interface DRLAuthoringAgent {
      * @param registry The fact type registry to use
      * @return A loop-based DRL authoring agent with 3 max iterations
      */
-    static UntypedAgent createLoopBasedAgent(ChatModel chatModel, FactTypeRegistry registry) {
+    public static UntypedAgent createLoopBasedAgent(ChatModel chatModel, FactTypeRegistry registry) {
         return DRLAuthoringLoop.create(chatModel, registry);
     }
 
@@ -141,7 +136,7 @@ public interface DRLAuthoringAgent {
      * @param chatModel The chat model to use for the agent (must support tools)
      * @return A loop-based DRL authoring agent with empty registry
      */
-    static UntypedAgent createLoopBasedAgent(ChatModel chatModel) {
+    public static UntypedAgent createLoopBasedAgent(ChatModel chatModel) {
         return DRLAuthoringLoop.create(chatModel);
     }
 }
