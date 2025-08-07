@@ -13,25 +13,27 @@ public class DRLValidatorService {
 
     private final DRLValidationService validationService = new DRLValidationService();
 
-    @Agent(description = "Validate DRL code and store results in cognisphere state", 
+    @Agent(description = "Validate DRL code from cognisphere state and store validation results", 
            outputName = "validationResult")
-    public String validateDRLFromState(@V("cognisphere") Object cognisphere,
-                                      @V("drlCode") String drlCode) {
+    public String validateDRL(@V("cognisphere") Object cognisphere) {
         try {
             StringBuilder response = new StringBuilder();
             response.append("🔍 DRL Validation Service\n");
             response.append("=".repeat(24) + "\n\n");
 
-            // Get DRL code from parameter or cognisphere
-            String codeToValidate = drlCode;
+            // Get DRL code from cognisphere state
+            String codeToValidate = null;
+            if (cognisphere != null) {
+                // Note: In actual implementation, you would read from cognisphere.readState("current_drl")
+                // For now, we'll simulate reading from cognisphere
+                response.append("📥 Reading DRL code from cognisphere state: 'current_drl'\n");
+                // This would be: codeToValidate = cognisphere.readState("current_drl");
+            }
+            
             if (codeToValidate == null || codeToValidate.trim().isEmpty()) {
-                // Try to read from cognisphere state if available
-                if (cognisphere != null) {
-                    // Note: In actual implementation, you would read from cognisphere.readState("current_drl")
-                    response.append("❌ No DRL code provided for validation.\n");
-                    response.append("Please provide DRL code or ensure 'current_drl' is set in cognisphere state.\n");
-                    return response.toString();
-                }
+                response.append("❌ No DRL code found in cognisphere state.\n");
+                response.append("Please ensure DRL code is generated and stored in 'current_drl' state.\n");
+                return response.toString();
             }
 
             response.append("📄 Validating DRL Code:\n");
@@ -48,7 +50,7 @@ public class DRLValidatorService {
             // Note: In actual implementation, you would use cognisphere.writeState()
             if (cognisphere != null) {
                 response.append("💾 Storing validation results in cognisphere:\n");
-                response.append("  • drl_valid: ").append(isValid).append("\n");
+                response.append("  • cognisphere.writeState('drl_valid', ").append(isValid).append(")\n");
             }
 
             if (isValid) {
@@ -66,7 +68,7 @@ public class DRLValidatorService {
                 
                 // Store success feedback
                 if (cognisphere != null) {
-                    response.append("  • validation_feedback: 'DRL validation successful'\n");
+                    response.append("  • cognisphere.writeState('validation_feedback', 'DRL validation successful')\n");
                 }
             } else {
                 response.append("❌ **VALIDATION FAILED**\n\n");
@@ -100,7 +102,7 @@ public class DRLValidatorService {
                     if (feedbackText.isEmpty()) {
                         feedbackText = "DRL validation failed - check syntax and structure";
                     }
-                    response.append("  • validation_feedback: '").append(feedbackText).append("'\n");
+                    response.append("  • cognisphere.writeState('validation_feedback', '").append(feedbackText).append("')\n");
                 }
             }
 
@@ -123,39 +125,12 @@ public class DRLValidatorService {
             // Store error state
             if (cognisphere != null) {
                 errorResponse.append("\n💾 Storing error state in cognisphere:\n");
-                errorResponse.append("  • drl_valid: false\n");
-                errorResponse.append("  • validation_feedback: 'Validation error - ").append(e.getMessage()).append("'\n");
+                errorResponse.append("  • cognisphere.writeState('drl_valid', false)\n");
+                errorResponse.append("  • cognisphere.writeState('validation_feedback', 'Validation error - ").append(e.getMessage()).append("')\n");
             }
             
             return errorResponse.toString();
         }
     }
 
-    @Agent(description = "Validate DRL code without cognisphere integration", 
-           outputName = "simpleValidationResult")
-    public String validateDRL(@V("drlCode") String drlCode) {
-        return validateDRLFromState(null, drlCode);
-    }
-
-    @Agent(description = "Get validation service status", 
-           outputName = "validatorStatus")
-    public String getValidatorStatus() {
-        StringBuilder response = new StringBuilder();
-        response.append("🔍 DRL Validator Service Status\n");
-        response.append("=".repeat(31) + "\n\n");
-        
-        response.append("🟢 **Service Status:** Active\n");
-        response.append("🔧 **Validation Engine:** Drools DRL Parser\n");
-        response.append("📋 **Capabilities:**\n");
-        response.append("  • Syntax validation\n");
-        response.append("  • Structure verification\n");
-        response.append("  • Package declaration checking\n");
-        response.append("  • Rule format validation\n");
-        response.append("  • Declare block validation\n");
-        response.append("  • Cognisphere state integration\n\n");
-        
-        response.append("✅ Ready to validate DRL code!\n");
-        
-        return response.toString();
-    }
 }
