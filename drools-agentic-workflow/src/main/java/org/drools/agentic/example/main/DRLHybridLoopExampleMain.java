@@ -1,7 +1,7 @@
 package org.drools.agentic.example.main;
 
 import dev.langchain4j.agentic.UntypedAgent;
-import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.model.chat.ChatModel;
 import org.drools.agentic.example.agents.DRLAuthoringAgent;
 import org.drools.agentic.example.registry.FactTypeRegistry;
 import org.drools.agentic.example.registry.InMemoryFactTypeRegistry;
@@ -18,12 +18,14 @@ import org.drools.agentic.example.services.validation.DRLValidatorService;
 public class DRLHybridLoopExampleMain {
 
     public static void main(String[] args) {
-        // Configure the chat model (requires OpenAI API key)
-        OpenAiChatModel chatModel = OpenAiChatModel.builder()
-                .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName("gpt-4")
-                .temperature(0.7)
-                .build();
+        // Print available models if --help is requested
+        if (args.length > 0 && (args[0].equals("--help") || args[0].equals("-h"))) {
+            ModelSelector.printAvailableModels();
+            return;
+        }
+        
+        // Configure the chat model using ModelSelector
+        ChatModel chatModel = ModelSelector.createFromArgs(args);
 
         // Create a fact type registry
         FactTypeRegistry registry = new InMemoryFactTypeRegistry();
