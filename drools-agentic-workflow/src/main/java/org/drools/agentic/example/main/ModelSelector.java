@@ -6,7 +6,7 @@ import org.drools.agentic.example.config.ChatModels;
 /**
  * Reusable model selector utility for main package classes.
  * Provides standardized ChatModel configurations optimized for DRL code generation tasks,
- * following patterns from DroolsWorkflowOrchestratorRunner.
+ * with support for both single-model and dual-model workflows.
  */
 public class ModelSelector {
 
@@ -66,7 +66,7 @@ public class ModelSelector {
 
     /**
      * Creates a ChatModel from command line arguments, environment, or uses default.
-     * Supports the same argument patterns as DroolsWorkflowOrchestratorRunner.
+     * Supports standard argument patterns for flexible model selection.
      * 
      * @param args Command line arguments
      * @return Configured ChatModel based on arguments, environment, or default
