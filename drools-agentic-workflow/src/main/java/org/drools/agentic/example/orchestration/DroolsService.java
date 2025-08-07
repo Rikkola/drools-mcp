@@ -29,14 +29,4 @@ public class DroolsService {
         // Wrap it with Drools optimization for better model performance
         return DroolsSupervisor.create(baseSupervisor);
     }
-
-    /**
-     * Convenience method that uses the same model for both planning and code generation.
-     * 
-     * @param chatModel The chat model to use for all agents
-     * @return A configured DroolsSupervisor ready for use
-     */
-    public static DroolsSupervisor createDroolsSupervisorAgent(ChatModel chatModel) {
-        return createDroolsSupervisorAgent(chatModel, chatModel);
-    }
 }

@@ -18,13 +18,16 @@ public class DroolsWorkflowMain {
             return;
         }
         
-        // Choose single model for both planning and code generation (chat model = planning model)
-        ChatModel model = ModelSelector.createSingleModelFromArgs(args);
+        // Use dual model approach: granite-code:20b for planning, qwen2.5-coder:14b for code generation
+        System.out.println("🎯 Creating planning model...");
+        ChatModel planningModel = ModelSelector.createPlanningModelFromArgs(args);
+        System.out.println("🔧 Creating code generation model...");
+        ChatModel codeGenModel = ModelSelector.createCodeGenModelFromArgs(args);
         
-        System.out.println("Using model for both planning and code generation: " + model.getClass().getSimpleName());
+        System.out.println("✅ Models configured successfully!");
 
-        // Create the supervisor agent using DroolsService factory method with same model
-        DroolsSupervisor droolsSupervisorAgent = DroolsService.createDroolsSupervisorAgent(model, model);
+        // Create the supervisor agent using DroolsService factory method with dual models
+        DroolsSupervisor droolsSupervisorAgent = DroolsService.createDroolsSupervisorAgent(planningModel, codeGenModel);
 
         // Example 1: Use supervisor agent for complete workflow
         System.out.println("=== Supervisor Agent Demo ===");

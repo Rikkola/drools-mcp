@@ -278,8 +278,9 @@ public class ModelSelector {
             }
         }
         
-        // Check for model-specific arguments (reuse single model logic)
-        return createSingleModelFromArgs(args);
+        // Default to granite-code:20b for planning (better for coordination/planning tasks)
+        System.out.println("Using default Granite Code planning model (granite-code:20b)");
+        return createChatModel(ModelType.GRANITE_CODE);
     }
 
     /**
