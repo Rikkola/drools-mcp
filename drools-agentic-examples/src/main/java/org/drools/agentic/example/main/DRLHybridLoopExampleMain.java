@@ -5,15 +5,14 @@ import dev.langchain4j.model.chat.ChatModel;
 import org.drools.agentic.example.agents.DRLAuthoringAgent;
 import org.drools.agentic.example.registry.FactTypeRegistry;
 import org.drools.agentic.example.registry.InMemoryFactTypeRegistry;
-import org.drools.agentic.example.services.validation.DRLValidatorService;
 import java.util.Map;
 
 /**
  * Example demonstrating the hybrid loop-based DRL authoring workflow.
  * 
- * This example shows the benefits of combining AI agents with deterministic services:
+ * This example shows the benefits of combining AI agents with tool-based services:
  * - AI for creative DRL generation and execution strategy
- * - Non-AI for fast, reliable syntax validation
+ * - Tool-based validation for reliable syntax checking
  * - Guaranteed working DRL through iterative refinement
  */
 public class DRLHybridLoopExampleMain {
@@ -31,8 +30,6 @@ public class DRLHybridLoopExampleMain {
         // Create a fact type registry
         FactTypeRegistry registry = new InMemoryFactTypeRegistry();
 
-        // Demonstrate standalone validator service
-        demonstrateValidatorService();
 
         // Create the hybrid loop-based DRL authoring agent
         UntypedAgent hybridAgent = DRLAuthoringAgent.createLoopBasedAgent(chatModel, registry, 3);
@@ -86,13 +83,13 @@ public class DRLHybridLoopExampleMain {
 
         // Example 3: Compare with traditional approach
         System.out.println("=== Performance Comparison Analysis ===");
-        System.out.println("Hybrid Loop Approach Benefits:");
-        System.out.println("✅ Faster validation (no LLM calls for syntax checking)");
-        System.out.println("✅ More reliable validation (deterministic parser results)");
-        System.out.println("✅ Cost efficient (reduced LLM usage by ~33%)");
+        System.out.println("Tool-Based Agent Approach Benefits:");
+        System.out.println("✅ Reliable validation (deterministic parser results via tools)");
+        System.out.println("✅ AI interpretation of validation results");
+        System.out.println("✅ Better error handling and feedback");
         System.out.println("✅ Guaranteed working DRL (iterative refinement)");
         System.out.println("✅ AI creativity where needed (generation + execution strategy)");
-        System.out.println("✅ Deterministic speed where appropriate (validation)");
+        System.out.println("✅ Unified agent pattern across workflow steps");
         System.out.println();
         System.out.println("Traditional Single Agent Limitations:");
         System.out.println("❌ Slower validation (LLM calls for syntax checking)");
@@ -102,58 +99,4 @@ public class DRLHybridLoopExampleMain {
         System.out.println("❌ Over-engineered for simple validation tasks");
     }
 
-    private static void demonstrateValidatorService() {
-        System.out.println("=== Standalone DRL Validator Service Demo ===");
-        
-        DRLValidatorService validator = new DRLValidatorService();
-        
-        // Test with valid DRL
-        String validDRL = """
-            package com.example.rules;
-            
-            declare Customer
-                id: String
-                name: String
-                creditScore: int
-            end
-            
-            rule "High Credit Customer"
-            when
-                $customer: Customer(creditScore > 750)
-            then
-                System.out.println("Excellent credit customer: " + $customer.getName());
-            end
-            """;
-        
-        System.out.println("Testing valid DRL:");
-        String result1 = validator.validateDRL(validDRL);
-        System.out.println(result1);
-        
-        // Test with invalid DRL
-        String invalidDRL = """
-            package com.example.rules;
-            
-            declare Customer
-                id: String
-                name: String
-                creditScore: int
-            // Missing 'end' keyword
-            
-            rule "Broken Rule"
-            when
-                $customer: Customer(creditScore > 750
-            then
-                System.out.println("This will fail);
-            end
-            """;
-        
-        System.out.println("Testing invalid DRL:");
-        String result2 = validator.validateDRL(invalidDRL);
-        System.out.println(result2);
-        
-        // Check service status
-        System.out.println("Validator service status:");
-        String status = validator.getValidatorStatus();
-        System.out.println(status);
-    }
 }

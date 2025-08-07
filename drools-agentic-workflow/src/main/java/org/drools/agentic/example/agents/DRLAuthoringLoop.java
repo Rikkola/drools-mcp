@@ -6,7 +6,6 @@ import dev.langchain4j.agentic.UntypedAgent;
 import dev.langchain4j.model.chat.ChatModel;
 import org.drools.agentic.example.registry.FactTypeRegistry;
 import org.drools.agentic.example.registry.InMemoryFactTypeRegistry;
-import org.drools.agentic.example.services.validation.DRLValidatorService;
 
 /**
  * Hybrid loop-based DRL authoring workflow that combines AI agents with deterministic services.
@@ -15,16 +14,16 @@ import org.drools.agentic.example.services.validation.DRLValidatorService;
  * 
  * The loop continues until both validation and execution succeed, or maximum iterations are reached.
  * 
- * Hybrid Architecture:
+ * AI Agent Architecture:
  * 1. DRLGeneratorAgent (AI) - Generates/refines DRL code based on requirements and feedback
- * 2. DRLValidatorService (Non-AI) - Fast deterministic DRL syntax and structure validation
- * 3. DRLExecutorAgent (AI) - Executes DRL with test data to verify runtime behavior
+ * 2. DRLValidatorAgent (AI with Tools) - Uses tool-based validation for DRL syntax and structure
+ * 3. DRLExecutorAgent (AI with Tools) - Executes DRL with test data to verify runtime behavior
  * 
- * Benefits of Hybrid Approach:
- * - Faster validation (no LLM calls for deterministic syntax checking)
- * - More reliable validation (consistent parser-based results)
- * - Cost efficient (reduced LLM usage)
- * - AI creativity where needed (generation and execution strategy)
+ * Benefits of Tool-Based Approach:
+ * - Deterministic validation through tools (consistent parser-based results)
+ * - AI agents can interpret and respond to validation results intelligently  
+ * - Better error handling and feedback interpretation
+ * - Unified agent pattern across all workflow steps
  * 
  * State Management:
  * - current_drl: The generated DRL code
@@ -37,21 +36,21 @@ public class DRLAuthoringLoop {
 
     /**
      * Creates a loop-based DRL authoring workflow with iterative validation and execution.
-     * Uses a non-LLM validator service for faster, more reliable validation.
+     * Uses AI agents with tool-based validation for better result interpretation.
      * 
-     * @param chatModel The chat model to use for generation and execution agents (must support tools)
+     * @param chatModel The chat model to use for all agents (must support tools)
      * @param registry The fact type registry for managing fact type definitions
      * @param maxIterations Maximum number of loop iterations (default: 3)
      * @return A configured loop-based DRL authoring agent
      */
     public static UntypedAgent create(ChatModel chatModel, FactTypeRegistry registry, int maxIterations) {
-        // Create individual specialized agents
+        // Create individual specialized agents - all using AI with tools
         DRLGeneratorAgent generatorAgent = DRLGeneratorAgent.create(chatModel, registry);
-        DRLValidatorService validatorService = new DRLValidatorService(); // Non-LLM validator
+        DRLValidatorAgent validatorAgent = DRLValidatorAgent.create(chatModel);
         DRLExecutorAgent executorAgent = DRLExecutorAgent.create(chatModel);
 
         return AgenticServices.loopBuilder()
-                .subAgents(generatorAgent, validatorService, executorAgent)
+                .subAgents(generatorAgent, validatorAgent, executorAgent)
                 .maxIterations(maxIterations)
                 .exitCondition(cognisphere -> {
                     // Continue loop until both validation and execution succeed

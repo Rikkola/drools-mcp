@@ -1,7 +1,7 @@
 package org.drools.agentic.example.services.execution;
 
-import dev.langchain4j.agentic.Agent;
-import dev.langchain4j.service.V;
+import dev.langchain4j.agent.tool.Tool;
+import dev.langchain4j.agent.tool.P;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
 import org.kie.api.builder.KieFileSystem;
@@ -26,10 +26,9 @@ public class KnowledgeRunnerService {
 
     private final KnowledgeBaseStorage storage = KnowledgeBaseStorage.getInstance();
 
-    @Agent(description = "Execute rules with facts using the shared knowledge base", 
-           outputName = "executionResult")
-    public String executeRules(@V("facts") String jsonFacts,
-                              @V("maxActivations") Integer maxActivations) {
+    @Tool("STEP 1: Execute rules with facts using the shared knowledge base. Use this to run DRL rules against fact data. Provide facts as JSON array with optional _type field for dynamic object creation.")
+    public String executeRules(@P("jsonFacts - JSON array of fact objects to insert into the session, each can have optional '_type' field") String jsonFacts,
+                              @P("maxActivations - Maximum number of rule activations, or null for unlimited") Integer maxActivations) {
         // Note: jsonFacts should be a JSON array where each object can optionally include
         // a '_type' field to specify the fact type for dynamic object creation.
         // Without '_type', facts are inserted as Map objects.
@@ -84,8 +83,7 @@ public class KnowledgeRunnerService {
         }
     }
 
-    @Agent(description = "Get status and info about the shared knowledge base", 
-           outputName = "knowledgeBaseStatus")
+    @Tool("STEP 2: Get status and info about the shared knowledge base. Use this to check if a knowledge base is available and get details about its current state.")
     public String getKnowledgeBaseStatus() {
         StringBuilder response = new StringBuilder();
         response.append("📚 Shared Knowledge Base Status\n");
@@ -112,8 +110,7 @@ public class KnowledgeRunnerService {
         return response.toString();
     }
 
-    @Agent(description = "Clear all facts from the shared session", 
-           outputName = "factsClearResult")
+    @Tool("STEP 3: Clear all facts from the shared session. Use this to remove all facts from the current session while keeping the session active.")
     public String clearFacts() {
         try {
             StringBuilder response = new StringBuilder();
@@ -137,10 +134,9 @@ public class KnowledgeRunnerService {
         }
     }
 
-    @Agent(description = "Execute rules multiple times with different fact sets", 
-           outputName = "batchExecutionResult")
-    public String executeBatch(@V("factBatches") String jsonFactBatches,
-                              @V("maxActivations") Integer maxActivations) {
+    @Tool("STEP 4: Execute rules multiple times with different fact sets. Use this for batch processing where you want to test multiple scenarios sequentially.")
+    public String executeBatch(@P("jsonFactBatches - JSON array of fact batch arrays for sequential execution") String jsonFactBatches,
+                              @P("maxActivations - Maximum number of rule activations per batch, or null for unlimited") Integer maxActivations) {
         // Note: jsonFactBatches should be a JSON array of fact arrays, where each fact
         // can optionally include a '_type' field for dynamic object creation.
         // Example: [[[{"_type":"Person", "name":"John"}], [{"_type":"Order", "amount":100}]]]
