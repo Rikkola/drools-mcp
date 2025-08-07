@@ -2,6 +2,7 @@ package org.drools.agentic.example.agents;
 
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.agentic.AgenticServices;
+import dev.langchain4j.agentic.UntypedAgent;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
@@ -107,5 +108,40 @@ public interface DRLAuthoringAgent {
      */
     static DRLAuthoringAgent createWithEmptyRegistry(ChatModel chatModel) {
         return create(chatModel, new InMemoryFactTypeRegistry());
+    }
+
+    /**
+     * Creates a loop-based DRL authoring agent that iteratively refines DRL code.
+     * This provides guaranteed working DRL by continuously validating and executing
+     * until both validation and execution succeed.
+     * 
+     * @param chatModel The chat model to use for the agent (must support tools)
+     * @param registry The fact type registry to use (can be pre-loaded with existing types)
+     * @param maxIterations Maximum number of refinement iterations (default: 3)
+     * @return A loop-based DRL authoring agent that guarantees working DRL
+     */
+    static UntypedAgent createLoopBasedAgent(ChatModel chatModel, FactTypeRegistry registry, int maxIterations) {
+        return DRLAuthoringLoop.create(chatModel, registry, maxIterations);
+    }
+
+    /**
+     * Creates a loop-based DRL authoring agent with default settings.
+     * 
+     * @param chatModel The chat model to use for the agent (must support tools)
+     * @param registry The fact type registry to use
+     * @return A loop-based DRL authoring agent with 3 max iterations
+     */
+    static UntypedAgent createLoopBasedAgent(ChatModel chatModel, FactTypeRegistry registry) {
+        return DRLAuthoringLoop.create(chatModel, registry);
+    }
+
+    /**
+     * Creates a loop-based DRL authoring agent with empty registry.
+     * 
+     * @param chatModel The chat model to use for the agent (must support tools)
+     * @return A loop-based DRL authoring agent with empty registry
+     */
+    static UntypedAgent createLoopBasedAgent(ChatModel chatModel) {
+        return DRLAuthoringLoop.create(chatModel);
     }
 }
