@@ -74,9 +74,6 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.5.0</version>
-                <configuration>
-                    <mainClass>org.drools.agentic.example.main.DroolsWorkflowOrchestratorExampleMain</mainClass>
-                </configuration>
             </plugin>
         </plugins>
     </build>

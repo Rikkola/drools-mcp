@@ -242,9 +242,9 @@ public class ModelSelector {
             }
         }
         
-        // Default: use Granite code model (best for planning)
-        System.out.println("Using default Granite model (granite-code:20b)");
-        return createChatModel(ModelType.GRANITE_CODE);
+        // Default: use Qwen Coder model (supports tools needed for agents)
+        System.out.println("Using default Qwen2.5 Coder model (qwen2.5-coder:14b)");
+        return createChatModel(ModelType.QWEN_CODER);
     }
 
     /**
