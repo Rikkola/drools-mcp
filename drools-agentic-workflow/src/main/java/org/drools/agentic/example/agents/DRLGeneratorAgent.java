@@ -7,7 +7,6 @@ import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import org.drools.agentic.example.registry.FactTypeRegistry;
-import org.drools.agentic.example.services.registry.FactTypeRegistryToolService;
 
 /**
  * DRL code generator agent for the loop-based workflow.
@@ -21,33 +20,35 @@ public interface DRLGeneratorAgent {
 
         CORE RESPONSIBILITIES:
         1. GENERATE: Create complete DRL code with package, declare blocks, and rules
-        2. REFINE: Improve DRL based on validation and execution feedback
-        3. OPTIMIZE: Ensure code is efficient and follows Drools best practices
+        2. DECLARE: Generate fact type declarations for all object types used in rules
+        3. REFINE: Improve DRL based on validation and execution feedback
+        4. OPTIMIZE: Ensure code is efficient and follows Drools best practices
 
         WORKFLOW INTEGRATION:
         - Read planning context from previous workflow steps
-        - Check registry for existing fact types using getExistingFactTypes()
-        - Store generated DRL to cognisphere state as "current_drl"
+        - Return the generated DRL
         - Read and incorporate feedback from validation/execution phases
 
-        FEEDBACK SOURCES:
+        FEEDBACK SOURCES (automatically provided via @V parameters):
         - validation_feedback: syntax/structure issues to fix
         - execution_feedback: runtime/logic issues to address
-        - planning_context: high-level requirements and approach
-
-        FACT TYPE BEST PRACTICES:
-        - Reuse existing fact types when possible
-        - Maintain consistent field names and types
-        - Use appropriate Java types (String, int, boolean, double, Date)
-        - Provide sensible default values for new fields
+        - current_drl: previously generated DRL to refine
 
         CODE GENERATION STANDARDS:
         - Include proper package declarations
-        - Generate complete declare blocks from registry
+        - Generate complete declare blocks for all fact types used in rules
+        - Create fact type declarations with appropriate fields and types
         - Write clear, maintainable business rules
+        - Use appropriate Java types (String, int, boolean, double, Date, etc.)
         - Ensure syntactic correctness and Drools compliance
+        
+        FACT TYPE DECLARATION REQUIREMENTS:
+        - Analyze all object types referenced in rules
+        - Generate declare blocks for custom fact types
+        - Include all necessary fields with proper types
+        - Use meaningful field names that reflect business domain
+        - Provide sensible default values when appropriate
 
-        CRITICAL: Always save your final DRL to cognisphere.writeState("current_drl", drlCode)
         """)
     @UserMessage("Generate DRL for: {{request}}")
     @Agent("DRL code generator for loop workflow")
@@ -61,11 +62,9 @@ public interface DRLGeneratorAgent {
      * @return A configured DRL generator agent
      */
     static DRLGeneratorAgent create(ChatModel chatModel, FactTypeRegistry registry) {
-        FactTypeRegistryToolService registryService = new FactTypeRegistryToolService(registry);
-
         return AgenticServices.agentBuilder(DRLGeneratorAgent.class)
                 .chatModel(chatModel)
-                .tools(registryService)
+                .outputName("current_drl")
                 .build();
     }
 }

@@ -17,11 +17,11 @@ public interface DRLExecutorAgent {
     @SystemMessage("""
         You are a DRL code executor. Your job is to:
 
-        1. READ: Get "current_drl" from cognisphere state
-        2. CHECK: Only execute if "drl_valid" is true
+        1. RECEIVE: DRL code provided via @V("current_drl") parameter
+        2. CHECK: Only proceed if validation status indicates DRL is valid  
         3. EXECUTE: Use executeDRLWithFacts tool with appropriate test data
         4. ASSESS: Determine if execution completed without errors
-        5. STORE: Save execution results to cognisphere:
+        5. RETURN: Provide execution feedback or success confirmation
            - "execution_successful": true/false
            - "execution_feedback": runtime issues to fix
 
@@ -41,13 +41,12 @@ public interface DRLExecutorAgent {
         If execution succeeds, set execution_successful=true.
         If execution fails, provide specific feedback about runtime issues.
 
-        CRITICAL: Always save execution results:
-        - cognisphere.writeState("execution_successful", true/false)
-        - cognisphere.writeState("execution_feedback", "detailed feedback")
+        RETURN FORMAT:
+        Return execution result message indicating success or providing specific feedback about runtime issues.
         """)
-    @UserMessage("Execute the current validated DRL code from cognisphere state")
+    @UserMessage("Execute this DRL code: {{current_drl}}")
     @Agent("DRL code executor for loop workflow")
-    String executeDRL(@V("cognisphere") Object cognisphere);
+    String executeDRL(@V("current_drl") String currentDrl);
 
     /**
      * Creates a DRLExecutorAgent with execution tools.
@@ -60,6 +59,7 @@ public interface DRLExecutorAgent {
 
         return AgenticServices.agentBuilder(DRLExecutorAgent.class)
                 .chatModel(chatModel)
+                .outputName("execution_feedback")
                 .tools(executionService)
                 .build();
     }

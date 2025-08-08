@@ -27,9 +27,7 @@ import org.drools.agentic.example.registry.InMemoryFactTypeRegistry;
  * 
  * State Management:
  * - current_drl: The generated DRL code
- * - drl_valid: Boolean indicating if DRL passed validation
  * - validation_feedback: Detailed validation issues to fix
- * - execution_successful: Boolean indicating if DRL executed successfully
  * - execution_feedback: Detailed runtime issues to fix
  */
 public class DRLAuthoringLoop {
@@ -44,6 +42,8 @@ public class DRLAuthoringLoop {
      * @return A configured loop-based DRL authoring agent
      */
     public static UntypedAgent create(ChatModel chatModel, FactTypeRegistry registry, int maxIterations) {
+
+
         // Create individual specialized agents - all using AI with tools
         DRLGeneratorAgent generatorAgent = DRLGeneratorAgent.create(chatModel, registry);
         DRLValidatorAgent validatorAgent = DRLValidatorAgent.create(chatModel);
@@ -54,8 +54,8 @@ public class DRLAuthoringLoop {
                 .maxIterations(maxIterations)
                 .exitCondition(cognisphere -> {
                     // Continue loop until both validation and execution succeed
-                    boolean isValid = cognisphere.readState("drl_valid", false);
-                    boolean executionSuccessful = cognisphere.readState("execution_successful", false);
+                    boolean isValid = cognisphere.readState("validation_feedback", "not empty").isEmpty();
+                    boolean executionSuccessful = cognisphere.readState("execution_feedback", "not empty").isEmpty();
                     return isValid && executionSuccessful;
                 })
                 .build();

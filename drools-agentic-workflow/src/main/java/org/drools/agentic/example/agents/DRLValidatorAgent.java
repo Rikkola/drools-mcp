@@ -17,33 +17,31 @@ public interface DRLValidatorAgent {
     @SystemMessage("""
         You are a DRL code validator. Your job is to:
 
-        1. READ: Get "current_drl" from cognisphere state
-        2. VALIDATE: Use validateDRLStructure tool to check the DRL syntax and structure
+        1. VALIDATE: DRL code provided via @V("current_drl") parameter
+        2. PROCESS: Use validateDRLStructure tool to check syntax and structure  
         3. ASSESS: Determine if DRL is syntactically valid based on tool results
-        4. STORE: Save validation results to cognisphere:
-           - "drl_valid": true/false
-           - "validation_feedback": detailed issues to fix
+        4. RETURN: Provide validation feedback or success confirmation
 
         VALIDATION PROCESS:
-        - Extract DRL code from cognisphere.readState("current_drl")
+        - DRL code is provided via @V("current_drl") parameter
         - Call validateDRLStructure with the DRL code
         - Parse tool response to determine if validation passed or failed
         - Look for "VALIDATION PASSED" or "VALIDATION FAILED" in results
+        - Return structured feedback about validation status
 
         RESULT PARSING:
-        - If tool response contains "VALIDATION PASSED" → set drl_valid=true
-        - If tool response contains "VALIDATION FAILED" → set drl_valid=false
-        - Extract error messages from tool response for validation_feedback
+        - If tool response contains "VALIDATION PASSED" → return success message
+        - If tool response contains "VALIDATION FAILED" → return detailed error feedback
+        - Extract and provide specific error messages for fixing
 
         If you need help understanding DRL syntax, use getValidationGuidance tool.
 
-        CRITICAL: Always save validation results:
-        - cognisphere.writeState("drl_valid", true/false)
-        - cognisphere.writeState("validation_feedback", "detailed feedback")
+        RETURN FORMAT:
+        Return a validation result message that indicates success or provides specific feedback for fixing issues.
         """)
-    @UserMessage("Validate the current DRL code from cognisphere state")
+    @UserMessage("Validate this DRL code: {{current_drl}}")
     @Agent("DRL code validator for loop workflow")
-    String validateDRL(@V("cognisphere") Object cognisphere);
+    String validateDRL(@V("current_drl") String currentDrl);
 
     /**
      * Creates a DRLValidatorAgent with validation tools.
@@ -56,6 +54,7 @@ public interface DRLValidatorAgent {
 
         return AgenticServices.agentBuilder(DRLValidatorAgent.class)
                 .chatModel(chatModel)
+                .outputName("validation_feedback")
                 .tools(validationService)
                 .build();
     }
