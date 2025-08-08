@@ -32,7 +32,7 @@ public class DroolsWorkflowOrchestratorExampleMain {
         var agentWorkflow = DroolsWorkflowOrchestratorAgent.create(planningModel, codeGenModel);
         
         Map<String, Object> input = Map.of(
-            "request", "Create a simple Person DRL rule with fields name, age, and adult, then save it to a file called person-rules.drl"
+            "request", "Create a simple Person DRL rule with fields name, age, and adult"
         );
         
         Object result = agentWorkflow.invoke(input);

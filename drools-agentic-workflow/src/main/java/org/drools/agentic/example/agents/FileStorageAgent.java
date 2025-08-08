@@ -23,6 +23,9 @@ public interface FileStorageAgent {
         When users ask you to save or store content, use the appropriate file operations.
         When they ask about file contents or directory listings, read and provide the information.
         
+        IMPORTANT: When saving DRL rule files, always save the data to generated.drl file unless explicitly told otherwise.
+        You must always save the input content you are given - never just acknowledge or describe what you would do.
+        
         Always use the writeFile tool to actually save content to files - do not just return JSON descriptions.
         """)
     @UserMessage("Process this request: {{it}}")
