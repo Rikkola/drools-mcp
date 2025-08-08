@@ -9,14 +9,31 @@ import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import org.drools.agentic.example.registry.FactTypeRegistry;
 import org.drools.agentic.example.registry.InMemoryFactTypeRegistry;
-import org.drools.agentic.example.services.execution.SimpleDRLExecutionToolService;
-import org.drools.agentic.example.services.authoring.SimpleDRLValidationToolService;
-import org.drools.agentic.example.services.registry.FactTypeRegistryToolService;
 
 /**
  * Drools DRL authoring orchestration agent that coordinates the DRL development workflow.
- * This agent acts as a planner/coordinator using the planning model to break down requirements
- * and delegate actual code generation to the loop-based DRL generation workflow.
+ * 
+ * This agent provides two main workflows:
+ * 1. PLANNING + LOOP WORKFLOW: Uses planning model for coordination and code gen model for implementation
+ * 2. LOOP-ONLY WORKFLOW: Direct loop-based DRL generation with iterative validation and execution
+ * 
+ * Loop-Based Features:
+ * - Iterative validation and execution until both succeed or max iterations reached
+ * - AI agents with tool-based validation for deterministic results
+ * - Memory-enabled agents that learn from previous iterations
+ * - Context summarization between agents for improved collaboration
+ * - Automatic termination when validation and execution both succeed
+ * 
+ * Memory and Context Features:
+ * - Each agent maintains conversation memory via @MemoryId parameters
+ * - MessageWindowChatMemory preserves context across iterations
+ * - Summarized context sharing between agents enables learning from previous steps
+ * - Memory allows agents to build on prior attempts and avoid repeating mistakes
+ * 
+ * State Management:
+ * - current_drl: The generated DRL code
+ * - validation_feedback: Detailed validation issues to fix
+ * - execution_feedback: Detailed runtime issues to fix
  */
 public class DRLAuthoringAgent {
 
@@ -47,6 +64,8 @@ public class DRLAuthoringAgent {
         String planDRLWorkflow(@V("request") String request);
     }
 
+    // ========== PUBLIC API METHODS ==========
+
     /**
      * Creates a DRLAuthoringAgent with planning and loop-based generation workflow.
      * Uses sequenceBuilder to coordinate between planning and generation phases.
@@ -63,7 +82,7 @@ public class DRLAuthoringAgent {
                 .build();
         
         // Create loop-based generation workflow for actual DRL creation
-        UntypedAgent loopGenerationWorkflow = DRLAuthoringLoop.create(codeGenModel, registry);
+        UntypedAgent loopGenerationWorkflow = createLoopWorkflow(codeGenModel, registry, 3);
         
         // Sequence: Planning → Loop-based Generation
         return AgenticServices.sequenceBuilder()
@@ -72,6 +91,61 @@ public class DRLAuthoringAgent {
                 .build();
     }
 
+    /**
+     * Creates a loop-based DRL authoring workflow with iterative validation and execution.
+     * Uses AI agents with tool-based validation and memory for better result interpretation.
+     * 
+     * Features:
+     * - Stateful agents with conversation memory to learn from previous iterations
+     * - Context summarization between agents for improved collaboration
+     * - Tool-based validation and execution for deterministic results
+     * - Automatic termination when both validation and execution succeed
+     * 
+     * @param chatModel The chat model to use for all agents (must support tools)
+     * @param registry The fact type registry for managing fact type definitions
+     * @param maxIterations Maximum number of loop iterations (default: 3)
+     * @return A configured loop-based DRL authoring agent with memory support
+     */
+    public static UntypedAgent createLoopWorkflow(ChatModel chatModel, FactTypeRegistry registry, int maxIterations) {
+        // Create individual specialized agents - all using AI with tools
+        DRLGeneratorAgent generatorAgent = DRLGeneratorAgent.create(chatModel, registry);
+        DRLValidatorAgent validatorAgent = DRLValidatorAgent.create(chatModel);
+        DRLExecutorAgent executorAgent = DRLExecutorAgent.create(chatModel);
 
+        return AgenticServices.loopBuilder()
+                .subAgents(generatorAgent, validatorAgent, executorAgent)
+                .maxIterations(maxIterations)
+                .exitCondition(cognisphere -> {
+                    // Continue loop until both validation and execution succeed
+                    boolean isValid = cognisphere.readState("validation_feedback", "not empty").isEmpty();
+                    boolean executionSuccessful = cognisphere.readState("execution_feedback", "not empty").isEmpty();
+                    return isValid && executionSuccessful;
+                })
+                .outputName("current_drl")
+                .build();
+    }
+
+    // ========== CONVENIENCE METHODS ==========
+
+    /**
+     * Creates a loop-based DRL authoring workflow with default settings.
+     * 
+     * @param chatModel The chat model to use for all agents (must support tools)
+     * @param registry The fact type registry for managing fact type definitions
+     * @return A configured loop-based DRL authoring agent with 3 max iterations
+     */
+    public static UntypedAgent createLoopWorkflow(ChatModel chatModel, FactTypeRegistry registry) {
+        return createLoopWorkflow(chatModel, registry, 3);
+    }
+
+    /**
+     * Creates a loop-based DRL authoring workflow with empty registry.
+     * 
+     * @param chatModel The chat model to use for all agents (must support tools)
+     * @return A configured loop-based DRL authoring agent with empty registry
+     */
+    public static UntypedAgent createLoopWorkflow(ChatModel chatModel) {
+        return createLoopWorkflow(chatModel, new InMemoryFactTypeRegistry());
+    }
 
 }

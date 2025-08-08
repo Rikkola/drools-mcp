@@ -31,11 +31,6 @@ public interface DRLGeneratorAgent {
         - Return the generated DRL
         - Read and incorporate feedback from validation/execution phases
 
-        FEEDBACK SOURCES (automatically provided via @V parameters):
-        - validation_feedback: syntax/structure issues to fix
-        - execution_feedback: runtime/logic issues to address
-        - current_drl: previously generated DRL to refine
-
         CODE GENERATION STANDARDS:
         - Include proper package declarations
         - Generate complete declare blocks for all fact types used in rules

@@ -14,7 +14,7 @@ drools-agentic-examples/
 ├── CLAUDE.md (this file)
 └── src/main/java/org/drools/agentic/example/main/
     ├── ModelSelector.java                           # Centralized model selection utility
-    ├── DRLAuthoringLoopExampleMain.java            # Loop-based DRL authoring workflow
+    ├── DRLAuthoringLoopExampleMain.java            # Loop-based DRL authoring workflow (uses DRLAuthoringAgent.createLoopWorkflow)
     ├── DRLHybridLoopExampleMain.java               # Hybrid loop with non-AI validation
     ├── DroolsWorkflowMain.java                     # Supervisor-based workflow
     └── DroolsWorkflowOrchestratorExampleMain.java  # Sequential workflow orchestration
@@ -24,7 +24,7 @@ drools-agentic-examples/
 
 ### 1. **DRLAuthoringLoopExampleMain**
 - **Purpose**: Demonstrates iterative DRL authoring with guaranteed working output
-- **Pattern**: Loop-based workflow with validation and execution cycles
+- **Pattern**: Loop-based workflow with validation and execution cycles (uses DRLAuthoringAgent.createLoopWorkflow)
 - **Usage**: `mvn exec:java -Dexec.mainClass="org.drools.agentic.example.main.DRLAuthoringLoopExampleMain"`
 
 ### 2. **DRLHybridLoopExampleMain**
