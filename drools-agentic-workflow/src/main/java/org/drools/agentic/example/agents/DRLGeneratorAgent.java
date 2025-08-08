@@ -2,7 +2,9 @@ package org.drools.agentic.example.agents;
 
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.agentic.AgenticServices;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
@@ -52,7 +54,7 @@ public interface DRLGeneratorAgent {
         """)
     @UserMessage("Generate DRL for: {{request}}")
     @Agent("DRL code generator for loop workflow")
-    String generateDRL(@V("request") String request);
+    String generateDRL(@MemoryId String memoryId, @V("request") String request);
 
     /**
      * Creates a DRLGeneratorAgent with registry tools.
@@ -64,6 +66,7 @@ public interface DRLGeneratorAgent {
     static DRLGeneratorAgent create(ChatModel chatModel, FactTypeRegistry registry) {
         return AgenticServices.agentBuilder(DRLGeneratorAgent.class)
                 .chatModel(chatModel)
+                .chatMemoryProvider(memoryId -> MessageWindowChatMemory.withMaxMessages(20))
                 .outputName("current_drl")
                 .build();
     }

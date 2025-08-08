@@ -2,7 +2,9 @@ package org.drools.agentic.example.agents;
 
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.agentic.AgenticServices;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
@@ -41,7 +43,7 @@ public interface DRLValidatorAgent {
         """)
     @UserMessage("Validate this DRL code: {{current_drl}}")
     @Agent("DRL code validator for loop workflow")
-    String validateDRL(@V("current_drl") String currentDrl);
+    String validateDRL(@MemoryId String memoryId, @V("current_drl") String currentDrl);
 
     /**
      * Creates a DRLValidatorAgent with validation tools.
@@ -54,6 +56,7 @@ public interface DRLValidatorAgent {
 
         return AgenticServices.agentBuilder(DRLValidatorAgent.class)
                 .chatModel(chatModel)
+                .chatMemoryProvider(memoryId -> MessageWindowChatMemory.withMaxMessages(15))
                 .outputName("validation_feedback")
                 .tools(validationService)
                 .build();

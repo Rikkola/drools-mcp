@@ -3,6 +3,7 @@ package org.drools.agentic.example.agents;
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.agentic.UntypedAgent;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import org.drools.agentic.example.registry.FactTypeRegistry;
 import org.drools.agentic.example.registry.InMemoryFactTypeRegistry;
@@ -19,11 +20,18 @@ import org.drools.agentic.example.registry.InMemoryFactTypeRegistry;
  * 2. DRLValidatorAgent (AI with Tools) - Uses tool-based validation for DRL syntax and structure
  * 3. DRLExecutorAgent (AI with Tools) - Executes DRL with test data to verify runtime behavior
  * 
+ * Memory and Context Features:
+ * - Each agent maintains conversation memory via @MemoryId parameters
+ * - MessageWindowChatMemory preserves context across iterations (20 messages for generator, 15 for others)
+ * - Summarized context sharing between agents enables learning from previous steps
+ * - Memory allows agents to build on prior attempts and avoid repeating mistakes
+ * 
  * Benefits of Tool-Based Approach:
  * - Deterministic validation through tools (consistent parser-based results)
  * - AI agents can interpret and respond to validation results intelligently  
  * - Better error handling and feedback interpretation
  * - Unified agent pattern across all workflow steps
+ * - Stateful agents with memory for improved iteration quality
  * 
  * State Management:
  * - current_drl: The generated DRL code
@@ -34,12 +42,18 @@ public class DRLAuthoringLoop {
 
     /**
      * Creates a loop-based DRL authoring workflow with iterative validation and execution.
-     * Uses AI agents with tool-based validation for better result interpretation.
+     * Uses AI agents with tool-based validation and memory for better result interpretation.
+     * 
+     * Features:
+     * - Stateful agents with conversation memory to learn from previous iterations
+     * - Context summarization between agents for improved collaboration
+     * - Tool-based validation and execution for deterministic results
+     * - Automatic loop termination when both validation and execution succeed
      * 
      * @param chatModel The chat model to use for all agents (must support tools)
      * @param registry The fact type registry for managing fact type definitions
      * @param maxIterations Maximum number of loop iterations (default: 3)
-     * @return A configured loop-based DRL authoring agent
+     * @return A configured loop-based DRL authoring agent with memory support
      */
     public static UntypedAgent create(ChatModel chatModel, FactTypeRegistry registry, int maxIterations) {
 
@@ -58,6 +72,7 @@ public class DRLAuthoringLoop {
                     boolean executionSuccessful = cognisphere.readState("execution_feedback", "not empty").isEmpty();
                     return isValid && executionSuccessful;
                 })
+                .outputName("current_drl")
                 .build();
     }
 

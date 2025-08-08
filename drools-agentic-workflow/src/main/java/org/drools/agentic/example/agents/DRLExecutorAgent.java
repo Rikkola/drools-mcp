@@ -2,7 +2,9 @@ package org.drools.agentic.example.agents;
 
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.agentic.AgenticServices;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
@@ -46,7 +48,7 @@ public interface DRLExecutorAgent {
         """)
     @UserMessage("Execute this DRL code: {{current_drl}}")
     @Agent("DRL code executor for loop workflow")
-    String executeDRL(@V("current_drl") String currentDrl);
+    String executeDRL(@MemoryId String memoryId, @V("current_drl") String currentDrl);
 
     /**
      * Creates a DRLExecutorAgent with execution tools.
@@ -59,6 +61,7 @@ public interface DRLExecutorAgent {
 
         return AgenticServices.agentBuilder(DRLExecutorAgent.class)
                 .chatModel(chatModel)
+                .chatMemoryProvider(memoryId -> MessageWindowChatMemory.withMaxMessages(15))
                 .outputName("execution_feedback")
                 .tools(executionService)
                 .build();
