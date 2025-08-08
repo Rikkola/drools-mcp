@@ -49,7 +49,8 @@ public class DroolsKnowledgeBaseService {
         try {
             Path filePath = storageRoot.resolve(filename);
             if (!Files.exists(filePath)) {
-                return "❌ DRL file not found: " + filename;
+                // If specific file not found, try to find any .drl file in storage
+                return buildKnowledgeBaseFromAllFiles();
             }
             
             String drlContent = Files.readString(filePath);
@@ -57,6 +58,36 @@ public class DroolsKnowledgeBaseService {
             
         } catch (IOException e) {
             return "❌ Error reading DRL file " + filename + ": " + e.getMessage();
+        }
+    }
+    
+    @Tool("Build a Drools knowledge base from all DRL files in storage")
+    public String buildKnowledgeBaseFromAllFiles() {
+        try {
+            List<Path> drlFiles = Files.list(storageRoot)
+                .filter(path -> path.toString().toLowerCase().endsWith(".drl"))
+                .toList();
+            
+            if (drlFiles.isEmpty()) {
+                return "❌ No DRL files found in storage directory: " + storageRoot;
+            }
+            
+            StringBuilder combinedDrl = new StringBuilder();
+            StringBuilder fileList = new StringBuilder();
+            
+            for (Path drlFile : drlFiles) {
+                String content = Files.readString(drlFile);
+                combinedDrl.append(content).append("\n\n");
+                fileList.append("  • ").append(drlFile.getFileName()).append("\n");
+            }
+            
+            String result = buildKnowledgeBaseFromContent(combinedDrl.toString());
+            
+            // Prepend file information to result
+            return "📁 Found " + drlFiles.size() + " DRL file(s):\n" + fileList + "\n" + result;
+            
+        } catch (IOException e) {
+            return "❌ Error reading DRL files from storage: " + e.getMessage();
         }
     }
     
