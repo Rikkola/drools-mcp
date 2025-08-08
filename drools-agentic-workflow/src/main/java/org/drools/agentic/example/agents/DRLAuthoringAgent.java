@@ -72,42 +72,6 @@ public class DRLAuthoringAgent {
                 .build();
     }
 
-    /**
-     * Creates a DRLAuthoringAgent using the same model for both planning and code generation.
-     * This is the single-model convenience method.
-     * 
-     * @param chatModel The chat model to use for both planning and generation
-     * @param registry The fact type registry to use
-     * @return A configured DRLAuthoringAgent with planning and generation workflow
-     */
-    public static UntypedAgent create(ChatModel chatModel, FactTypeRegistry registry) {
-        return create(chatModel, chatModel, registry);
-    }
 
-    /**
-     * Creates a DRLAuthoringAgent with simple validation and execution tools.
-     * This is the backward-compatible method that creates an agent with an empty registry.
-     * 
-     * @param chatModel The chat model to use for both planning and generation
-     * @return A configured DRLAuthoringAgent with validation and execution tools
-     */
-    public static UntypedAgent create(ChatModel chatModel) {
-        return create(chatModel, new InMemoryFactTypeRegistry());
-    }
-
-
-    /**
-     * Creates a loop-based DRL authoring agent that iteratively refines DRL code.
-     * This provides guaranteed working DRL by continuously validating and executing
-     * until both validation and execution succeed.
-     * 
-     * @param chatModel The chat model to use for the agent (must support tools)
-     * @param registry The fact type registry to use (can be pre-loaded with existing types)
-     * @param maxIterations Maximum number of refinement iterations (default: 3)
-     * @return A loop-based DRL authoring agent that guarantees working DRL
-     */
-    public static UntypedAgent createLoopBasedAgent(ChatModel chatModel, FactTypeRegistry registry, int maxIterations) {
-        return DRLAuthoringLoop.create(chatModel, registry, maxIterations);
-    }
 
 }
