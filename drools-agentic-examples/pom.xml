@@ -16,7 +16,7 @@
     <description>Executable examples demonstrating Drools agentic workflow capabilities</description>
 
     <properties>
-        <langchain4j.version>0.37.0</langchain4j.version>
+        <langchain4j.version>1.3.0</langchain4j.version>
     </properties>
 
     <dependencies>
