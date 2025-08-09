@@ -17,6 +17,8 @@
         <quarkus.platform.version>3.20.0</quarkus.platform.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.0</surefire-plugin.version>
+        <!-- Import Drools version from the main Drools project -->
+        <drools.version>999-SNAPSHOT</drools.version>
     </properties>
 
     <modules>
