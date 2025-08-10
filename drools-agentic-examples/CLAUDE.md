@@ -48,15 +48,15 @@ All examples use the centralized `ModelSelector` utility that supports:
 
 ### Supported Models
 - **Anthropic Claude Haiku** - Cloud-based with excellent reasoning
-- **Granite Code 20B** - IBM's model for complex planning/coordination  
-- **Qwen2.5 Coder 14B** - Fast code generation with tool support
+- **Granite 3.3 8B Instruct** - IBM's instruct-tuned model for planning with enhanced reasoning  
+- **Qwen3 14B** - Latest generation with enhanced reasoning and code generation
 - **Granite3 MoE 3B** - Lightweight with tool support
 
 ### Command Line Options
 ```bash
 # Model selection
-mvn exec:java -Dexec.mainClass="..." -Dexec.args="--granite"      # Granite Code 20B
-mvn exec:java -Dexec.mainClass="..." -Dexec.args="--qwen-coder"   # Qwen2.5 Coder
+mvn exec:java -Dexec.mainClass="..." -Dexec.args="--granite"      # Granite 3.3 8B Instruct
+mvn exec:java -Dexec.mainClass="..." -Dexec.args="--qwen-coder"   # Qwen3 14B
 mvn exec:java -Dexec.mainClass="..." -Dexec.args="--anthropic"    # Anthropic Claude
 mvn exec:java -Dexec.mainClass="..." -Dexec.args="--help"         # Show available models
 

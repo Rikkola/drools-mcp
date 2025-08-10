@@ -110,16 +110,17 @@ public class DRLAuthoringAgent {
     public static UntypedAgent createLoopWorkflow(ChatModel chatModel, FactTypeRegistry registry, int maxIterations) {
         // Create individual specialized agents - using different models based on capabilities
         DRLGeneratorAgent generatorAgent = DRLGeneratorAgent.create(chatModel, registry);
-        DRLValidatorAgent validatorAgent = DRLValidatorAgent.create(ChatModels.getToolCallingModel());
         DRLExecutorAgent executorAgent = DRLExecutorAgent.create(ChatModels.getToolCallingModel());
 
         return AgenticServices.loopBuilder()
-                .subAgents(generatorAgent, validatorAgent, executorAgent)
+                .subAgents(generatorAgent, new DRLValidatorAgent(), executorAgent)
                 .maxIterations(maxIterations)
                 .exitCondition(cognisphere -> {
                     // Continue loop until both validation and execution succeed
-                    boolean isValid = cognisphere.readState("validation_feedback", "not empty").isEmpty();
-                    boolean executionSuccessful = cognisphere.readState("execution_feedback", "not empty").isEmpty();
+                    String validationFeedback = cognisphere.readState("validation_feedback", "");
+                    String executionFeedback = cognisphere.readState("execution_feedback", "");
+                    boolean isValid = "Code looks good".equals(validationFeedback);
+                    boolean executionSuccessful = executionFeedback.isEmpty();
                     return isValid && executionSuccessful;
                 })
                 .outputName("current_drl")

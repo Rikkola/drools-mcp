@@ -23,9 +23,9 @@ public interface DRLExecutorAgent {
         2. CHECK: Only proceed if validation status indicates DRL is valid  
         3. EXECUTE: Use executeDRLWithFacts tool with appropriate test data
         4. ASSESS: Determine if execution completed without errors
-        5. RETURN: Provide execution feedback or success confirmation
-           - "execution_successful": true/false
-           - "execution_feedback": runtime issues to fix
+        5. RETURN: Execution feedback for the loop workflow
+           - SUCCESS: Return empty string "" (no runtime issues found)
+           - FAILURE: Return specific runtime issues that need to be fixed
 
         EXECUTION PROCESS:
         - Generate appropriate JSON test facts based on DRL declared types
@@ -37,14 +37,12 @@ public interface DRLExecutorAgent {
         [{"_type":"TypeName", "field1":"value1", "field2":"value2"}]
 
         EXECUTION ASSESSMENT:
-        - Success: DRL compiles and executes without exceptions
-        - Failure: Compilation errors, runtime exceptions, or unexpected behavior
+        - Success: DRL compiles and executes without exceptions → return ""
+        - Failure: Compilation errors, runtime exceptions, or unexpected behavior → return error details
 
-        If execution succeeds, set execution_successful=true.
-        If execution fails, provide specific feedback about runtime issues.
-
-        RETURN FORMAT:
-        Return execution result message indicating success or providing specific feedback about runtime issues.
+        CRITICAL: Your response determines loop continuation:
+        - Empty string "" = execution successful, can exit loop
+        - Non-empty string = execution failed, continue loop with feedback
         """)
     @UserMessage("Execute this DRL code: {{current_drl}}")
     @Agent("DRL code executor for loop workflow")
