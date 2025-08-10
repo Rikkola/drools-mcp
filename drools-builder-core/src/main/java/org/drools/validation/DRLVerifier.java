@@ -34,14 +34,40 @@ public class DRLVerifier {
 
         verifier.fireAnalysis();
 
-        final Collection<VerifierMessageBase> messages = verifier.getResult().getBySeverity(Severity.NOTE);
+        // Check for messages of all severity levels (ERROR, WARNING, NOTE)
+        final Collection<VerifierMessageBase> errorMessages = verifier.getResult().getBySeverity(Severity.ERROR);
+        final Collection<VerifierMessageBase> warningMessages = verifier.getResult().getBySeverity(Severity.WARNING);
+        final Collection<VerifierMessageBase> noteMessages = verifier.getResult().getBySeverity(Severity.NOTE);
 
-        if (!messages.isEmpty()) {
-            final StringBuilder result = new StringBuilder();
-            for (VerifierMessageBase message : messages) {
-                result.append(message.getMessage());
+        final StringBuilder result = new StringBuilder();
+        boolean hasMessages = false;
+
+        // Add error messages first (highest priority)
+        if (!errorMessages.isEmpty()) {
+            hasMessages = true;
+            for (VerifierMessageBase message : errorMessages) {
+                result.append("ERROR: ").append(message.getMessage()).append("\n");
             }
-            return result.toString();
+        }
+
+        // Add warning messages
+        if (!warningMessages.isEmpty()) {
+            hasMessages = true;
+            for (VerifierMessageBase message : warningMessages) {
+                result.append("WARNING: ").append(message.getMessage()).append("\n");
+            }
+        }
+
+        // Add note messages
+        if (!noteMessages.isEmpty()) {
+            hasMessages = true;
+            for (VerifierMessageBase message : noteMessages) {
+                result.append("NOTE: ").append(message.getMessage()).append("\n");
+            }
+        }
+
+        if (hasMessages) {
+            return result.toString().trim();
         } else {
             return "Code looks good";
         }

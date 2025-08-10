@@ -1,7 +1,10 @@
 package org.drools;
 
 import org.drools.verifier.components.Pattern;
-import org.drools.verifier.components.VerifierRule ;
+import org.drools.verifier.components.VerifierRule;
+import org.drools.verifier.components.ObjectType;
+import org.drools.verifier.components.Field;
+import org.drools.verifier.components.Restriction;
 
 import org.drools.verifier.report.components.VerifierMessage;
 import org.drools.verifier.report.components.Severity;
@@ -13,11 +16,9 @@ import java.util.HashMap;
 
 global VerifierReport result;
 
-
-
-rule "Find patterns"
+rule "Rule names should start with capital letter"
     when
-        $r : VerifierRule( name not matches "[A-Z].*"  )
+        $r : VerifierRule( name not matches "[A-Z].*" )
     then
         result.add( new VerifierMessage(
                             new HashMap(),
@@ -25,5 +26,94 @@ rule "Find patterns"
                             MessageType.NOT_SPECIFIED,
                             $r,
                             "The rule name '" + $r.getName() + "' needs to start with a capital letter." ) );
-
 end
+
+rule "Check fact types have declarations"
+    when
+        $pattern : Pattern( $objectType : objectType )
+        $objectType : ObjectType( $typeName : name )
+        // Check if this is a custom type (not built-in Java types)
+        eval( !isBuiltInType($typeName) )
+        // Check if there's no field declaration for this type
+        not Field( objectTypeName == $typeName )
+    then
+        result.add( new VerifierMessage(
+                            new HashMap(),
+                            Severity.ERROR,
+                            MessageType.MISSING_COMPONENT,
+                            $pattern,
+                            "Fact type '" + $typeName + "' used in pattern but no DRL declaration (declare block) found. Add 'declare " + $typeName + " ... end' to your DRL." ) );
+end
+
+rule "Check fields used in patterns have declarations"
+    when
+        $restriction : Restriction( $fieldPath : fieldPath != null )
+        $pattern : Pattern( this == $restriction.pattern, $objectType : objectType )
+        $objectType : ObjectType( $typeName : name )
+        // Extract the base field name (handle nested paths like "address.city")
+        eval( $fieldPath != null && !$fieldPath.isEmpty() )
+        // Check if this field is declared for this type
+        not Field( objectTypeName == $typeName, name == extractBaseFieldName($fieldPath) )
+        // Skip built-in types that don't need field declarations
+        eval( !isBuiltInType($typeName) )
+    then
+        String baseField = extractBaseFieldName($fieldPath);
+        result.add( new VerifierMessage(
+                            new HashMap(),
+                            Severity.ERROR,
+                            MessageType.MISSING_COMPONENT,
+                            $restriction,
+                            "Field '" + baseField + "' used in rule but not declared in DRL declaration for type '" + $typeName + "'. Add the field to the declare block." ) );
+end
+
+rule "Check patterns reference declared fact types only"
+    when
+        $pattern : Pattern( $objectType : objectType )
+        $objectType : ObjectType( $typeName : name )
+        // For custom types, ensure they have at least one field declared
+        eval( !isBuiltInType($typeName) )
+        exists Field( objectTypeName == $typeName )
+        // But check if the pattern uses fields not in the declaration
+        $restriction : Restriction( pattern == $pattern, $fieldPath : fieldPath != null )
+        eval( $fieldPath != null && !$fieldPath.isEmpty() )
+        not Field( objectTypeName == $typeName, name == extractBaseFieldName($fieldPath) )
+    then
+        String baseField = extractBaseFieldName($fieldPath);
+        result.add( new VerifierMessage(
+                            new HashMap(),
+                            Severity.WARNING,
+                            MessageType.MISSING_COMPONENT,
+                            $restriction,
+                            "Field '" + baseField + "' used in pattern for type '" + $typeName + "' but not found in the declare block. Verify field name spelling." ) );
+end
+
+function boolean isBuiltInType(String typeName) {
+    // Built-in Java types that don't need DRL declarations
+    return typeName != null && (
+        typeName.equals("String") || 
+        typeName.equals("Integer") || 
+        typeName.equals("int") ||
+        typeName.equals("Long") || 
+        typeName.equals("long") ||
+        typeName.equals("Double") || 
+        typeName.equals("double") ||
+        typeName.equals("Float") || 
+        typeName.equals("float") ||
+        typeName.equals("Boolean") || 
+        typeName.equals("boolean") ||
+        typeName.equals("Date") ||
+        typeName.equals("Object") ||
+        typeName.startsWith("java.") ||
+        typeName.startsWith("javax.")
+    );
+}
+
+function String extractBaseFieldName(String fieldPath) {
+    if (fieldPath == null || fieldPath.isEmpty()) {
+        return null;
+    }
+    // For nested paths like "address.city", return "address"
+    // For simple fields like "age", return "age"
+    int dotIndex = fieldPath.indexOf('.');
+    return dotIndex == -1 ? fieldPath : fieldPath.substring(0, dotIndex);
+}
