@@ -128,6 +128,18 @@ public class ChatModels {
             .build();
 
     /**
+     * Tool-calling model using qwen3:14b.
+     * Qwen3 model optimized for function calling and tool usage.
+     */
+    public static final ChatModel OLLAMA_QWEN_TOOL_MODEL = OllamaChatModel.builder()
+            .baseUrl(DEFAULT_OLLAMA_BASE_URL)
+            .modelName("qwen3:14b")
+            .timeout(Duration.ofMinutes(5))
+            .logRequests(true)
+            .logResponses(true)
+            .build();
+
+    /**
      * High-performance local Ollama model using granite3-moe:3b.
      * IBM's Granite3 MoE model optimized for code generation and tool usage.
      * Supports tools and excellent for DRL authoring tasks.
@@ -214,6 +226,16 @@ public class ChatModels {
      */
     public static ChatModel createOllamaModel(String baseUrl, String modelName) {
         return createOllamaModel(baseUrl, modelName, DEFAULT_TIMEOUT, true, true);
+    }
+
+    /**
+     * Gets the default tool-calling model (qwen3:14b).
+     * Use this for agents that need function calling capabilities.
+     * 
+     * @return ChatModel optimized for tool calling
+     */
+    public static ChatModel getToolCallingModel() {
+        return OLLAMA_QWEN_TOOL_MODEL;
     }
 
     /**

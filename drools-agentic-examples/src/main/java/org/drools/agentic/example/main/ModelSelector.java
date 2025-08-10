@@ -21,7 +21,10 @@ public class ModelSelector {
         GRANITE_PLANNING("granite3.3:8b", "IBM Granite 3.3 8B"),
         
         /** IBM Granite Code 8B - Optimized for code generation */
-        GRANITE_CODE("granite-code:8b", "IBM Granite Code 8B");
+        GRANITE_CODE("granite-code:8b", "IBM Granite Code 8B"),
+        
+        /** Qwen3 14B - Optimized for tool calling and function usage */
+        QWEN_TOOLS("qwen3:14b", "Qwen3 14B Tools");
 
         private final String modelName;
         private final String displayName;
@@ -57,6 +60,7 @@ public class ModelSelector {
             case ANTHROPIC_CLAUDE -> ChatModels.DEFAULT_ANTHROPIC_MODEL;
             case GRANITE_PLANNING -> ChatModels.OLLAMA_GRANITE_PLANNING_MODEL;
             case GRANITE_CODE -> ChatModels.OLLAMA_GRANITE_CODE_MODEL;
+            case QWEN_TOOLS -> ChatModels.OLLAMA_QWEN_TOOL_MODEL;
         };
     }
 
@@ -169,8 +173,9 @@ public class ModelSelector {
      */
     public static boolean supportsTools(ModelType modelType) {
         return switch (modelType) {
-            case ANTHROPIC_CLAUDE -> true;
-            case GRANITE_PLANNING, GRANITE_CODE -> true; // Both granite models support tools
+            case ANTHROPIC_CLAUDE, QWEN_TOOLS -> true; // These models support tools
+            case GRANITE_PLANNING -> true; // Granite planning supports tools
+            case GRANITE_CODE -> false; // Granite code does not support tools
         };
     }
 
@@ -327,6 +332,7 @@ public class ModelSelector {
             case CODE_GENERATION -> ModelType.GRANITE_CODE;   // Optimized for code generation
             case CLOUD_QUALITY -> ModelType.ANTHROPIC_CLAUDE; // High quality
             case LIGHTWEIGHT -> ModelType.GRANITE_CODE;     // Resource efficient
+            case TOOL_CALLING -> ModelType.QWEN_TOOLS;       // Best for tools/functions
         };
     }
 
@@ -335,8 +341,9 @@ public class ModelSelector {
      */
     public enum UseCase {
         PLANNING,         // High-level planning and coordination
-        CODE_GENERATION,  // Fast DRL code generation with tools
+        CODE_GENERATION,  // Fast DRL code generation without tools
         CLOUD_QUALITY,    // High-quality cloud-based generation
-        LIGHTWEIGHT       // Resource-constrained environments
+        LIGHTWEIGHT,      // Resource-constrained environments
+        TOOL_CALLING      // Function calling and tool usage
     }
 }

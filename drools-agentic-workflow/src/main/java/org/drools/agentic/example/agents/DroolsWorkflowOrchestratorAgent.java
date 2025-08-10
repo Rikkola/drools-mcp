@@ -4,6 +4,7 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.agentic.UntypedAgent;
 import org.drools.agentic.example.registry.InMemoryFactTypeRegistry;
+import org.drools.agentic.example.config.ChatModels;
 
 /**
  * Agent that orchestrates a sequential workflow of DRL development agents.
@@ -28,8 +29,8 @@ public class DroolsWorkflowOrchestratorAgent {
     public static UntypedAgent create(ChatModel planningModel, ChatModel codeGenModel) {
         // Use the factory method with dual models - planning model for orchestration, code gen model for implementation
         var droolsAuthoringAgent = DRLAuthoringAgent.create(planningModel, codeGenModel, new InMemoryFactTypeRegistry());
-        var fileStorageAgent = FileStorageAgent.create(codeGenModel);
-        var knowledgeBaseAgent = DroolsKnowledgeBaseAgent.create(codeGenModel);
+        var fileStorageAgent = FileStorageAgent.create(ChatModels.getToolCallingModel());
+        var knowledgeBaseAgent = DroolsKnowledgeBaseAgent.create(ChatModels.getToolCallingModel());
 
         UntypedAgent agentWorkflow = AgenticServices
                 .sequenceBuilder()

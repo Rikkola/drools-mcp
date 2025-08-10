@@ -9,6 +9,7 @@ import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import org.drools.agentic.example.registry.FactTypeRegistry;
 import org.drools.agentic.example.registry.InMemoryFactTypeRegistry;
+import org.drools.agentic.example.config.ChatModels;
 
 /**
  * Drools DRL authoring orchestration agent that coordinates the DRL development workflow.
@@ -107,10 +108,10 @@ public class DRLAuthoringAgent {
      * @return A configured loop-based DRL authoring agent with memory support
      */
     public static UntypedAgent createLoopWorkflow(ChatModel chatModel, FactTypeRegistry registry, int maxIterations) {
-        // Create individual specialized agents - all using AI with tools
+        // Create individual specialized agents - using different models based on capabilities
         DRLGeneratorAgent generatorAgent = DRLGeneratorAgent.create(chatModel, registry);
-        DRLValidatorAgent validatorAgent = DRLValidatorAgent.create(chatModel);
-        DRLExecutorAgent executorAgent = DRLExecutorAgent.create(chatModel);
+        DRLValidatorAgent validatorAgent = DRLValidatorAgent.create(ChatModels.getToolCallingModel());
+        DRLExecutorAgent executorAgent = DRLExecutorAgent.create(ChatModels.getToolCallingModel());
 
         return AgenticServices.loopBuilder()
                 .subAgents(generatorAgent, validatorAgent, executorAgent)
