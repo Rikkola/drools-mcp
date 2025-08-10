@@ -39,7 +39,7 @@ import java.time.Duration;
  * 
  * <h3>Command Line Usage:</h3>
  * <pre>
- * java DroolsWorkflowMain                   # Use default Granite model (granite3.3:8b-instruct)
+ * java DroolsWorkflowMain                   # Use default Granite model (granite-code:20b)
  * java DroolsWorkflowMain --granite         # Use Granite code model (default)
  * java DroolsWorkflowMain --ollama          # Use default Ollama (llama3.2:3b)
  * java DroolsWorkflowMain --ollama-8b       # Use Llama 8B model
@@ -104,24 +104,24 @@ public class ChatModels {
             .build();
 
     /**
-     * Planning model using granite3.3:8b.
-     * IBM's Granite 3.3 model optimized for planning with enhanced reasoning.
+     * Planning model using granite-code:20b.
+     * IBM's Granite Code model optimized for planning and code generation.
      */
     public static final ChatModel OLLAMA_GRANITE_PLANNING_MODEL = OllamaChatModel.builder()
             .baseUrl(DEFAULT_OLLAMA_BASE_URL)
-            .modelName("granite3.3:8b")
+            .modelName("granite-code:20b")
             .timeout(Duration.ofMinutes(5))
             .logRequests(true)
             .logResponses(true)
             .build();
 
     /**
-     * Code generation model using granite-code:8b.
+     * Code generation model using granite-code:20b.
      * IBM's Granite Code model optimized for code generation tasks.
      */
     public static final ChatModel OLLAMA_GRANITE_CODE_MODEL = OllamaChatModel.builder()
             .baseUrl(DEFAULT_OLLAMA_BASE_URL)
-            .modelName("granite-code:8b")
+            .modelName("granite-code:20b")
             .timeout(Duration.ofMinutes(5))
             .logRequests(true)
             .logResponses(true)

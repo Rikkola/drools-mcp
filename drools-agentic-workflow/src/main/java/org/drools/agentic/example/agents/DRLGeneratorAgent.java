@@ -44,7 +44,27 @@ public interface DRLGeneratorAgent {
         - Generate declare blocks for custom fact types
         - Include all necessary fields with proper types
         - Use meaningful field names that reflect business domain
-        - Provide sensible default values when appropriate
+        
+        CRITICAL DROOLS CONSTRUCTOR RULES:
+        - Drools 'declare' blocks generate classes with ONLY no-arg constructors
+        - NEVER use parameterized constructors like new Person("John", 30, true)
+        - ALWAYS use no-arg constructor + setter pattern: new Person(); person.setName("John"); person.setAge(30);
+        - OR use 'insert(new Person())' for empty objects and separate rules to populate fields
+        
+        CORRECT DRL PATTERNS:
+        ✅ GOOD: 
+        rule "Init Person"
+        when
+        then
+            Person person = new Person();
+            person.setName("John");  
+            person.setAge(30);
+            person.setAdult(false);
+            insert(person);
+        end
+        
+        ❌ BAD: 
+        insert(new Person("John", 30, true));  // Constructor doesn't exist!
 
         """)
     @UserMessage("Generate DRL for: {{request}}")

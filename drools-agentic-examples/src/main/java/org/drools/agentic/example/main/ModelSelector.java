@@ -20,8 +20,8 @@ public class ModelSelector {
         /** IBM Granite 3.3 8B - Best for planning with enhanced reasoning */
         GRANITE_PLANNING("granite3.3:8b", "IBM Granite 3.3 8B"),
         
-        /** IBM Granite Code 8B - Optimized for code generation */
-        GRANITE_CODE("granite-code:8b", "IBM Granite Code 8B"),
+        /** IBM Granite Code 20B - Optimized for code generation */
+        GRANITE_CODE("granite-code:20b", "IBM Granite Code 20B"),
         
         /** Qwen3 14B - Optimized for tool calling and function usage */
         QWEN_TOOLS("qwen3:14b", "Qwen3 14B Tools");
@@ -83,7 +83,7 @@ public class ModelSelector {
                 case "--granite-code":
                 case "--granite":
                 case "-g":
-                    System.out.println("Using Granite code generation model (granite-code:8b)");
+                    System.out.println("Using Granite code generation model (granite-code:20b)");
                     return createChatModel(ModelType.GRANITE_CODE);
                     
                 case "--anthropic":
@@ -113,7 +113,7 @@ public class ModelSelector {
         }
         
         // Default: use Granite Code 8B model (optimized for code generation)
-        System.out.println("Using default Granite Code 8B model (granite-code:8b)");
+        System.out.println("Using default Granite Code 20B model (granite-code:20b)");
         return getDefaultCodeGenAgent();
     }
 
@@ -197,7 +197,7 @@ public class ModelSelector {
             switch (arg.toLowerCase()) {
                 case "--granite":
                 case "-g":
-                    System.out.println("Using Granite model (granite-code:8b)");
+                    System.out.println("Using Granite model (granite-code:20b)");
                     return createChatModel(ModelType.GRANITE_CODE);
                     
                     
@@ -228,7 +228,7 @@ public class ModelSelector {
         }
         
         // Default: use Granite Code model (supports tools needed for agents)
-        System.out.println("Using default Granite Code model (granite-code:8b)");
+        System.out.println("Using default Granite Code model (granite-code:20b)");
         return createChatModel(ModelType.GRANITE_CODE);
     }
 
@@ -263,9 +263,9 @@ public class ModelSelector {
             }
         }
         
-        // Default to granite3.3:8b for planning (optimized for coordination/planning tasks)
-        System.out.println("Using default Granite 3.3 planning model (granite3.3:8b)");
-        return createChatModel(ModelType.GRANITE_PLANNING);
+        // Default to granite-code:20b for planning (optimized for coordination/planning tasks)
+        System.out.println("Using default Granite Code planning model (granite-code:20b)");
+        return createChatModel(ModelType.GRANITE_CODE);
     }
 
     /**
@@ -286,7 +286,7 @@ public class ModelSelector {
                 case "--granite-code":
                 case "--granite":
                 case "-g":
-                    System.out.println("Using Granite code generation model (granite-code:8b)");
+                    System.out.println("Using Granite code generation model (granite-code:20b)");
                     return createChatModel(ModelType.GRANITE_CODE);
                     
                 case "--anthropic":
@@ -316,7 +316,7 @@ public class ModelSelector {
         }
         
         // Default: use Granite Code 8B model (optimized for code generation)
-        System.out.println("Using default Granite Code 8B model (granite-code:8b)");
+        System.out.println("Using default Granite Code 20B model (granite-code:20b)");
         return createChatModel(ModelType.GRANITE_CODE);
     }
 
