@@ -35,8 +35,8 @@ public class DroolsAgenticTool {
         try {
             // Create agent workflow with default chat models
             UntypedAgent agentWorkflow = DroolsWorkflowOrchestratorAgent.create(
-                ChatModels.OLLAMA_GRANITE_MODEL, 
-                ChatModels.OLLAMA_GRANITE3_MOE_MODEL
+                ChatModels.OLLAMA_GRANITE_PLANNING_MODEL, 
+                ChatModels.OLLAMA_GRANITE_CODE_MODEL
             );
             
             // Execute the workflow with the specification

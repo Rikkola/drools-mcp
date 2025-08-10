@@ -39,7 +39,7 @@ import java.time.Duration;
  * 
  * <h3>Command Line Usage:</h3>
  * <pre>
- * java DroolsWorkflowMain                   # Use default Granite model (granite-code:20b)
+ * java DroolsWorkflowMain                   # Use default Granite model (granite3.3:8b-instruct)
  * java DroolsWorkflowMain --granite         # Use Granite code model (default)
  * java DroolsWorkflowMain --ollama          # Use default Ollama (llama3.2:3b)
  * java DroolsWorkflowMain --ollama-8b       # Use Llama 8B model
@@ -69,12 +69,12 @@ public class ChatModels {
 
     /**
      * Default local Ollama chat model configured for Drools agents.
-     * Uses llama3.2:3b model with default localhost connection.
+     * Uses granite-code:8b model optimized for DRL code generation.
      */
     public static final ChatModel DEFAULT_OLLAMA_MODEL = OllamaChatModel.builder()
             .baseUrl(DEFAULT_OLLAMA_BASE_URL)
-            .modelName("llama3.2:3b")
-            .timeout(DEFAULT_TIMEOUT)
+            .modelName("granite-code:8b")
+            .timeout(Duration.ofMinutes(5))
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -104,14 +104,25 @@ public class ChatModels {
             .build();
 
     /**
-     * High-performance local Ollama model using granite-code:20b.
-     * IBM's Granite code model optimized for planning and coordination tasks.
-     * Good for supervisor agents but doesn't support tools.
+     * Planning model using granite3.3:8b.
+     * IBM's Granite 3.3 model optimized for planning with enhanced reasoning.
      */
-    public static final ChatModel OLLAMA_GRANITE_MODEL = OllamaChatModel.builder()
+    public static final ChatModel OLLAMA_GRANITE_PLANNING_MODEL = OllamaChatModel.builder()
             .baseUrl(DEFAULT_OLLAMA_BASE_URL)
-            .modelName("granite-code:20b")
-            .timeout(Duration.ofMinutes(5)) // Longer timeout for large model
+            .modelName("granite3.3:8b")
+            .timeout(Duration.ofMinutes(5))
+            .logRequests(true)
+            .logResponses(true)
+            .build();
+
+    /**
+     * Code generation model using granite-code:8b.
+     * IBM's Granite Code model optimized for code generation tasks.
+     */
+    public static final ChatModel OLLAMA_GRANITE_CODE_MODEL = OllamaChatModel.builder()
+            .baseUrl(DEFAULT_OLLAMA_BASE_URL)
+            .modelName("granite-code:8b")
+            .timeout(Duration.ofMinutes(5))
             .logRequests(true)
             .logResponses(true)
             .build();
