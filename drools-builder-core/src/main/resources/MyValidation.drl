@@ -1,119 +1,130 @@
-package org.drools;
+package org.drools.validation
 
-import org.drools.verifier.components.Pattern;
-import org.drools.verifier.components.VerifierRule;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.drools.verifier.components.Definition;
 import org.drools.verifier.components.ObjectType;
-import org.drools.verifier.components.Field;
-import org.drools.verifier.components.Restriction;
-
-import org.drools.verifier.report.components.VerifierMessage;
+import org.drools.verifier.components.LiteralRestriction;
+import org.drools.verifier.components.Pattern;
 import org.drools.verifier.report.components.Severity;
+import org.drools.verifier.report.components.VerifierMessage;
 import org.drools.verifier.report.components.MessageType;
 
-import org.drools.verifier.data.VerifierReport;
-
-import java.util.HashMap;
+import org.drools.verifier.data.VerifierReport
+import org.drools.verifier.components.Field;
 
 global VerifierReport result;
 
-rule "Rule names should start with capital letter"
+rule "Missing Definition for ObjectType"
     when
-        $r : VerifierRule( name not matches "[A-Z].*" )
-    then
-        result.add( new VerifierMessage(
-                            new HashMap(),
-                            Severity.NOTE,
-                            MessageType.NOT_SPECIFIED,
-                            $r,
-                            "The rule name '" + $r.getName() + "' needs to start with a capital letter." ) );
-end
-
-rule "Check fact types have declarations"
-    when
-        $pattern : Pattern( $objectType : objectType )
         $objectType : ObjectType( $typeName : name )
-        // Check if this is a custom type (not built-in Java types)
-        eval( !isBuiltInType($typeName) )
-        // Check if there's no field declaration for this type
-        not Field( objectTypeName == $typeName )
+        not Definition( typeName == $typeName )
     then
-        result.add( new VerifierMessage(
-                            new HashMap(),
-                            Severity.ERROR,
-                            MessageType.MISSING_COMPONENT,
-                            $pattern,
-                            "Fact type '" + $typeName + "' used in pattern but no DRL declaration (declare block) found. Add 'declare " + $typeName + " ... end' to your DRL." ) );
+        result.add(new VerifierMessage(
+                        new HashMap(),
+                        Severity.ERROR,
+                        MessageType.MISSING_COMPONENT,
+                        $objectType,
+                        "Missing type definition for fact type: " + $typeName
+                        ,
+                        new ArrayList() ) );
 end
 
-rule "Check fields used in patterns have declarations"
+declare FinalField
+    patternName: String
+    fieldName: String
+end
+
+declare Split
+    patternName: String
+    fieldName: String
+    leftOver: String[]
+end
+
+rule "Split"
     when
-        $restriction : Restriction( $fieldPath : fieldPath != null )
-        $pattern : Pattern( this == $restriction.pattern, $objectType : objectType )
-        $objectType : ObjectType( $typeName : name )
-        // Extract the base field name (handle nested paths like "address.city")
-        eval( $fieldPath != null && !$fieldPath.isEmpty() )
-        // Check if this field is declared for this type
-        not Field( objectTypeName == $typeName, name == extractBaseFieldName($fieldPath) )
-        // Skip built-in types that don't need field declarations
-        eval( !isBuiltInType($typeName) )
+        LiteralRestriction( fieldPath != null, $fieldName : fieldName, $patternName : patternName )
     then
-        String baseField = extractBaseFieldName($fieldPath);
-        result.add( new VerifierMessage(
-                            new HashMap(),
-                            Severity.ERROR,
-                            MessageType.MISSING_COMPONENT,
-                            $restriction,
-                            "Field '" + baseField + "' used in rule but not declared in DRL declaration for type '" + $typeName + "'. Add the field to the declare block." ) );
+        if($fieldName.contains(".")) {
+            Split split = new Split();
+
+            String[] array = $fieldName.split("\\.");
+            split.setFieldName(array[0]);
+            split.setPatternName( $patternName );
+            split.setLeftOver( java.util.Arrays.copyOfRange(array, 1, array.length) );
+            insert( split );
+        } else {
+            FinalField ff = new FinalField();
+            ff.setPatternName( $patternName );
+            ff.setFieldName( $fieldName );
+            insert( ff );
+        }
 end
 
-rule "Check patterns reference declared fact types only"
+rule "Trim split"
     when
-        $pattern : Pattern( $objectType : objectType )
-        $objectType : ObjectType( $typeName : name )
-        // For custom types, ensure they have at least one field declared
-        eval( !isBuiltInType($typeName) )
-        exists Field( objectTypeName == $typeName )
-        // But check if the pattern uses fields not in the declaration
-        $restriction : Restriction( pattern == $pattern, $fieldPath : fieldPath != null )
-        eval( $fieldPath != null && !$fieldPath.isEmpty() )
-        not Field( objectTypeName == $typeName, name == extractBaseFieldName($fieldPath) )
+        $split :Split( $fieldName :fieldName, eval( leftOver.length > 0) )
+        $definition : Definition( typeName == $split.patternName, fieldNames contains $fieldName)
     then
-        String baseField = extractBaseFieldName($fieldPath);
-        result.add( new VerifierMessage(
-                            new HashMap(),
-                            Severity.WARNING,
-                            MessageType.MISSING_COMPONENT,
-                            $restriction,
-                            "Field '" + baseField + "' used in pattern for type '" + $typeName + "' but not found in the declare block. Verify field name spelling." ) );
+        String fieldType = $definition.getDeclaredFields().get($fieldName);
+        String[] oldArray = $split.getLeftOver();
+        String[] newArray = java.util.Arrays.copyOfRange(oldArray, 1, oldArray.length);
+        $split.setFieldName(oldArray[0]);
+        $split.setPatternName( fieldType );
+        $split.setLeftOver( newArray );
+        update( $split );
+
 end
 
-function boolean isBuiltInType(String typeName) {
-    // Built-in Java types that don't need DRL declarations
-    return typeName != null && (
-        typeName.equals("String") || 
-        typeName.equals("Integer") || 
-        typeName.equals("int") ||
-        typeName.equals("Long") || 
-        typeName.equals("long") ||
-        typeName.equals("Double") || 
-        typeName.equals("double") ||
-        typeName.equals("Float") || 
-        typeName.equals("float") ||
-        typeName.equals("Boolean") || 
-        typeName.equals("boolean") ||
-        typeName.equals("Date") ||
-        typeName.equals("Object") ||
-        typeName.startsWith("java.") ||
-        typeName.startsWith("javax.")
-    );
-}
+rule "Add final field"
+    when
+        Split( $patternName : patternName, $fieldName : fieldName, eval( leftOver.length == 0))
+    then
+        FinalField ff = new FinalField();
+        ff.setPatternName( $patternName );
+        ff.setFieldName( $fieldName );
+        insert( ff );
+end
 
-function String extractBaseFieldName(String fieldPath) {
-    if (fieldPath == null || fieldPath.isEmpty()) {
-        return null;
-    }
-    // For nested paths like "address.city", return "address"
-    // For simple fields like "age", return "age"
-    int dotIndex = fieldPath.indexOf('.');
-    return dotIndex == -1 ? fieldPath : fieldPath.substring(0, dotIndex);
-}
+rule "Missing Field in Definition"
+    when
+        $restriction : FinalField( $fieldName : fieldName )
+        $definition : Definition( typeName == $restriction.patternName, fieldNames not contains $fieldName )
+    then
+        result.add(new VerifierMessage(
+                          new HashMap(),
+                          Severity.ERROR,
+                          MessageType.MISSING_COMPONENT,
+                          $definition,
+                          "Field '" + $fieldName  + "' used in rule but not declared in definition of type '" + $restriction.getPatternName() + "'",
+                          new ArrayList() ) );
+end
+
+rule "Missing Field in a missing Definition"
+    when
+        $restriction : FinalField( $fieldName : fieldName )
+        not Definition( typeName == $restriction.patternName )
+    then
+        result.add(new VerifierMessage(
+                          new HashMap(),
+                          Severity.ERROR,
+                          MessageType.MISSING_COMPONENT,
+                          null,
+                          "Field '" + $fieldName  + "' used in rule but not declared in definition of type '" + $restriction.getPatternName() + "'",
+                          new ArrayList() ) );
+end
+
+rule "Error when Definition exists, but it is lacking a field"
+    when
+        $split :Split( $fieldName :fieldName, $patternName :patternName)
+        $definition : Definition( typeName == $split.patternName, fieldNames not contains $split.fieldName)
+    then
+          result.add(new VerifierMessage(
+                              new HashMap(),
+                              Severity.ERROR,
+                              MessageType.MISSING_COMPONENT,
+                              null,
+                              "Field '" + $fieldName  + "' used in rule but not declared in definition of type '" + $patternName + "'",
+                              new ArrayList() ) );
+end
