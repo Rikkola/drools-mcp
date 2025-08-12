@@ -5,6 +5,7 @@ import jdk.jshell.SnippetEvent;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -25,6 +26,124 @@ public class DynamicObjectCreator {
      * @return The created object, or null if creation failed
      */
     public Object createObjectFromString(String code, Map<String, String> classDefinitions) {
+        // WORKAROUND: JShell returns string representations instead of actual objects
+        // For compatibility with Drools, we need to create actual Java objects
+        // This method extracts the object info and creates a compatible object
+        
+        try {
+            // Parse the constructor call to extract class name and arguments
+            String className = extractClassName(code);
+            List<Object> args = extractConstructorArgs(code);
+            
+            if (className != null && classDefinitions.containsKey(className)) {
+                // Create a compatible object instead of using JShell
+                return createCompatibleObject(className, args, classDefinitions.get(className));
+            }
+            
+            // Fallback to original JShell approach (which returns strings)
+            return createObjectFromStringUsingJShell(code, classDefinitions);
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create object from code: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Creates a Drools-compatible object without using JShell.
+     */
+    private Object createCompatibleObject(String className, List<Object> args, String classDefinition) {
+        // Create a simple object that behaves like the expected class
+        DroolsCompatibleDynamicObject obj = new DroolsCompatibleDynamicObject(className);
+        
+        // Parse field names from class definition  
+        List<String> fieldNames = extractFieldNames(classDefinition);
+        
+        // Set field values from constructor arguments
+        for (int i = 0; i < Math.min(fieldNames.size(), args.size()); i++) {
+            String fieldName = fieldNames.get(i);
+            Object value = args.get(i);
+            obj.setFieldValue(fieldName, value);
+        }
+        
+        return obj;
+    }
+    
+    /**
+     * Extracts field names from class definition.
+     */
+    private List<String> extractFieldNames(String classDefinition) {
+        List<String> fieldNames = new ArrayList<>();
+        
+        String[] lines = classDefinition.split("\\n");
+        for (String line : lines) {
+            line = line.trim();
+            if (line.startsWith("private ") && line.endsWith(";")) {
+                String[] parts = line.split("\\s+");
+                if (parts.length >= 3) {
+                    String fieldName = parts[2].replace(";", "");
+                    fieldNames.add(fieldName);
+                }
+            }
+        }
+        
+        return fieldNames;
+    }
+    
+    /**
+     * Extracts class name from constructor call.
+     */
+    private String extractClassName(String code) {
+        // Pattern: "ClassName obj = new ClassName(...);"
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(\\w+)\\s+\\w+\\s*=\\s*new\\s+(\\w+)\\s*\\(");
+        java.util.regex.Matcher matcher = pattern.matcher(code);
+        if (matcher.find()) {
+            return matcher.group(2);
+        }
+        return null;
+    }
+    
+    /**
+     * Extracts constructor arguments from constructor call.
+     */
+    private List<Object> extractConstructorArgs(String code) {
+        List<Object> args = new ArrayList<>();
+        
+        // Extract arguments from parentheses  
+        int start = code.indexOf('(');
+        int end = code.lastIndexOf(')');
+        
+        if (start >= 0 && end > start) {
+            String argsString = code.substring(start + 1, end).trim();
+            
+            if (!argsString.isEmpty()) {
+                String[] parts = argsString.split(",");
+                for (String part : parts) {
+                    part = part.trim();
+                    
+                    if (part.startsWith("\"") && part.endsWith("\"")) {
+                        // String argument
+                        args.add(part.substring(1, part.length() - 1));
+                    } else if ("true".equals(part) || "false".equals(part)) {
+                        // Boolean argument
+                        args.add(Boolean.valueOf(part));
+                    } else if (part.contains(".")) {
+                        // Double argument
+                        args.add(Double.valueOf(part));
+                    } else {
+                        // Integer argument
+                        args.add(Integer.valueOf(part));
+                    }
+                }
+            }
+        }
+        
+        return args;
+    }
+    
+    /**
+     * Original JShell-based implementation (returns strings).
+     */
+    private Object createObjectFromStringUsingJShell(String code, Map<String, String> classDefinitions) {
         JShell jshell = null;
         try {
             jshell = JShell.create();
@@ -51,7 +170,7 @@ public class DynamicObjectCreator {
             }
             
         } catch (Exception e) {
-            throw new RuntimeException("Failed to create object from code: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to create object using JShell: " + e.getMessage(), e);
         } finally {
             if (jshell != null) {
                 jshell.close();
