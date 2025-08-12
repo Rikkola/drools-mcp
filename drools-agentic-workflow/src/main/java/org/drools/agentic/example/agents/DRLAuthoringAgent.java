@@ -15,8 +15,15 @@ import org.drools.agentic.example.config.ChatModels;
  * Drools DRL authoring orchestration agent that coordinates the DRL development workflow.
  * 
  * This agent provides two main workflows:
- * 1. PLANNING + LOOP WORKFLOW: Uses planning model for coordination and code gen model for implementation
+ * 1. DOCUMENT ANALYSIS + LOOP WORKFLOW: Uses document planning for business knowledge extraction and code gen model for implementation
  * 2. LOOP-ONLY WORKFLOW: Direct loop-based DRL generation with iterative validation and execution
+ * 
+ * Document Analysis Features:
+ * - Analyzes any text input to extract business knowledge
+ * - Identifies domain models, entities, and their attributes
+ * - Extracts business rules, decisions, and logic flows
+ * - Creates technology-agnostic documentation for rule base creation
+ * - Focuses on business terminology rather than technical implementation
  * 
  * Loop-Based Features:
  * - Iterative validation and execution until both succeed or max iterations reached
@@ -39,55 +46,88 @@ import org.drools.agentic.example.config.ChatModels;
 public class DRLAuthoringAgent {
 
     /**
-     * Planning agent interface for analyzing requirements and coordinating workflow.
+     * Document planning agent interface for analyzing text and extracting domain models, rules, and decisions.
+     * This agent creates domain-agnostic documentation that can be used for rule base creation.
      */
-    public interface DRLPlanningAgent {
+    public interface DocumentPlanningAgent {
         @SystemMessage("""
-            You are a DRL workflow planning and coordination agent. Your responsibilities are:
+            You are a Document Planning Agent responsible for analyzing any text input and extracting business knowledge 
+            that can be used to create rule-based systems. Your analysis should be technology-agnostic and focus on 
+            business logic rather than implementation details.
             
-            1. ANALYZE the user request to understand DRL requirements
-            2. PLAN the development approach and identify needed fact types
-            3. COORDINATE with the code generation workflow
-            4. ENSURE quality by reviewing final outputs
+            YOUR RESPONSIBILITIES:
+            1. ANALYZE the provided text to identify business concepts, entities, and relationships
+            2. EXTRACT potential business rules, decisions, and logic flows
+            3. IDENTIFY domain models, data structures, and entity attributes
+            4. CREATE a structured document that captures the business knowledge
             
-            PLANNING WORKFLOW:
-            1. Break down the user request into specific requirements
-            2. Identify what fact types and rules are needed
-            3. Plan the validation and testing strategy
-            4. Delegate to the loop-based generation workflow
-            5. Review and approve the final DRL output
+            ANALYSIS FRAMEWORK:
             
-            Keep your analysis concise and focused on high-level planning.
-            The actual code generation will be handled by specialized sub-agents.
+            ## Domain Models & Entities
+            - Identify key business entities (nouns: Customer, Order, Product, etc.)
+            - Extract entity attributes and their types
+            - Map relationships between entities
+            - Note any hierarchies or categorizations
+            
+            ## Business Rules & Logic
+            - Extract conditional logic (if-then patterns)
+            - Identify validation rules and constraints
+            - Find calculation formulas and algorithms
+            - Note approval workflows and decision trees
+            
+            ## Decision Points
+            - Identify where decisions are made in the business process
+            - Extract decision criteria and conditions
+            - Map decision outcomes and actions
+            - Note any escalation or exception handling
+            
+            ## Business Processes
+            - Map sequential workflows and process steps
+            - Identify trigger events and conditions
+            - Extract business constraints and policies
+            - Note any temporal or scheduling requirements
+            
+            OUTPUT FORMAT:
+            Provide a structured analysis in markdown format with clear sections for:
+            - Executive Summary
+            - Domain Models (entities and attributes)
+            - Business Rules (conditional logic)
+            - Decision Framework (decision points and criteria)
+            - Process Flows (workflows and sequences)
+            - Implementation Considerations (for rule engine design)
+            
+            Focus on capturing the WHAT and WHY of the business logic, not the HOW of implementation.
+            Be comprehensive but concise. Use business terminology, not technical jargon.
             """)
-        @UserMessage("Plan DRL development for: {{request}}")
-        @Agent("DRL workflow planning coordinator")
-        String planDRLWorkflow(@V("request") String request);
+        @UserMessage("Analyze the following text and extract business knowledge for rule base creation:\n\n{{textInput}}")
+        @Agent("Business Knowledge Extraction Specialist")
+        String analyzeDomainFromText(@V("textInput") String textInput);
     }
+
 
     // ========== PUBLIC API METHODS ==========
 
     /**
-     * Creates a DRLAuthoringAgent with planning and loop-based generation workflow.
-     * Uses sequenceBuilder to coordinate between planning and generation phases.
+     * Creates a DRLAuthoringAgent with document planning and loop-based generation workflow.
+     * Uses sequenceBuilder to coordinate between document analysis and generation phases.
      * 
-     * @param planningModel The chat model to use for planning (should be good at reasoning)
+     * @param analysisModel The chat model to use for document analysis (should be good at reasoning and text analysis)
      * @param codeGenModel The chat model to use for code generation (should be good at tools)
      * @param registry The fact type registry to use (can be pre-loaded with existing types)
-     * @return A configured orchestration agent with planning and generation workflow
+     * @return A configured orchestration agent with document analysis and generation workflow
      */
-    public static UntypedAgent create(ChatModel planningModel, ChatModel codeGenModel, FactTypeRegistry registry) {
-        // Create planning agent for high-level coordination
-        DRLPlanningAgent planningAgent = AgenticServices.agentBuilder(DRLPlanningAgent.class)
-                .chatModel(planningModel)
+    public static UntypedAgent create(ChatModel analysisModel, ChatModel codeGenModel, FactTypeRegistry registry) {
+        // Create document planning agent for business knowledge extraction
+        DocumentPlanningAgent documentAgent = AgenticServices.agentBuilder(DocumentPlanningAgent.class)
+                .chatModel(analysisModel)
                 .build();
         
         // Create loop-based generation workflow for actual DRL creation
         UntypedAgent loopGenerationWorkflow = createLoopWorkflow(codeGenModel, registry, 3);
         
-        // Sequence: Planning → Loop-based Generation
+        // Sequence: Document Analysis → Loop-based Generation
         return AgenticServices.sequenceBuilder()
-                .subAgents(planningAgent, loopGenerationWorkflow)
+                .subAgents(documentAgent, loopGenerationWorkflow)
                 .outputName("drl_output")
                 .build();
     }
@@ -128,6 +168,19 @@ public class DRLAuthoringAgent {
     }
 
     // ========== CONVENIENCE METHODS ==========
+
+    /**
+     * Creates a standalone DocumentPlanningAgent for analyzing text and extracting business knowledge.
+     * This agent is domain-agnostic and focuses on extracting rules, decisions, and domain models.
+     * 
+     * @param analysisModel The chat model to use for document analysis (should be good at reasoning and text analysis)
+     * @return A configured document planning agent for business knowledge extraction
+     */
+    public static DocumentPlanningAgent createDocumentPlanningAgent(ChatModel analysisModel) {
+        return AgenticServices.agentBuilder(DocumentPlanningAgent.class)
+                .chatModel(analysisModel)
+                .build();
+    }
 
     /**
      * Creates a loop-based DRL authoring workflow with default settings.
