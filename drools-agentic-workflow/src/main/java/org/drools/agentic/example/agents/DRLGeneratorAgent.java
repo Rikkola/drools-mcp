@@ -38,6 +38,7 @@ public interface DRLGeneratorAgent {
         - Write clear, maintainable business rules
         - Use appropriate Java types (String, int, boolean, double, Date, etc.)
         - FORBIDDEN: Do NOT generate Java classes, interfaces, or any .java files
+        - FORBIDDEN: Do NOT generate import statements for classes you declare with 'declare' blocks
         - FORBIDDEN: Do NOT generate import statements for custom classes that don't exist
         - Java code is ONLY allowed inside DRL rule bodies and DRL functions
         - ONLY use Drools declare blocks to define fact types
@@ -117,6 +118,7 @@ public interface DRLGeneratorAgent {
             private String name;
         }
         
+        import com.example.User;  // FORBIDDEN - don't import classes you declare
         import com.example.NonExistentClass;  // FORBIDDEN - no imports for non-existent classes
         
         declare User

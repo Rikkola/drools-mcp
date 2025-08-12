@@ -3,6 +3,7 @@ package org.drools.execution;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.drools.execution.DynamicJsonToJavaFactory;
+import org.drools.storage.DefinitionStorage;
 import org.kie.api.builder.Message;
 import org.kie.api.io.ResourceType;
 import org.kie.api.runtime.KieContainer;
@@ -13,11 +14,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DRLRunner {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final DynamicJsonToJavaFactory dynamicJsonToJavaFactory = new DynamicJsonToJavaFactory();
+    private static final DefinitionStorage definitionStorage = new DefinitionStorage();
+    private static final DynamicJsonToJavaFactory dynamicJsonToJavaFactory = new DynamicJsonToJavaFactory(definitionStorage);
 
     /**
      * Executes a DRL file that may contain declared types and data creation rules
@@ -95,6 +99,9 @@ public class DRLRunner {
      */
     public static List<Object> runDRLWithJsonFacts(String drlContent, String factsJson, int maxRuns) {
         try {
+            // Extract and register declared types from DRL content
+            extractAndRegisterDeclaredTypes(drlContent);
+            
             // Parse JSON facts using DynamicJsonToJavaFactory
             List<Object> facts = parseJsonFacts(factsJson);
             
@@ -219,6 +226,33 @@ public class DRLRunner {
             
         } catch (Exception e) {
             throw new RuntimeException("Failed to execute DRL with facts: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Extract declared types from DRL content and register them in DefinitionStorage
+     * @param drlContent The DRL content to parse for declared types
+     */
+    private static void extractAndRegisterDeclaredTypes(String drlContent) {
+        // Pattern to match declare blocks: declare TypeName ... end
+        Pattern declarePattern = Pattern.compile(
+            "declare\\s+([A-Za-z_][A-Za-z0-9_]*)\\s+([\\s\\S]*?)\\s+end", 
+            Pattern.CASE_INSENSITIVE | Pattern.MULTILINE
+        );
+        
+        Matcher matcher = declarePattern.matcher(drlContent);
+        
+        while (matcher.find()) {
+            String typeName = matcher.group(1).trim();
+            String declareBody = matcher.group(2).trim();
+            
+            // Create the full declare statement
+            String fullDeclareStatement = "declare " + typeName + " " + declareBody + " end";
+            
+            // Register the declared type in DefinitionStorage
+            definitionStorage.addDefinition(typeName, "declare", fullDeclareStatement);
+            
+            System.out.println("Registered declared type: " + typeName);
         }
     }
 
