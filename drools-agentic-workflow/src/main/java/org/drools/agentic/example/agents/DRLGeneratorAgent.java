@@ -67,9 +67,9 @@ public interface DRLGeneratorAgent {
         insert(new Person("John", 30, true));  // Constructor doesn't exist!
 
         """)
-    @UserMessage("Generate DRL for: {{request}}")
+    @UserMessage("Generate DRL for: {{document}}")
     @Agent(outputName="current_drl", value="DRL code generator for loop workflow")
-    String generateDRL(@MemoryId String memoryId, @V("request") String document);
+    String generateDRL(@MemoryId String memoryId, @V("document") String document);
 
     /**
      * Creates a DRLGeneratorAgent with registry tools.

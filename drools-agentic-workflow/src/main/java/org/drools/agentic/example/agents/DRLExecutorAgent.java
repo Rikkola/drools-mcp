@@ -37,7 +37,7 @@ public interface DRLExecutorAgent {
         [{"_type":"TypeName", "field1":"value1", "field2":"value2"}]
 
         EXECUTION ASSESSMENT:
-        - Success: DRL compiles and executes without exceptions → return ""
+        - Success: DRL compiles and executes without exceptions → return "Code looks good"
         - Failure: Compilation errors, runtime exceptions, or unexpected behavior → return error details
 
         CRITICAL: Your response determines loop continuation:

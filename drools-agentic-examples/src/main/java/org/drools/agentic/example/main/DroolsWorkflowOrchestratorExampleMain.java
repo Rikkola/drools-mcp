@@ -33,6 +33,15 @@ public class DroolsWorkflowOrchestratorExampleMain {
         
         Object result = agentWorkflow.author("I would like to find out if my users are adults or not.");
         System.out.println("Workflow Orchestration Result:");
-        System.out.println(result);
+        System.out.println("Result type: " + result.getClass().getName());
+        if (result instanceof java.util.Map) {
+            java.util.Map<?, ?> mapResult = (java.util.Map<?, ?>) result;
+            System.out.println("Map contents:");
+            for (java.util.Map.Entry<?, ?> entry : mapResult.entrySet()) {
+                System.out.println("  " + entry.getKey() + " -> " + entry.getValue());
+            }
+        } else {
+            System.out.println(result);
+        }
     }
 }

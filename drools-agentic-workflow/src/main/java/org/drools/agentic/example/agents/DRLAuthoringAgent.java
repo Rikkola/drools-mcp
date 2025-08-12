@@ -131,7 +131,6 @@ public interface DRLAuthoringAgent {
         // Sequence: Document Analysis → Loop-based Generation
         return AgenticServices.sequenceBuilder(DRLAuthoringAgent.class)
                 .subAgents(documentAgent, loopGenerationWorkflow)
-                .outputName("drl_output")
                 .build();
     }
 
@@ -139,7 +138,7 @@ public interface DRLAuthoringAgent {
 
       @UserMessage("I will take in {{document}} and create DRL out of it.")
       @Agent(outputName="current_drl", value="Authoring loop.")
-      String author(@V("document") String textInput);
+      Object author(@V("document") String textInput);
     }
 
     /**
@@ -170,7 +169,7 @@ public interface DRLAuthoringAgent {
                     String validationFeedback = cognisphere.readState("validation_feedback", "");
                     String executionFeedback = cognisphere.readState("execution_feedback", "");
                     boolean isValid = "Code looks good".equals(validationFeedback);
-                    boolean executionSuccessful = executionFeedback.isEmpty();
+                    boolean executionSuccessful = "Code looks good".equals(executionFeedback);
                     return isValid && executionSuccessful;
                 })
                 .build();
@@ -189,27 +188,6 @@ public interface DRLAuthoringAgent {
         return AgenticServices.agentBuilder(DocumentPlanningAgent.class)
                 .chatModel(analysisModel)
                 .build();
-    }
-
-    /**
-     * Creates a loop-based DRL authoring workflow with default settings.
-     * 
-     * @param chatModel The chat model to use for all agents (must support tools)
-     * @param registry The fact type registry for managing fact type definitions
-     * @return A configured loop-based DRL authoring agent with 3 max iterations
-     */
-    public static LoopAgent createLoopWorkflow(ChatModel chatModel, FactTypeRegistry registry) {
-        return createLoopWorkflow(chatModel, registry, 3);
-    }
-
-    /**
-     * Creates a loop-based DRL authoring workflow with empty registry.
-     * 
-     * @param chatModel The chat model to use for all agents (must support tools)
-     * @return A configured loop-based DRL authoring agent with empty registry
-     */
-    public static LoopAgent createLoopWorkflow(ChatModel chatModel) {
-        return createLoopWorkflow(chatModel, new InMemoryFactTypeRegistry());
     }
 
 }

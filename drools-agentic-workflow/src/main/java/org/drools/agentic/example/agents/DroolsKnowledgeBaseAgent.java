@@ -44,9 +44,9 @@ public interface DroolsKnowledgeBaseAgent {
         
         Always provide clear feedback about the single session state and execution results.
         """)
-    @UserMessage("Process this request: {{it}}")
+    @UserMessage("Build the knowledge base")
     @Agent("A Drools knowledge base management agent")
-    String handleRequest(String request);
+    String handleRequest();
 
     /**
      * Factory method to create a DroolsKnowledgeBaseAgent with the provided chat model.

@@ -22,6 +22,7 @@ public class DRLValidatorAgent {
     @Agent(value = "DRL code validator for loop workflow",
             outputName = "validation_feedback")
     public String validateDRL(@MemoryId String memoryId, @V("current_drl") String currentDrl){
-      return validationService.validateDRLStructure(currentDrl);
+      var result = validationService.validateDRLStructure(currentDrl);
+      return result;
     }
 }

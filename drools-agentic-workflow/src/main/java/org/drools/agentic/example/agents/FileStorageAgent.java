@@ -28,9 +28,9 @@ public interface FileStorageAgent {
         
         Always use the writeFile tool to actually save content to files - do not just return JSON descriptions.
         """)
-    @UserMessage("Process this request: {{it}}")
+    @UserMessage("Process this request: {{current_drl}}")
     @Agent("A file storage agent for file operations")
-    String handleRequest(String request);
+    String handleRequest(@V("current_drl") String request);
 
     /**
      * Factory method to create a FileStorageAgentInterface with the provided chat model.
