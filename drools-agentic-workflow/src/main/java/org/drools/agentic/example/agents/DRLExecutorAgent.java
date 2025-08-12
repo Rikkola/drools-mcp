@@ -19,13 +19,14 @@ public interface DRLExecutorAgent {
     @SystemMessage("""
         You are a DRL code executor. Your job is to:
 
-        1. RECEIVE: DRL code provided via @V("current_drl") parameter
-        2. CHECK: Only proceed if validation status indicates DRL is valid  
+        1. RECEIVE: DRL code
+        2. CHECK: Assess if you can create test data for the DRL code. If not, 
+            return a report about issues. 
         3. EXECUTE: Use executeDRLWithFacts tool with appropriate test data
         4. ASSESS: Determine if execution completed without errors
         5. RETURN: Execution feedback for the loop workflow
-           - SUCCESS: Return empty string "" (no runtime issues found)
-           - FAILURE: Return specific runtime issues that need to be fixed
+          - Success: DRL compiles and executes without exceptions → return "Code looks good"
+          - Failure: Compilation errors, runtime exceptions, or unexpected behavior → return error details
 
         EXECUTION PROCESS:
         - Generate appropriate JSON test facts based on DRL declared types
@@ -33,18 +34,24 @@ public interface DRLExecutorAgent {
         - Use realistic test data that will trigger the rules
         - Handle edge cases and boundary conditions in test data
 
+        CRITICAL JSON FACT TYPE MATCHING:
+        - The '_type' field in JSON MUST match the simple class name from DRL declare statements
+        - If DRL has: "declare User", use "_type":"User" (NOT "_type":"com.package.User")
+        - If DRL has: "declare Person", use "_type":"Person" (NOT "_type":"com.example.Person")
+        - Package names in DRL are for compilation only, JSON facts use simple names
+
         TEST DATA FORMAT:
         [{"_type":"TypeName", "field1":"value1", "field2":"value2"}]
-
-        EXECUTION ASSESSMENT:
-        - Success: DRL compiles and executes without exceptions → return "Code looks good"
-        - Failure: Compilation errors, runtime exceptions, or unexpected behavior → return error details
+        
+        EXAMPLES:
+        ✅ CORRECT: DRL "declare User" → JSON {"_type":"User", "age":25}
+        ❌ WRONG: DRL "declare User" → JSON {"_type":"com.example.User", "age":25}
 
         CRITICAL: Your response determines loop continuation:
-        - Empty string "" = execution successful, can exit loop
-        - Non-empty string = execution failed, continue loop with feedback
+        - String "Code looks good" = execution successful, can exit loop
+        - Non-empty string = execution step failed, continue loop with feedback
         """)
-    @UserMessage("Execute this DRL code: {{current_drl}}")
+    @UserMessage("Execute this DRL code: {{current_drl}} and return a report on found issues.")
     @Agent("DRL code executor for loop workflow")
     String executeDRL(@MemoryId String memoryId, @V("current_drl") String currentDrl);
 

@@ -104,7 +104,7 @@ public interface DRLAuthoringAgent {
         String analyzeDomainFromText(@V("textInput") String textInput);
     }
 
-    @UserMessage("I will take in {{textInput}} and create a knowledge base out of it.")
+    @UserMessage("Take in {{textInput}} and create a knowledge base out of it.")
     @Agent(outputName="current_drl", value="Authoring agent.")
     String author(@V("textInput") String textInput);
 
@@ -162,6 +162,14 @@ public interface DRLAuthoringAgent {
         DRLExecutorAgent executorAgent = DRLExecutorAgent.create(ChatModels.getToolCallingModel());
 
         return AgenticServices.loopBuilder(LoopAgent.class)
+                .beforeCall(cognisphere -> {
+                    if (cognisphere.readState("validation_feedback") == null) {
+                        cognisphere.writeState("validation_feedback", "");
+                    }
+                    if (cognisphere.readState("execution_feedback") == null) {
+                        cognisphere.writeState("execution_feedback", "");
+                    }
+                })
                 .subAgents(generatorAgent, new DRLValidatorAgent(), executorAgent)
                 .maxIterations(maxIterations)
                 .exitCondition(cognisphere -> {

@@ -32,11 +32,16 @@ public interface DRLGeneratorAgent {
         - Read and incorporate feedback from validation/execution phases
 
         CODE GENERATION STANDARDS:
-        - Include proper package declarations
-        - Generate complete declare blocks for all fact types used in rules
+        - Generate a SINGLE DRL file with package declaration if needed
+        - Generate complete DRL Drools declare blocks for all fact types and fields used in rules
         - Create fact type declarations with appropriate fields and types
         - Write clear, maintainable business rules
         - Use appropriate Java types (String, int, boolean, double, Date, etc.)
+        - FORBIDDEN: Do NOT generate Java classes, interfaces, or any .java files
+        - FORBIDDEN: Do NOT generate import statements for custom classes that don't exist
+        - Java code is ONLY allowed inside DRL rule bodies and DRL functions
+        - ONLY use Drools declare blocks to define fact types
+        - Generate ONLY .drl content - never mix with .java class definitions
         - Ensure syntactic correctness and Drools compliance
         
         FACT TYPE DECLARATION REQUIREMENTS:
@@ -44,6 +49,7 @@ public interface DRLGeneratorAgent {
         - Generate declare blocks for custom fact types
         - Include all necessary fields with proper types
         - Use meaningful field names that reflect business domain
+        - CRITICAL: Use simple class names in declare blocks (not fully qualified names)
         
         CRITICAL DROOLS CONSTRUCTOR RULES:
         - Drools 'declare' blocks generate classes with ONLY no-arg constructors
@@ -52,7 +58,15 @@ public interface DRLGeneratorAgent {
         - OR use 'insert(new Person())' for empty objects and separate rules to populate fields
         
         CORRECT DRL PATTERNS:
-        ✅ GOOD: 
+        
+        ✅ CORRECT DECLARE SYNTAX (no package, no class directive):
+        declare User
+            name : String
+            age : int
+            adult : boolean
+        end
+        
+        ✅ GOOD RULE STRUCTURE: 
         rule "Init Person"
         when
         then
@@ -65,11 +79,76 @@ public interface DRLGeneratorAgent {
         
         ❌ BAD: 
         insert(new Person("John", 30, true));  // Constructor doesn't exist!
+        
+        ❌ AVOID COMPLEX RULE STRUCTURES:
+        - NEVER use 'else' clauses in the 'then' section of rules
+        - Split complex logic into separate rules
+        - Each rule should have one clear purpose
+        
+        ✅ CORRECT: Split into separate rules
+        rule "User is Adult"
+        when
+            $user : User(age >= 18)
+        then
+            System.out.println("User is an adult");
+        end
+        
+        rule "User is Minor"
+        when
+            $user : User(age < 18)
+        then
+            System.out.println("User is a minor");
+        end
+        
+        ❌ WRONG: Using else in then section
+        rule "Check User Age"
+        when
+            $user : User()
+        then
+            if ($user.getAge() >= 18) {
+                System.out.println("User is an adult");
+            } else {
+                System.out.println("User is a minor");  // This causes syntax errors!
+            }
+        end
+        
+        ❌ COMPLETELY WRONG - DO NOT DO THIS:
+        public class User {  // FORBIDDEN - no Java classes in DRL files
+            private String name;
+        }
+        
+        import com.example.NonExistentClass;  // FORBIDDEN - no imports for non-existent classes
+        
+        declare User
+            class com.example.User  // FORBIDDEN - no class directive in declare blocks
+            name : String
+        end
+        
+        ✅ CORRECT - SINGLE DRL FILE FORMAT:
+        package com.example.rules
+        
+        declare User
+            name : String
+            age : int
+            adult : boolean
+        end
+        
+        rule "Example Rule"
+        when
+            $user : User(age >= 18)
+        then
+            modify($user) {
+                setAdult(true)
+            }
+            System.out.println("Adult user: " + $user.getName());
+        end
 
         """)
-    @UserMessage("Generate DRL for: {{document}}")
+    @UserMessage("Generate a SINGLE DRL file for: {{document}}\n\nCRITICAL REQUIREMENTS:\n1. Generate ONLY a .drl file - never include Java class definitions\n2. Use 'declare' blocks to define all fact types within the DRL\n3. Package statements are allowed if needed\n4. Do NOT import non-existent custom classes\n5. Only use imports for standard Java classes if necessary\n\nValidation Feedback: [{{validation_feedback}}]\nExecution Feedback: [{{execution_feedback}}]\n\nOutput: Single DRL file content only")
     @Agent(outputName="current_drl", value="DRL code generator for loop workflow")
-    String generateDRL(@MemoryId String memoryId, @V("document") String document);
+    String generateDRL(@MemoryId String memoryId, @V("document") String document, 
+                                                  @V("validation_feedback") String validationFeedback, 
+                                                  @V("execution_feedback") String executionFeedback);
 
     /**
      * Creates a DRLGeneratorAgent with registry tools.
