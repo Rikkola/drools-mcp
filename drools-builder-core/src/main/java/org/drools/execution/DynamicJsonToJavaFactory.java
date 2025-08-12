@@ -310,32 +310,51 @@ public class DynamicJsonToJavaFactory {
     private List<Object> extractConstructorArgs(ObjectNode node, String classDefinition) {
         List<Object> args = new ArrayList<>();
         
-        // Extract values in the order they appear in JSON, excluding "type" field
-        Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
-        while (fields.hasNext()) {
-            Map.Entry<String, JsonNode> field = fields.next();
-            String fieldName = field.getKey();
-            JsonNode value = field.getValue();
-            
-            // Skip the "type" field as it's metadata, not part of the object
-            if ("type".equals(fieldName)) {
-                continue;
-            }
-            
-            if (value.isTextual()) {
-                args.add(value.asText());
-            } else if (value.isInt()) {
-                args.add(value.asInt());
-            } else if (value.isDouble()) {
-                args.add(value.asDouble());
-            } else if (value.isBoolean()) {
-                args.add(value.asBoolean());
-            } else {
-                args.add(value.asText());
+        // Parse field order from class definition to match constructor parameter order
+        List<String> fieldOrder = parseFieldOrderFromClassDefinition(classDefinition);
+        
+        // Extract values in the order defined by the class constructor, not JSON order
+        for (String fieldName : fieldOrder) {
+            JsonNode value = node.get(fieldName);
+            if (value != null) {
+                if (value.isTextual()) {
+                    args.add(value.asText());
+                } else if (value.isInt()) {
+                    args.add(value.asInt());
+                } else if (value.isDouble()) {
+                    args.add(value.asDouble());
+                } else if (value.isBoolean()) {
+                    args.add(value.asBoolean());
+                } else {
+                    args.add(value.asText());
+                }
             }
         }
         
         return args;
+    }
+    
+    /**
+     * Parses the field order from the class definition to match constructor parameter order.
+     */
+    private List<String> parseFieldOrderFromClassDefinition(String classDefinition) {
+        List<String> fieldOrder = new ArrayList<>();
+        
+        // Extract field declarations in the order they appear in the class definition
+        String[] lines = classDefinition.split("\\n");
+        for (String line : lines) {
+            line = line.trim();
+            // Look for private field declarations: "private type fieldName;"
+            if (line.startsWith("private ") && line.endsWith(";")) {
+                String[] parts = line.split("\\s+");
+                if (parts.length >= 3) {
+                    String fieldName = parts[2].replace(";", "");
+                    fieldOrder.add(fieldName);
+                }
+            }
+        }
+        
+        return fieldOrder;
     }
     
     /**

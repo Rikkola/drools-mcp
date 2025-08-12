@@ -234,22 +234,19 @@ public class DRLRunner {
      * @param drlContent The DRL content to parse for declared types
      */
     private static void extractAndRegisterDeclaredTypes(String drlContent) {
-        // Pattern to match declare blocks: declare TypeName ... end
+        // Pattern to match complete declare blocks including declare and end keywords
         Pattern declarePattern = Pattern.compile(
-            "declare\\s+([A-Za-z_][A-Za-z0-9_]*)\\s+([\\s\\S]*?)\\s+end", 
+            "(declare\\s+([A-Za-z_][A-Za-z0-9_]*)\\s+[\\s\\S]*?\\s+end)", 
             Pattern.CASE_INSENSITIVE | Pattern.MULTILINE
         );
         
         Matcher matcher = declarePattern.matcher(drlContent);
         
         while (matcher.find()) {
-            String typeName = matcher.group(1).trim();
-            String declareBody = matcher.group(2).trim();
+            String fullDeclareStatement = matcher.group(1).trim();
+            String typeName = matcher.group(2).trim();
             
-            // Create the full declare statement
-            String fullDeclareStatement = "declare " + typeName + " " + declareBody + " end";
-            
-            // Register the declared type in DefinitionStorage
+            // Register the declared type in DefinitionStorage with the original statement
             definitionStorage.addDefinition(typeName, "declare", fullDeclareStatement);
             
             System.out.println("Registered declared type: " + typeName);
