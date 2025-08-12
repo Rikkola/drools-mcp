@@ -76,7 +76,7 @@ public class BusinessDecisionSystemExampleMain {
             "request", businessRequest
         );
         
-        Object result = agentWorkflow.invoke(input);
+        Object result = agentWorkflow.author(businessRequest);
         System.out.println("Business Decision System Creation Result:");
         System.out.println("=========================================");
         System.out.println(result);

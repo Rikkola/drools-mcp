@@ -68,8 +68,8 @@ public interface DRLGeneratorAgent {
 
         """)
     @UserMessage("Generate DRL for: {{request}}")
-    @Agent("DRL code generator for loop workflow")
-    String generateDRL(@MemoryId String memoryId, @V("request") String request);
+    @Agent(outputName="current_drl", value="DRL code generator for loop workflow")
+    String generateDRL(@MemoryId String memoryId, @V("request") String document);
 
     /**
      * Creates a DRLGeneratorAgent with registry tools.
@@ -82,7 +82,6 @@ public interface DRLGeneratorAgent {
         return AgenticServices.agentBuilder(DRLGeneratorAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(memoryId -> MessageWindowChatMemory.withMaxMessages(20))
-                .outputName("current_drl")
                 .build();
     }
 }

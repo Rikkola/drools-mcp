@@ -34,15 +34,13 @@ public class DroolsAgenticTool {
     public String improveKnowledgeBase(@ToolArg(description = "Comprehensive specification including: 1) Domain model (entities, attributes, relationships), 2) Business constraints and validation rules, 3) Decision logic requirements, 4) Example scenarios with expected outcomes, 5) Integration requirements. Provide as much detail as possible - this serves as the design document for implementation.") String specification) {
         try {
             // Create agent workflow with default chat models
-            UntypedAgent agentWorkflow = DroolsWorkflowOrchestratorAgent.create(
+            DroolsWorkflowOrchestratorAgent agentWorkflow = DroolsWorkflowOrchestratorAgent.create(
                 ChatModels.OLLAMA_GRANITE_PLANNING_MODEL, 
                 ChatModels.OLLAMA_GRANITE_CODE_MODEL
             );
             
             // Execute the workflow with the specification
-            Object result = agentWorkflow.invoke(Map.of(
-                "request", "Implement the following business logic specification: " + specification
-            ));
+            Object result = agentWorkflow.author("Implement the following business logic specification: " + specification);
             
             return JsonResponseBuilder.create()
                 .success()

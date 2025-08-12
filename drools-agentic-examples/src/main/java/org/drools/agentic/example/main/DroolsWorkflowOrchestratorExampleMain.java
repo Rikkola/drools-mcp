@@ -31,11 +31,7 @@ public class DroolsWorkflowOrchestratorExampleMain {
         System.out.println("=== Drools Workflow Orchestration Demo ===");
         var agentWorkflow = DroolsWorkflowOrchestratorAgent.create(planningModel, codeGenModel);
         
-        Map<String, Object> input = Map.of(
-            "request", "Create a simple Person DRL rule with fields name, age, and adult"
-        );
-        
-        Object result = agentWorkflow.invoke(input);
+        Object result = agentWorkflow.author("I would like to find out if my users are adults or not.");
         System.out.println("Workflow Orchestration Result:");
         System.out.println(result);
     }

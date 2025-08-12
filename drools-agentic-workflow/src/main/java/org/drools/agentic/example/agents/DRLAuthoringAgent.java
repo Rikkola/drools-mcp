@@ -43,7 +43,7 @@ import org.drools.agentic.example.config.ChatModels;
  * - validation_feedback: Detailed validation issues to fix
  * - execution_feedback: Detailed runtime issues to fix
  */
-public class DRLAuthoringAgent {
+public interface DRLAuthoringAgent {
 
     /**
      * Document planning agent interface for analyzing text and extracting domain models, rules, and decisions.
@@ -100,10 +100,13 @@ public class DRLAuthoringAgent {
             Be comprehensive but concise. Use business terminology, not technical jargon.
             """)
         @UserMessage("Analyze the following text and extract business knowledge for rule base creation:\n\n{{textInput}}")
-        @Agent("Business Knowledge Extraction Specialist")
+        @Agent( outputName="document", value="Business Knowledge Extraction :workflowSpecialist")
         String analyzeDomainFromText(@V("textInput") String textInput);
     }
 
+    @UserMessage("I will take in {{textInput}} and create a knowledge base out of it.")
+    @Agent(outputName="current_drl", value="Authoring agent.")
+    String author(@V("textInput") String textInput);
 
     // ========== PUBLIC API METHODS ==========
 
@@ -116,20 +119,27 @@ public class DRLAuthoringAgent {
      * @param registry The fact type registry to use (can be pre-loaded with existing types)
      * @return A configured orchestration agent with document analysis and generation workflow
      */
-    public static UntypedAgent create(ChatModel analysisModel, ChatModel codeGenModel, FactTypeRegistry registry) {
+    public static DRLAuthoringAgent create(ChatModel analysisModel, ChatModel codeGenModel, FactTypeRegistry registry) {
         // Create document planning agent for business knowledge extraction
         DocumentPlanningAgent documentAgent = AgenticServices.agentBuilder(DocumentPlanningAgent.class)
                 .chatModel(analysisModel)
                 .build();
         
         // Create loop-based generation workflow for actual DRL creation
-        UntypedAgent loopGenerationWorkflow = createLoopWorkflow(codeGenModel, registry, 3);
+        var loopGenerationWorkflow = createLoopWorkflow(codeGenModel, registry, 3);
         
         // Sequence: Document Analysis → Loop-based Generation
-        return AgenticServices.sequenceBuilder()
+        return AgenticServices.sequenceBuilder(DRLAuthoringAgent.class)
                 .subAgents(documentAgent, loopGenerationWorkflow)
                 .outputName("drl_output")
                 .build();
+    }
+
+    interface LoopAgent {
+
+      @UserMessage("I will take in {{document}} and create DRL out of it.")
+      @Agent(outputName="current_drl", value="Authoring loop.")
+      String author(@V("document") String textInput);
     }
 
     /**
@@ -147,12 +157,12 @@ public class DRLAuthoringAgent {
      * @param maxIterations Maximum number of loop iterations (default: 3)
      * @return A configured loop-based DRL authoring agent with memory support
      */
-    public static UntypedAgent createLoopWorkflow(ChatModel chatModel, FactTypeRegistry registry, int maxIterations) {
+    public static LoopAgent createLoopWorkflow(ChatModel chatModel, FactTypeRegistry registry, int maxIterations) {
         // Create individual specialized agents - using different models based on capabilities
         DRLGeneratorAgent generatorAgent = DRLGeneratorAgent.create(chatModel, registry);
         DRLExecutorAgent executorAgent = DRLExecutorAgent.create(ChatModels.getToolCallingModel());
 
-        return AgenticServices.loopBuilder()
+        return AgenticServices.loopBuilder(LoopAgent.class)
                 .subAgents(generatorAgent, new DRLValidatorAgent(), executorAgent)
                 .maxIterations(maxIterations)
                 .exitCondition(cognisphere -> {
@@ -163,7 +173,6 @@ public class DRLAuthoringAgent {
                     boolean executionSuccessful = executionFeedback.isEmpty();
                     return isValid && executionSuccessful;
                 })
-                .outputName("current_drl")
                 .build();
     }
 
@@ -189,7 +198,7 @@ public class DRLAuthoringAgent {
      * @param registry The fact type registry for managing fact type definitions
      * @return A configured loop-based DRL authoring agent with 3 max iterations
      */
-    public static UntypedAgent createLoopWorkflow(ChatModel chatModel, FactTypeRegistry registry) {
+    public static LoopAgent createLoopWorkflow(ChatModel chatModel, FactTypeRegistry registry) {
         return createLoopWorkflow(chatModel, registry, 3);
     }
 
@@ -199,7 +208,7 @@ public class DRLAuthoringAgent {
      * @param chatModel The chat model to use for all agents (must support tools)
      * @return A configured loop-based DRL authoring agent with empty registry
      */
-    public static UntypedAgent createLoopWorkflow(ChatModel chatModel) {
+    public static LoopAgent createLoopWorkflow(ChatModel chatModel) {
         return createLoopWorkflow(chatModel, new InMemoryFactTypeRegistry());
     }
 
