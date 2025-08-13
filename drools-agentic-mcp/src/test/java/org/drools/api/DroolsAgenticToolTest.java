@@ -2,6 +2,7 @@ package org.drools.api;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -17,6 +18,7 @@ public class DroolsAgenticToolTest {
     }
 
     @Test 
+    @Disabled("Test uses LLM/AI services - disabled for CI/CD")
     public void testImproveKnowledgeBase_BasicSpecification() {
         // This test might fail due to model requirements, but should not crash
         String specification = """
