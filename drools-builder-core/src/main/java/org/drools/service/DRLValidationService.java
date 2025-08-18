@@ -59,8 +59,9 @@ public class DRLValidationService {
             String verificationResult = verifier.verify(drlCode);
             logger.debug("DRLVerifier result: {}", verificationResult);
             
-            // Check if verifier found errors (result contains "ERROR:")
-            if (verificationResult.contains("ERROR:")) {
+            // Check if verifier found errors
+            if (verificationResult.contains("ERROR:") || verificationResult.contains("WARNING:") || 
+                verificationResult.contains("NOTE:")) {
                 logger.info("DRLVerifier found errors, attempting to use DrlFaultFinder for precise location");
                 // Use fault finder to pinpoint exact error location when verifier finds errors
                 try {
@@ -68,7 +69,7 @@ public class DRLValidationService {
                     if (faultLocation != null) {
                         logger.info("DrlFaultFinder located fault at line {}: {}", 
                             faultLocation.getLineNumber(), faultLocation.getErrorMessage());
-                        String detailedError = String.format("DRL validation failed at line %d: %s%nFaulty content: %s%nVerifier result: %s",
+                        String detailedError = String.format("DRL validation failed at line %d: %s%nFaulty content: %s%nVerifier result: %s", // TODO report as syntax error so AI can knows what line has the issue
                                 faultLocation.getLineNumber(),
                                 faultLocation.getErrorMessage(),
                                 faultLocation.getFaultyContent(),
