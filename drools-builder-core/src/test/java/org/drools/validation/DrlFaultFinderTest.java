@@ -61,7 +61,7 @@ class DrlFaultFinderTest {
         
         DrlFaultFinder.FaultLocation result = drlFaultFinder.findFaultyLine(faultyDrl);
         assertNotNull(result, "Should find faulty line");
-        assertTrue(result.getLineNumber() > 0, "Should have a valid line number");
+        assertEquals(5, result.getLineNumber(), "Should identify line 5 as faulty");
         assertNotNull(result.getErrorMessage(), "Should have an error message");
     }
     
@@ -80,7 +80,7 @@ class DrlFaultFinderTest {
         
         DrlFaultFinder.FaultLocation result = drlFaultFinder.findFaultyLine(faultyDrl);
         assertNotNull(result, "Should find faulty package declaration");
-        assertTrue(result.getLineNumber() > 0, "Should have a valid line number");
+        assertEquals(1, result.getLineNumber(), "Should identify line 1 as faulty");
     }
     
     @Test
@@ -107,7 +107,7 @@ class DrlFaultFinderTest {
         
         DrlFaultFinder.FaultLocation result = drlFaultFinder.findFaultyLine(faultyDrl);
         assertNotNull(result, "Should find faulty line");
-        assertTrue(result.getLineNumber() > 0, "Should have a valid line number");
+        assertEquals(5, result.getLineNumber(), "Should identify line 5 as faulty");
         assertFalse(result.getFaultyContent().isEmpty(), "Should have faulty content");
     }
     
@@ -150,8 +150,103 @@ class DrlFaultFinderTest {
         DrlFaultFinder.FaultLocation result = drlFaultFinder.findFaultyLine(faultyDrl);
         
         if (result != null) {
-            assertTrue(result.getLineNumber() > 0, "Should have a valid line number");
+            assertEquals(5, result.getLineNumber(), "Should identify line 5 as faulty");
             assertNotNull(result.getErrorMessage(), "Should have an error message");
+        }
+    }
+    
+    @Test
+    void testIncompleteRuleWithoutThenAndEnd() {
+        String faultyDrl = """
+            package com.example;
+            
+            rule "incomplete rule"
+            when
+                $person : Person(age > 18
+            """;
+        
+        DrlFaultFinder.FaultLocation result = drlFaultFinder.findFaultyLine(faultyDrl);
+        assertNotNull(result, "Should find the faulty line in incomplete rule");
+        assertEquals(5, result.getLineNumber(), "Should identify line 5 as faulty (missing closing parenthesis)");
+        assertNotNull(result.getErrorMessage(), "Should have an error message");
+    }
+    
+    @Test
+    void testIncompleteQueryWithoutEnd() {
+        String faultyDrl = """
+            package com.example;
+            
+            query "findAdults"
+                $person : Person(age > 18
+            """;
+        
+        DrlFaultFinder.FaultLocation result = drlFaultFinder.findFaultyLine(faultyDrl);
+        assertNotNull(result, "Should find the faulty line in incomplete query");
+        assertEquals(4, result.getLineNumber(), "Should identify line 4 as faulty (missing closing parenthesis)");
+        assertNotNull(result.getErrorMessage(), "Should have an error message");
+    }
+    
+    @Test
+    void testIncompleteFunction() {
+        String faultyDrl = """
+            package com.example;
+            
+            function void myFunction() {
+                System.out.println("test"
+            """;
+        
+        DrlFaultFinder.FaultLocation result = drlFaultFinder.findFaultyLine(faultyDrl);
+        assertNotNull(result, "Should find the faulty line in incomplete function");
+        assertEquals(3, result.getLineNumber(), "Should identify line 3 as faulty (function definition issue)");
+        assertNotNull(result.getErrorMessage(), "Should have an error message");
+    }
+    
+    @Test
+    void testIncompleteFunctionWithMissingBrace() {
+        String faultyDrl = """
+            package com.example;
+            
+            function void calculate() {
+                int x = 5;
+                int y = x * 2
+            """;
+        
+        DrlFaultFinder.FaultLocation result = drlFaultFinder.findFaultyLine(faultyDrl);
+        assertNotNull(result, "Should find the faulty line in incomplete function");
+        assertEquals(3, result.getLineNumber(), "Should identify line 3 as faulty (function definition issue)");
+        assertNotNull(result.getErrorMessage(), "Should have an error message");
+    }
+    
+    @Test
+    void testIncompleteDeclaration() {
+        String faultyDrl = """
+            package com.example;
+            
+            declare Person
+                name : String
+                age : int invalid
+            """;
+        
+        DrlFaultFinder.FaultLocation result = drlFaultFinder.findFaultyLine(faultyDrl);
+        assertNotNull(result, "Should find the faulty line in incomplete declaration");
+        assertEquals(5, result.getLineNumber(), "Should identify line 5 as faulty (invalid field declaration)");
+        assertNotNull(result.getErrorMessage(), "Should have an error message");
+    }
+    
+    @Test
+    void testIncompleteDeclarationWithoutEnd() {
+        String faultyDrl = """
+            package com.example;
+            
+            declare Person
+                name : String
+                age : int
+            """;
+        
+        DrlFaultFinder.FaultLocation result = drlFaultFinder.findFaultyLine(faultyDrl);
+        // This may still find a fault if the declaration structure needs more context
+        if (result != null) {
+            assertEquals(5, result.getLineNumber(), "Should identify line 5 as faulty");
         }
     }
     
@@ -182,7 +277,7 @@ class DrlFaultFinderTest {
         
         DrlFaultFinder.FaultLocation result = drlFaultFinder.findFaultyLine(faultyDrl);
         assertNotNull(result, "Should find the faulty line");
-        assertTrue(result.getLineNumber() > 0, "Should have a valid line number");
+        assertEquals(12, result.getLineNumber(), "Should identify line 12 as faulty");
         assertNotNull(result.getErrorMessage(), "Should have an error message");
     }
 }

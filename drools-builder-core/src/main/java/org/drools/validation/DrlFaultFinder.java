@@ -78,13 +78,92 @@ public class DrlFaultFinder {
     
     private String rebuildDrlFromLines(String[] lines, int startIndex, int endIndex) {
         StringBuilder sb = new StringBuilder();
+        boolean inRule = false;
+        boolean inQuery = false;
+        boolean inFunction = false;
+        boolean inDeclare = false;
+        boolean hasWhen = false;
+        boolean hasThen = false;
+        int braceCount = 0;
+        
         for (int i = startIndex; i <= endIndex && i < lines.length; i++) {
-            sb.append(lines[i]);
+            String line = lines[i];
+            String trimmedLine = line.trim().toLowerCase();
+            
+            // Track rule structure
+            if (trimmedLine.startsWith("rule ")) {
+                inRule = true;
+                hasWhen = false;
+                hasThen = false;
+            } else if (inRule && trimmedLine.equals("when")) {
+                hasWhen = true;
+            } else if (inRule && trimmedLine.equals("then")) {
+                hasThen = true;
+            } else if (inRule && trimmedLine.equals("end")) {
+                inRule = false;
+            }
+            // Track query structure
+            else if (trimmedLine.startsWith("query ")) {
+                inQuery = true;
+            } else if (inQuery && trimmedLine.equals("end")) {
+                inQuery = false;
+            }
+            // Track function structure
+            else if (trimmedLine.startsWith("function ")) {
+                inFunction = true;
+                braceCount = 0;
+            } else if (inFunction) {
+                braceCount += countChar(line, '{') - countChar(line, '}');
+                if (braceCount == 0 && (line.contains("{") || line.contains("}"))) {
+                    inFunction = false;
+                }
+            }
+            // Track declare structure
+            else if (trimmedLine.startsWith("declare ")) {
+                inDeclare = true;
+            } else if (inDeclare && trimmedLine.equals("end")) {
+                inDeclare = false;
+            }
+            
+            sb.append(line);
             if (i < endIndex) {
                 sb.append("\n");
             }
         }
+        
+        // Complete incomplete structures
+        if (inRule) {
+            if (!hasWhen) {
+                sb.append("\nwhen");
+            }
+            if (!hasThen) {
+                sb.append("\nthen");
+            }
+            sb.append("\nend");
+        } else if (inQuery) {
+            sb.append("\nend");
+        } else if (inFunction) {
+            // Add closing braces for incomplete function
+            while (braceCount > 0) {
+                sb.append("\n}");
+                braceCount--;
+            }
+            if (braceCount == 0 && !sb.toString().trim().endsWith("}")) {
+                sb.append("\n{ }");
+            }
+        } else if (inDeclare) {
+            sb.append("\nend");
+        }
+        
         return sb.toString();
+    }
+    
+    private int countChar(String str, char ch) {
+        int count = 0;
+        for (char c : str.toCharArray()) {
+            if (c == ch) count++;
+        }
+        return count;
     }
     
     private boolean isValidDrl(String drlContent) {
