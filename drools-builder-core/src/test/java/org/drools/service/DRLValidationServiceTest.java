@@ -80,7 +80,7 @@ class DRLValidationServiceTest {
         
         String message = exception.getMessage();
         // Should get detailed fault finder message when fault finder returns a location
-        if (message.contains("DRL validation failed at line 1")) {
+        if (message.contains("DRL syntax error at line 1")) {
             // Detailed fault finder path
             assertTrue(message.contains("Syntax error"), "Expected syntax error but got: " + message);
             assertTrue(message.contains("invalid drl code"), "Expected faulty content but got: " + message);

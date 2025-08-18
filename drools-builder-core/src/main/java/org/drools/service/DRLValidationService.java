@@ -69,7 +69,7 @@ public class DRLValidationService {
                     if (faultLocation != null) {
                         logger.info("DrlFaultFinder located fault at line {}: {}", 
                             faultLocation.getLineNumber(), faultLocation.getErrorMessage());
-                        String detailedError = String.format("DRL validation failed at line %d: %s%nFaulty content: %s%nVerifier result: %s", // TODO report as syntax error so AI can knows what line has the issue
+                        String detailedError = String.format("DRL syntax error at line %d: %s%nFaulty content: %s%nVerifier result: %s",
                                 faultLocation.getLineNumber(),
                                 faultLocation.getErrorMessage(),
                                 faultLocation.getFaultyContent(),
@@ -103,7 +103,7 @@ public class DRLValidationService {
                 if (faultLocation != null) {
                     logger.info("DrlFaultFinder located fault at line {}: {}", 
                         faultLocation.getLineNumber(), faultLocation.getErrorMessage());
-                    String detailedError = String.format("DRL validation failed at line %d: %s%nFaulty content: %s%nOriginal error: %s",
+                    String detailedError = String.format("DRL syntax error at line %d: %s%nFaulty content: %s%nOriginal error: %s",
                             faultLocation.getLineNumber(),
                             faultLocation.getErrorMessage(),
                             faultLocation.getFaultyContent(),
