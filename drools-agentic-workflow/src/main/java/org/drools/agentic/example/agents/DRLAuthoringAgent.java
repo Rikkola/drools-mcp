@@ -7,8 +7,6 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
-import org.drools.agentic.example.registry.FactTypeRegistry;
-import org.drools.agentic.example.registry.InMemoryFactTypeRegistry;
 import org.drools.agentic.example.config.ChatModels;
 
 /**
@@ -116,17 +114,16 @@ public interface DRLAuthoringAgent {
      * 
      * @param analysisModel The chat model to use for document analysis (should be good at reasoning and text analysis)
      * @param codeGenModel The chat model to use for code generation (should be good at tools)
-     * @param registry The fact type registry to use (can be pre-loaded with existing types)
      * @return A configured orchestration agent with document analysis and generation workflow
      */
-    public static DRLAuthoringAgent create(ChatModel analysisModel, ChatModel codeGenModel, FactTypeRegistry registry) {
+    public static DRLAuthoringAgent create(ChatModel analysisModel, ChatModel codeGenModel) {
         // Create document planning agent for business knowledge extraction
         DocumentPlanningAgent documentAgent = AgenticServices.agentBuilder(DocumentPlanningAgent.class)
                 .chatModel(analysisModel)
                 .build();
         
         // Create loop-based generation workflow for actual DRL creation
-        var loopGenerationWorkflow = createLoopWorkflow(codeGenModel, registry, 3);
+        var loopGenerationWorkflow = createLoopWorkflow(codeGenModel, 3);
         
         // Sequence: Document Analysis → Loop-based Generation
         return AgenticServices.sequenceBuilder(DRLAuthoringAgent.class)
@@ -152,13 +149,12 @@ public interface DRLAuthoringAgent {
      * - Automatic termination when both validation and execution succeed
      * 
      * @param chatModel The chat model to use for all agents (must support tools)
-     * @param registry The fact type registry for managing fact type definitions
      * @param maxIterations Maximum number of loop iterations (default: 3)
      * @return A configured loop-based DRL authoring agent with memory support
      */
-    public static LoopAgent createLoopWorkflow(ChatModel chatModel, FactTypeRegistry registry, int maxIterations) {
+    public static LoopAgent createLoopWorkflow(ChatModel chatModel, int maxIterations) {
         // Create individual specialized agents - using different models based on capabilities
-        DRLGeneratorAgent generatorAgent = DRLGeneratorAgent.create(chatModel, registry);
+        DRLGeneratorAgent generatorAgent = DRLGeneratorAgent.create(chatModel);
         DRLExecutorAgent executorAgent = DRLExecutorAgent.create(ChatModels.getToolCallingModel());
 
         return AgenticServices.loopBuilder(LoopAgent.class)

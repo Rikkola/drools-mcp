@@ -7,7 +7,6 @@ import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import org.drools.agentic.example.config.ChatModels;
-import org.drools.agentic.example.registry.InMemoryFactTypeRegistry;
 import org.drools.agentic.example.workflow.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +75,7 @@ public interface EnhancedDroolsWorkflowOrchestratorAgent {
         
         // Create enhanced agents with monitoring
         var droolsAuthoringAgent = createEnhancedAgent(
-            () -> DRLAuthoringAgent.create(planningModel, codeGenModel, new InMemoryFactTypeRegistry()),
+            () -> DRLAuthoringAgent.create(planningModel, codeGenModel),
             "DRLAuthoringAgent", config, metrics, errorReporter, interactionLogger
         );
         

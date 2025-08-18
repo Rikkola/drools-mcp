@@ -8,7 +8,6 @@ import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
-import org.drools.agentic.example.registry.FactTypeRegistry;
 
 /**
  * DRL code generator agent for the loop-based workflow.
@@ -159,7 +158,7 @@ public interface DRLGeneratorAgent {
      * @param registry The fact type registry to use
      * @return A configured DRL generator agent
      */
-    static DRLGeneratorAgent create(ChatModel chatModel, FactTypeRegistry registry) {
+    static DRLGeneratorAgent create(ChatModel chatModel) {
         return AgenticServices.agentBuilder(DRLGeneratorAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(memoryId -> MessageWindowChatMemory.withMaxMessages(20))

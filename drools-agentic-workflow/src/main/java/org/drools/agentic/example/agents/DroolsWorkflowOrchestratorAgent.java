@@ -6,7 +6,6 @@ import dev.langchain4j.agentic.UntypedAgent;
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
-import org.drools.agentic.example.registry.InMemoryFactTypeRegistry;
 import org.drools.agentic.example.config.ChatModels;
 
 /**
@@ -41,7 +40,7 @@ public interface DroolsWorkflowOrchestratorAgent {
      */
     public static DroolsWorkflowOrchestratorAgent create(ChatModel planningModel, ChatModel codeGenModel) {
         // Use the factory method with dual models - planning model for orchestration, code gen model for implementation
-        var droolsAuthoringAgent = DRLAuthoringAgent.create(planningModel, codeGenModel, new InMemoryFactTypeRegistry());
+        var droolsAuthoringAgent = DRLAuthoringAgent.create(planningModel, codeGenModel);
         var fileStorageAgent = FileStorageAgent.create(ChatModels.getToolCallingModel());
         var knowledgeBaseAgent = DroolsKnowledgeBaseAgent.create(ChatModels.getToolCallingModel());
 
