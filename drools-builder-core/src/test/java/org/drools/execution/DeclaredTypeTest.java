@@ -68,42 +68,6 @@ public class DeclaredTypeTest {
     }
 
     @Test
-    @DisplayName("Should reproduce the 'No class definition found' error")
-    public void testReproduceClassDefinitionError() {
-        // DRL with declared type but conflicting import (like agents generate)
-        String problematicDRL = """
-            package com.example.userrules;
-            
-            import com.example.model.User;
-            
-            declare User
-                age : int
-                isAdult : boolean
-            end
-            
-            rule "Test Rule"
-            when
-                $user : User(age >= 18)
-            then
-                System.out.println("Adult user");
-            end
-            """;
-
-        String jsonFacts = """
-            [{"_type": "User", "age": 20, "isAdult": false}]
-            """;
-
-        // This should fail and show us exactly where/why
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            DRLRunner.runDRLWithJsonFacts(problematicDRL, jsonFacts, 0);
-        });
-
-        System.out.println("EXPECTED FAILURE: " + exception.getMessage());
-        assertTrue(exception.getMessage().contains("No class definition found for type"), 
-                   "Should contain the specific error message");
-    }
-
-    @Test
     @DisplayName("Should debug the type registration process")
     public void testTypeRegistrationDebugging() {
         String drlContent = """

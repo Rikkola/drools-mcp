@@ -89,7 +89,7 @@ public class DRLToolTest {
     @Test
     public void testDefinitionManagementMethods() throws Exception {
         // Test adding a definition
-        String addResult = drlTool.addDefinition("TestPerson", "declare", "declare TestPerson name: String age: int end");
+        String addResult = drlTool.addDefinition("TestPerson", "declare", "declare TestPerson\n    name : String\n    age : int\nend");
         JsonNode addJson = objectMapper.readTree(addResult);
         assertEquals("success", addJson.get("status").asText());
         assertEquals("added", addJson.get("action").asText());
@@ -141,7 +141,7 @@ public class DRLToolTest {
     @Test
     public void testRunFactsAgainstStoredDefinitions_Success() throws Exception {
         // First add some definitions
-        drlTool.addDefinition("Person", "declare", "declare Person name: String age: int end");
+        drlTool.addDefinition("Person", "declare", "declare Person\n    name : String\n    age : int\nend");
         drlTool.addDefinition("AgeRule", "rule", 
             "rule \"Check Adult\" " +
             "when " +
@@ -174,7 +174,7 @@ public class DRLToolTest {
     @Test
     public void testRunFactsAgainstStoredDefinitions_EmptyFacts() throws Exception {
         // Add a definition first
-        drlTool.addDefinition("Person", "declare", "declare Person name: String age: int end");
+        drlTool.addDefinition("Person", "declare", "declare Person\n    name : String\n    age : int\nend");
         
         // Execute empty facts
         String factsJson = "[]";
@@ -188,7 +188,7 @@ public class DRLToolTest {
     @Test
     public void testRunFactsAgainstStoredDefinitions_NegativeMaxActivations() throws Exception {
         // Add a definition first
-        drlTool.addDefinition("Person", "declare", "declare Person name: String age: int end");
+        drlTool.addDefinition("Person", "declare", "declare Person\n    name : String\n    age : int\nend");
         
         // Try with negative max activations
         String factsJson = "[{\"_type\":\"Person\",\"name\":\"John\",\"age\":25}]";
