@@ -10,7 +10,7 @@ public class WorkflowConfiguration {
     private boolean enableMetrics = true;
     private boolean enableDetailedLogging = true;
     private LogLevel logLevel = LogLevel.INFO;
-    private Duration timeoutPerPhase = Duration.ofMinutes(5);
+    private Duration timeoutPerPhase = Duration.ofMinutes(2);
     private boolean enableRetry = true;
     private AgentRetryConfig retryConfig = new AgentRetryConfig();
     private boolean enableInteractionLogging = true;

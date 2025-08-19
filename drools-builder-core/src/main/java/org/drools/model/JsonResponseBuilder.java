@@ -192,6 +192,7 @@ public class JsonResponseBuilder {
         if (str == null) return "";
         return str.replace("\\", "\\\\")
                   .replace("\"", "\\\"")
+                  .replace("'", "\\'")
                   .replace("\n", "\\n")
                   .replace("\r", "\\r")
                   .replace("\t", "\\t");

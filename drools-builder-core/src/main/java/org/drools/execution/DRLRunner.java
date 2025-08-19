@@ -125,6 +125,14 @@ public class DRLRunner {
             return facts;
         }
         
+        // Validate JSON format before parsing
+        try {
+            objectMapper.readTree(factsJson);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            throw new IllegalArgumentException("Invalid JSON format in factsJson: " + e.getMessage() + 
+                ". JSON content: " + factsJson.substring(0, Math.min(100, factsJson.length())));
+        }
+        
         // Parse JSON as array of maps
         List<Map<String, Object>> jsonFacts = objectMapper.readValue(factsJson, new TypeReference<List<Map<String, Object>>>() {});
         
