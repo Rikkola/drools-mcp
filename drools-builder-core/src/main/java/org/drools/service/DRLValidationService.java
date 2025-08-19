@@ -55,7 +55,7 @@ public class DRLValidationService {
             drlCode.length() > 100 ? "..." : "");
         
         try {
-            logger.debug("Running DRLVerifier.verify()");
+            logger.debug("Running DRLVerifier.verify() with code: " + drlCode);
             String verificationResult = verifier.verify(drlCode);
             logger.debug("DRLVerifier result: {}", verificationResult);
             

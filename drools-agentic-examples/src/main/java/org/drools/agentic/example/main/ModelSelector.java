@@ -40,7 +40,7 @@ public class ModelSelector {
 
     /**
      * Creates the default ChatModel optimized for DRL code generation tasks.
-     * Uses Granite Code 8B as the default for enhanced code generation capabilities.
+     * Uses Granite Code 20B as the default for enhanced code generation capabilities.
      * 
      * @return Configured ChatModel for DRL code generation
      */
@@ -112,7 +112,7 @@ public class ModelSelector {
             }
         }
         
-        // Default: use Granite Code 8B model (optimized for code generation)
+        // Default: use Granite Code 20B model (optimized for code generation)
         System.out.println("Using default Granite Code 20B model (granite-code:20b)");
         return getDefaultCodeGenAgent();
     }
@@ -263,9 +263,9 @@ public class ModelSelector {
             }
         }
         
-        // Default to granite-code:20b for planning (optimized for coordination/planning tasks)
-        System.out.println("Using default Granite Code planning model (granite-code:20b)");
-        return createChatModel(ModelType.GRANITE_CODE);
+        // Default to qwen3:14b for planning (optimized for tool calling and coordination)
+        System.out.println("Using default Qwen3 planning model (qwen3:14b)");
+        return createChatModel(ModelType.QWEN_TOOLS);
     }
 
     /**
@@ -315,7 +315,7 @@ public class ModelSelector {
             }
         }
         
-        // Default: use Granite Code 8B model (optimized for code generation)
+        // Default: use Granite Code 20B model (optimized for code generation)
         System.out.println("Using default Granite Code 20B model (granite-code:20b)");
         return createChatModel(ModelType.GRANITE_CODE);
     }
