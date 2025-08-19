@@ -41,14 +41,12 @@ public interface TestJSONAuthoringAgent {
     @UserMessage("""
                 Create test JSON objects for this DRL code: {{current_drl}}.
                 If not empty, here is the feedback from the previous set you made and the issues with it: {{execution_feedback}}.
-                If not empty, here is the JSON you provided last time: {{test_json}}.
             """)
     @Agent(value = "JSON test data authoring",
             outputName = "test_json")
     String generateJSON(@MemoryId String memoryId,
                         @V("current_drl") String currentDrl,
-                        @V("execution_feedback") String executionFeedback,
-                        @V("test_json") String testJson);
+                        @V("execution_feedback") String executionFeedback);
 
     static TestJSONAuthoringAgent create(ChatModel chatModel) {
 
