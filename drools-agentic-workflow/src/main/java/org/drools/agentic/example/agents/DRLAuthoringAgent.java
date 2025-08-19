@@ -2,12 +2,13 @@ package org.drools.agentic.example.agents;
 
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.agentic.AgenticServices;
-import dev.langchain4j.agentic.UntypedAgent;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import org.drools.agentic.example.config.ChatModels;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Drools DRL authoring orchestration agent that coordinates the DRL development workflow.
@@ -43,6 +44,7 @@ import org.drools.agentic.example.config.ChatModels;
  */
 public interface DRLAuthoringAgent {
 
+    static final Logger logger = LoggerFactory.getLogger(DRLAuthoringAgent .class);
     /**
      * Document planning agent interface for analyzing text and extracting domain models, rules, and decisions.
      * This agent creates domain-agnostic documentation that can be used for rule base creation.
@@ -155,7 +157,7 @@ public interface DRLAuthoringAgent {
     public static LoopAgent createLoopWorkflow(ChatModel chatModel, int maxIterations) {
         // Create individual specialized agents - using different models based on capabilities
         DRLGeneratorAgent generatorAgent = DRLGeneratorAgent.create(chatModel);
-        DRLExecutorAgent executorAgent = DRLExecutorAgent.create(ChatModels.getToolCallingModel());
+        TestJSONAuthoringAgent testJSONAuthoringAgent = TestJSONAuthoringAgent.create(ChatModels.getToolCallingModel());
 
         return AgenticServices.loopBuilder(LoopAgent.class)
                 .beforeCall(cognisphere -> {
@@ -166,7 +168,7 @@ public interface DRLAuthoringAgent {
                         cognisphere.writeState("execution_feedback", "");
                     }
                 })
-                .subAgents(generatorAgent, new DRLValidatorAgent(), executorAgent)
+                .subAgents(generatorAgent, new DRLValidatorAgent(), testJSONAuthoringAgent, new DRLExecutionAgent())
                 .maxIterations(maxIterations)
                 .exitCondition(cognisphere -> {
                     // Continue loop until both validation and execution succeed
@@ -174,7 +176,12 @@ public interface DRLAuthoringAgent {
                     String executionFeedback = cognisphere.readState("execution_feedback", "");
                     boolean isValid = "Code looks good".equals(validationFeedback);
                     boolean executionSuccessful = "Code looks good".equals(executionFeedback);
-                    return isValid && executionSuccessful;
+                    logger.debug("📋 Checking if loop continues:");
+                    logger.debug("📋 validation_feedback: {} ", validationFeedback);
+                    logger.debug("📋 execution_feedback: {}", executionFeedback);
+                    boolean exit = isValid && executionSuccessful;
+                    logger.debug("📋 exit agent loop: {}", exit);
+                    return exit;
                 })
                 .build();
     }

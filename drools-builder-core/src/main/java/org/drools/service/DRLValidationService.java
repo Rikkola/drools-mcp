@@ -49,13 +49,9 @@ public class DRLValidationService {
             logger.warn("DRL validation failed: null or empty code provided");
             throw new DRLValidationException("DRL code cannot be null or empty");
         }
-        
-        logger.debug("DRL code to validate: {}{}", 
-            drlCode.substring(0, Math.min(100, drlCode.length())),
-            drlCode.length() > 100 ? "..." : "");
-        
+
         try {
-            logger.debug("Running DRLVerifier.verify() with code: " + drlCode);
+            logger.debug("Running DRLVerifier.verify() with code: {} ", drlCode);
             String verificationResult = verifier.verify(drlCode);
             logger.debug("DRLVerifier result: {}", verificationResult);
             
@@ -88,7 +84,7 @@ public class DRLValidationService {
                 throw new DRLValidationException("DRL validation failed: " + verificationResult);
             }
             
-            logger.info("DRL validation completed successfully");
+            logger.info("✅DRL validation completed successfully");
             return verificationResult;
         } catch (DRLValidationException e) {
             logger.debug("Re-throwing DRLValidationException");

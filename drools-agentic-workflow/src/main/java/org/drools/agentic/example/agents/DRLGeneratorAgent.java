@@ -42,6 +42,7 @@ public interface DRLGeneratorAgent {
         - Java code is ONLY allowed inside DRL rule bodies and DRL functions
         - ONLY use Drools declare blocks to define fact types
         - Generate ONLY .drl content - never mix with .java class definitions
+        - Generate a .drl file content that as it is can be saved to a .drl file and it compiles
         - Ensure syntactic correctness and Drools compliance
         
         FACT TYPE DECLARATION REQUIREMENTS:
@@ -66,12 +67,12 @@ public interface DRLGeneratorAgent {
             adult : boolean
         end
         
-        ✅ GOOD RULE STRUCTURE: 
+        ✅ GOOD RULE STRUCTURE:
         rule "Init Person"
         when
         then
             Person person = new Person();
-            person.setName("John");  
+            person.setName("John");
             person.setAge(30);
             person.setAdult(false);
             insert(person);

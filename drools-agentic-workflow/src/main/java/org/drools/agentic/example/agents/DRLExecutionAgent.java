@@ -16,7 +16,7 @@ public class DRLExecutionAgent {
             outputName = "execution_feedback")
     public String validateDRL(@MemoryId String memoryId,
                               @V("current_drl") String currentDrl,
-                              @V("current_drl") String testJSON) {
+                              @V("test_json") String testJSON) {
         try {
             DRLRunnerResult result = executionService.executeDRLWithJsonFacts(currentDrl, testJSON, 100);
             if (result.firedRules() > 0) {
