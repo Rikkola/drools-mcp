@@ -99,9 +99,9 @@ public class NPEIsolationTest {
                 end
                 """;
             
-            List<Object> result = DRLRunner.runDRL(drlContent);
-            System.out.println("✅ Pure DRL execution succeeded: " + result.size() + " facts");
-            result.forEach(fact -> {
+            DRLRunnerResult result = DRLRunner.runDRL(drlContent);
+            System.out.println("✅ Pure DRL execution succeeded: " + result.objects().size() + " facts");
+            result.objects().forEach(fact -> {
                 System.out.println("  Fact: " + fact + " (type: " + fact.getClass().getName() + ")");
             });
             

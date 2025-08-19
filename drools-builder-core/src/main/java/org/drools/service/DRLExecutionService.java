@@ -2,6 +2,7 @@ package org.drools.service;
 
 import org.drools.exception.DRLExecutionException;
 import org.drools.execution.DRLRunner;
+import org.drools.execution.DRLRunnerResult;
 import java.util.List;
 
 /**
@@ -15,10 +16,10 @@ public class DRLExecutionService {
      * @param drlCode The DRL code to execute
      * @param externalFactsJson JSON string containing external facts
      * @param maxActivations Maximum number of rule activations (0 for unlimited)
-     * @return List of facts in working memory after execution
+     * @return DRLRunnerResult containing facts in working memory and fired rules count after execution
      * @throws DRLExecutionException if execution fails
      */
-    public List<Object> executeDRLWithJsonFacts(String drlCode, String externalFactsJson, int maxActivations) {
+    public DRLRunnerResult executeDRLWithJsonFacts(String drlCode, String externalFactsJson, int maxActivations) {
         if (drlCode == null || drlCode.trim().isEmpty()) {
             throw new DRLExecutionException("DRL code cannot be null or empty");
         }
@@ -40,10 +41,10 @@ public class DRLExecutionService {
      * @param drlCode The DRL code to execute
      * @param facts List of external facts to insert
      * @param maxActivations Maximum number of rule activations (0 for unlimited)
-     * @return List of facts in working memory after execution
+     * @return DRLRunnerResult containing facts in working memory and fired rules count after execution
      * @throws DRLExecutionException if execution fails
      */
-    public List<Object> executeDRLWithFacts(String drlCode, List<Object> facts, int maxActivations) {
+    public DRLRunnerResult executeDRLWithFacts(String drlCode, List<Object> facts, int maxActivations) {
         if (drlCode == null || drlCode.trim().isEmpty()) {
             throw new DRLExecutionException("DRL code cannot be null or empty");
         }
@@ -65,10 +66,10 @@ public class DRLExecutionService {
      * @param externalFactsJson JSON string containing external facts
      * @param maxActivations Maximum number of rule activations (0 for unlimited)
      * @param definitionService Service to access stored definitions
-     * @return List of facts in working memory after execution
+     * @return DRLRunnerResult containing facts in working memory and fired rules count after execution
      * @throws DRLExecutionException if execution fails
      */
-    public List<Object> executeDRLWithJsonFactsAgainstStoredDefinitions(String externalFactsJson, int maxActivations, 
+    public DRLRunnerResult executeDRLWithJsonFactsAgainstStoredDefinitions(String externalFactsJson, int maxActivations, 
                                                                         DefinitionManagementService definitionService) {
         if (maxActivations < 0) {
             throw new DRLExecutionException("Maximum activations cannot be negative");

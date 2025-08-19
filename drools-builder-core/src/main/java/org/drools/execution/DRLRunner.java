@@ -2,7 +2,6 @@ package org.drools.execution;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.drools.execution.DynamicJsonToJavaFactory;
 import org.drools.storage.DefinitionStorage;
 import org.kie.api.builder.Message;
 import org.kie.api.io.ResourceType;
@@ -26,9 +25,9 @@ public class DRLRunner {
     /**
      * Executes a DRL file that may contain declared types and data creation rules
      * @param drlContent The DRL content as a string
-     * @return List of facts in working memory after rule execution
+     * @return DRLRunnerResult containing facts in working memory and fired rules count after rule execution
      */
-    public static List<Object> runDRL(String drlContent) {
+    public static DRLRunnerResult runDRL(String drlContent) {
         return runDRL(drlContent, 0); // 0 means unlimited rules
     }
 
@@ -36,21 +35,21 @@ public class DRLRunner {
      * Executes a DRL file that may contain declared types and data creation rules
      * @param drlContent The DRL content as a string
      * @param maxRuns Maximum number of rules to fire (0 for unlimited)
-     * @return List of facts in working memory after rule execution
+     * @return DRLRunnerResult containing facts in working memory and fired rules count after rule execution
      */
-    public static List<Object> runDRL(String drlContent, int maxRuns) {
+    public static DRLRunnerResult runDRL(String drlContent, int maxRuns) {
         try {
             // Create KieSession from DRL string
             KieHelper kieHelper = new KieHelper();
             kieHelper.addContent(drlContent, ResourceType.DRL);
-            
+
             // Build and check for errors
             KieContainer kieContainer = kieHelper.getKieContainer();
             if (kieHelper.verify().hasMessages(Message.Level.ERROR)) {
-                throw new RuntimeException("DRL compilation errors: " + 
-                    kieHelper.verify().getMessages(Message.Level.ERROR));
+                throw new RuntimeException("DRL compilation errors: " +
+                        kieHelper.verify().getMessages(Message.Level.ERROR));
             }
-            
+
             KieSession kieSession = kieContainer.newKieSession();
 
             // Fire all rules (including data creation rules)
@@ -65,16 +64,16 @@ public class DRLRunner {
             // Collect all facts from working memory
             Collection<?> facts = kieSession.getObjects();
             List<Object> factList = new ArrayList<>(facts);
-            
+
             // Print facts for debugging
             System.out.println("Facts in working memory: " + factList.size());
             factList.forEach(fact -> System.out.println("  " + fact));
-            
+
             // Dispose session
             kieSession.dispose();
-            
-            return factList;
-            
+
+            return new DRLRunnerResult(factList, firedRules);
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to execute DRL: " + e.getMessage(), e);
         }
@@ -84,9 +83,9 @@ public class DRLRunner {
      * Executes a DRL file with external facts provided as JSON
      * @param drlContent The DRL content as a string
      * @param factsJson JSON string containing array of facts with type fields
-     * @return List of facts in working memory after rule execution
+     * @return DRLRunnerResult containing facts in working memory and fired rules count after rule execution
      */
-    public static List<Object> runDRLWithJsonFacts(String drlContent, String factsJson) {
+    public static DRLRunnerResult runDRLWithJsonFacts(String drlContent, String factsJson) {
         return runDRLWithJsonFacts(drlContent, factsJson, 0);
     }
 
@@ -95,19 +94,19 @@ public class DRLRunner {
      * @param drlContent The DRL content as a string
      * @param factsJson JSON string containing array of facts with type fields
      * @param maxRuns Maximum number of rules to fire (0 for unlimited)
-     * @return List of facts in working memory after rule execution
+     * @return DRLRunnerResult containing facts in working memory and fired rules count after rule execution
      */
-    public static List<Object> runDRLWithJsonFacts(String drlContent, String factsJson, int maxRuns) {
+    public static DRLRunnerResult runDRLWithJsonFacts(String drlContent, String factsJson, int maxRuns) {
         try {
             // Extract and register declared types from DRL content
             extractAndRegisterDeclaredTypes(drlContent);
-            
+
             // Parse JSON facts using DynamicJsonToJavaFactory
             List<Object> facts = parseJsonFacts(factsJson);
-            
+
             // Execute DRL with the parsed facts
             return runDRLWithFacts(drlContent, facts, maxRuns);
-            
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to execute DRL with JSON facts: " + e.getMessage(), e);
         }
@@ -120,28 +119,29 @@ public class DRLRunner {
      */
     private static List<Object> parseJsonFacts(String factsJson) throws Exception {
         List<Object> facts = new ArrayList<>();
-        
+
         if (factsJson == null || factsJson.trim().isEmpty() || "[]".equals(factsJson.trim())) {
             return facts;
         }
-        
+
         // Validate JSON format before parsing
         try {
             objectMapper.readTree(factsJson);
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            throw new IllegalArgumentException("Invalid JSON format in factsJson: " + e.getMessage() + 
-                ". JSON content: " + factsJson.substring(0, Math.min(100, factsJson.length())));
+            throw new IllegalArgumentException("Invalid JSON format in factsJson: " + e.getMessage() +
+                    ". JSON content: " + factsJson.substring(0, Math.min(100, factsJson.length())));
         }
-        
+
         // Parse JSON as array of maps
-        List<Map<String, Object>> jsonFacts = objectMapper.readValue(factsJson, new TypeReference<List<Map<String, Object>>>() {});
-        
+        List<Map<String, Object>> jsonFacts = objectMapper.readValue(factsJson, new TypeReference<List<Map<String, Object>>>() {
+        });
+
         // Convert each JSON fact to an object using DynamicJsonToJavaFactory
         for (Map<String, Object> jsonFact : jsonFacts) {
             Object fact = createObjectFromJson(jsonFact);
             facts.add(fact);
         }
-        
+
         return facts;
     }
 
@@ -153,18 +153,18 @@ public class DRLRunner {
     private static Object createObjectFromJson(Map<String, Object> jsonFact) throws Exception {
         // Check if JSON contains type information
         String typeName = (String) jsonFact.get("_type");
-        
+
         if (typeName != null) {
             // Remove type information from data
             Map<String, Object> factData = new java.util.HashMap<>(jsonFact);
             factData.remove("_type");
-            
+
             // Convert to JSON string for DynamicJsonToJavaFactory
             String jsonString = objectMapper.writeValueAsString(factData);
-            
+
             // Create objects using DynamicJsonToJavaFactory
             java.util.List<Object> objects = dynamicJsonToJavaFactory.createObjectsFromJson(jsonString, typeName);
-            
+
             return objects.isEmpty() ? jsonFact : objects.get(0);
         } else {
             // Return as a simple Map if no type definition is available
@@ -176,9 +176,9 @@ public class DRLRunner {
      * Executes a DRL file with external facts
      * @param drlContent The DRL content as a string
      * @param facts External facts to insert into working memory
-     * @return List of facts in working memory after rule execution
+     * @return DRLRunnerResult containing facts in working memory and fired rules count after rule execution
      */
-    public static List<Object> runDRLWithFacts(String drlContent, List<Object> facts) {
+    public static DRLRunnerResult runDRLWithFacts(String drlContent, List<Object> facts) {
         return runDRLWithFacts(drlContent, facts, 0); // 0 means unlimited rules
     }
 
@@ -187,21 +187,21 @@ public class DRLRunner {
      * @param drlContent The DRL content as a string
      * @param facts External facts to insert into working memory
      * @param maxRuns Maximum number of rules to fire (0 for unlimited)
-     * @return List of facts in working memory after rule execution
+     * @return DRLRunnerResult containing facts in working memory and fired rules count after rule execution
      */
-    public static List<Object> runDRLWithFacts(String drlContent, List<Object> facts, int maxRuns) {
+    public static DRLRunnerResult runDRLWithFacts(String drlContent, List<Object> facts, int maxRuns) {
         try {
             // Create KieSession from DRL string
             KieHelper kieHelper = new KieHelper();
             kieHelper.addContent(drlContent, ResourceType.DRL);
-            
+
             // Build and check for errors
             KieContainer kieContainer = kieHelper.getKieContainer();
             if (kieHelper.verify().hasMessages(Message.Level.ERROR)) {
-                throw new RuntimeException("DRL compilation errors: " + 
-                    kieHelper.verify().getMessages(Message.Level.ERROR));
+                throw new RuntimeException("DRL compilation errors: " +
+                        kieHelper.verify().getMessages(Message.Level.ERROR));
             }
-            
+
             KieSession kieSession = kieContainer.newKieSession();
 
             // Insert external facts
@@ -222,16 +222,16 @@ public class DRLRunner {
             // Collect all facts from working memory
             Collection<?> workingMemoryFacts = kieSession.getObjects();
             List<Object> factList = new ArrayList<>(workingMemoryFacts);
-            
+
             // Print facts for debugging
             System.out.println("Facts in working memory: " + factList.size());
             factList.forEach(fact -> System.out.println("  " + fact));
-            
+
             // Dispose session
             kieSession.dispose();
-            
-            return factList;
-            
+
+            return new DRLRunnerResult(factList, firedRules);
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to execute DRL with facts: " + e.getMessage(), e);
         }
@@ -244,19 +244,19 @@ public class DRLRunner {
     private static void extractAndRegisterDeclaredTypes(String drlContent) {
         // Pattern to match complete declare blocks including declare and end keywords
         Pattern declarePattern = Pattern.compile(
-            "(declare\\s+([A-Za-z_][A-Za-z0-9_]*)\\s+[\\s\\S]*?\\s+end)", 
-            Pattern.CASE_INSENSITIVE | Pattern.MULTILINE
+                "(declare\\s+([A-Za-z_][A-Za-z0-9_]*)\\s+[\\s\\S]*?\\s+end)",
+                Pattern.CASE_INSENSITIVE | Pattern.MULTILINE
         );
-        
+
         Matcher matcher = declarePattern.matcher(drlContent);
-        
+
         while (matcher.find()) {
             String fullDeclareStatement = matcher.group(1).trim();
             String typeName = matcher.group(2).trim();
-            
+
             // Register the declared type in DefinitionStorage with the original statement
             definitionStorage.addDefinition(typeName, "declare", fullDeclareStatement);
-            
+
             System.out.println("Registered declared type: " + typeName);
         }
     }
@@ -269,8 +269,8 @@ public class DRLRunner {
      */
     public static List<Object> filterFactsByType(List<Object> facts, String typeName) {
         return facts.stream()
-            .filter(fact -> fact.getClass().getSimpleName().equals(typeName))
-            .collect(java.util.stream.Collectors.toList());
+                .filter(fact -> fact.getClass().getSimpleName().equals(typeName))
+                .collect(java.util.stream.Collectors.toList());
     }
 
     /**

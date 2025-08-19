@@ -2,6 +2,7 @@ package org.drools.agentic.example.services.execution;
 
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
+import org.drools.execution.DRLRunnerResult;
 import org.drools.service.DRLExecutionService;
 import org.drools.service.DefinitionManagementService;
 import org.drools.storage.DefinitionStorage;
@@ -38,17 +39,18 @@ public class DRLExecutionToolService {
             response.append(definitionService.getDefinitionsSummary()).append("\n");
             
             // Execute the facts
-            List<Object> results = executionService.executeDRLWithJsonFactsAgainstStoredDefinitions(
+            DRLRunnerResult result = executionService.executeDRLWithJsonFactsAgainstStoredDefinitions(
                 jsonFacts, maxActivations, definitionService);
             
             response.append("⚡ Execution Results:\n");
             response.append("-".repeat(20) + "\n");
             response.append(String.format("✅ Execution completed successfully!\n"));
-            response.append(String.format("📊 Facts in working memory: %d\n", results.size()));
+            response.append(String.format("🔥 Rules fired: %d\n", result.firedRules()));
+            response.append(String.format("📊 Facts in working memory: %d\n", result.objects().size()));
             
-            if (!results.isEmpty()) {
+            if (!result.objects().isEmpty()) {
                 response.append("\n💾 Working memory contents:\n");
-                for (Object fact : results) {
+                for (Object fact : result.objects()) {
                     response.append(String.format("  • %s\n", fact.toString()));
                 }
             } else {
@@ -76,17 +78,18 @@ public class DRLExecutionToolService {
             response.append(definitionService.getDefinitionsSummary()).append("\n");
             
             // Execute with empty JSON facts to test rule creation and firing
-            List<Object> results = executionService.executeDRLWithJsonFactsAgainstStoredDefinitions(
+            DRLRunnerResult result = executionService.executeDRLWithJsonFactsAgainstStoredDefinitions(
                 "[]", maxActivations, definitionService);
             
             response.append("⚡ Test Results:\n");
             response.append("-".repeat(15) + "\n");
             response.append(String.format("✅ Test execution completed!\n"));
-            response.append(String.format("📊 Facts created by rules: %d\n", results.size()));
+            response.append(String.format("🔥 Rules fired: %d\n", result.firedRules()));
+            response.append(String.format("📊 Facts created by rules: %d\n", result.objects().size()));
             
-            if (!results.isEmpty()) {
+            if (!result.objects().isEmpty()) {
                 response.append("\n💾 Facts created during execution:\n");
-                for (Object fact : results) {
+                for (Object fact : result.objects()) {
                     response.append(String.format("  • %s\n", fact.toString()));
                 }
             } else {

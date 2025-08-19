@@ -19,10 +19,11 @@ public class DRLRunnerTest {
             String drlContent = Files.readString(Paths.get("src/test/resources/org/drools/person-age-verification-with-data.drl"));
             
             // Execute the DRL
-            List<Object> facts = DRLRunner.runDRL(drlContent);
+            DRLRunnerResult result = DRLRunner.runDRL(drlContent);
+            List<Object> facts = result.objects();
             
             // Filter to get only Person facts (declared types)
-            List<Object> personFacts = DRLRunner.filterFactsByType(facts, "Person");
+            List<Object> personFacts = DRLRunner.filterFactsByType(result.objects(), "Person");
             
             // Verify we have 6 Person objects
             assertEquals(6, personFacts.size(), "Should have 6 Person objects");
@@ -68,14 +69,16 @@ public class DRLRunnerTest {
             String drlContent = Files.readString(Paths.get("src/test/resources/org/drools/person-age-verification-with-data.drl"));
             
             // Execute the DRL with a limit of 3 rules
-            List<Object> facts = DRLRunner.runDRL(drlContent, 3);
+            DRLRunnerResult result = DRLRunner.runDRL(drlContent, 3);
+            List<Object> facts = result.objects();
             
             // With maxRuns=3, we should still get some facts but potentially fewer rule executions
             // The exact number depends on rule order and execution
             assertNotNull(facts, "Facts should not be null");
             
             // Test with unlimited rules (0)
-            List<Object> unlimitedFacts = DRLRunner.runDRL(drlContent, 0);
+            DRLRunnerResult unlimitedResult = DRLRunner.runDRL(drlContent, 0);
+            List<Object> unlimitedFacts = unlimitedResult.objects();
             assertNotNull(unlimitedFacts, "Unlimited facts should not be null");
             
         } catch (IOException e) {
@@ -106,15 +109,18 @@ public class DRLRunnerTest {
         // This test mainly verifies the method signature works
         
         // Test with maxRuns parameter
-        List<Object> facts = DRLRunner.runDRLWithFacts(simpleDRL, externalFacts, 5);
+        DRLRunnerResult result = DRLRunner.runDRLWithFacts(simpleDRL, externalFacts, 5);
+        List<Object> facts = result.objects();
         assertNotNull(facts, "Facts should not be null");
         
         // Test with unlimited runs (0)
-        List<Object> unlimitedFacts = DRLRunner.runDRLWithFacts(simpleDRL, externalFacts, 0);
+        DRLRunnerResult unlimitedResult = DRLRunner.runDRLWithFacts(simpleDRL, externalFacts, 0);
+        List<Object> unlimitedFacts = unlimitedResult.objects();
         assertNotNull(unlimitedFacts, "Unlimited facts should not be null");
         
         // Test backward compatibility (original method without maxRuns)
-        List<Object> compatibilityFacts = DRLRunner.runDRLWithFacts(simpleDRL, externalFacts);
+        DRLRunnerResult compatibilityResult = DRLRunner.runDRLWithFacts(simpleDRL, externalFacts);
+        List<Object> compatibilityFacts = compatibilityResult.objects();
         assertNotNull(compatibilityFacts, "Compatibility facts should not be null");
     }
 
@@ -125,12 +131,14 @@ public class DRLRunnerTest {
             String drlContent = Files.readString(Paths.get("src/test/resources/drl/max-runs-test.drl"));
             
             // Test with limited runs
-            List<Object> limitedFacts = DRLRunner.runDRL(drlContent, 3);
+            DRLRunnerResult limitedResult = DRLRunner.runDRL(drlContent, 3);
+            List<Object> limitedFacts = limitedResult.objects();
             List<Object> counterFacts = DRLRunner.filterFactsByType(limitedFacts, "Counter");
             assertEquals(1, counterFacts.size(), "Should have exactly 1 Counter fact");
             
             // Test with unlimited runs
-            List<Object> unlimitedFacts = DRLRunner.runDRL(drlContent, 0);
+            DRLRunnerResult unlimitedResult = DRLRunner.runDRL(drlContent, 0);
+            List<Object> unlimitedFacts = unlimitedResult.objects();
             List<Object> unlimitedCounterFacts = DRLRunner.filterFactsByType(unlimitedFacts, "Counter");
             assertEquals(1, unlimitedCounterFacts.size(), "Should have exactly 1 Counter fact");
             
@@ -160,7 +168,8 @@ public class DRLRunnerTest {
             "    System.out.println('Found person: ' + $p);\n" +
             "end";
         
-        List<Object> facts = DRLRunner.runDRL(simpleDRL);
+        DRLRunnerResult result = DRLRunner.runDRL(simpleDRL);
+        List<Object> facts = result.objects();
         
         // Should have no facts since no Person objects were created
         assertEquals(0, facts.size(), "Should have no facts in working memory");
@@ -171,7 +180,8 @@ public class DRLRunnerTest {
         try {
             // Create a mixed set of facts
             String drlContent = Files.readString(Paths.get("src/test/resources/org/drools/person-age-verification-with-data.drl"));
-            List<Object> allFacts = DRLRunner.runDRL(drlContent);
+            DRLRunnerResult result = DRLRunner.runDRL(drlContent);
+            List<Object> allFacts = result.objects();
             
             // Filter for Person facts
             List<Object> personFacts = DRLRunner.filterFactsByType(allFacts, "Person");
@@ -208,11 +218,13 @@ public class DRLRunnerTest {
         // Test with JSON facts using _type field
         String jsonFacts = "[{\"_type\":\"Person\", \"name\":\"John\", \"age\":25}, {\"_type\":\"Person\", \"name\":\"Jane\", \"age\":16}]";
         
-        List<Object> facts = DRLRunner.runDRLWithJsonFacts(simpleDRL, jsonFacts);
+        DRLRunnerResult result = DRLRunner.runDRLWithJsonFacts(simpleDRL, jsonFacts);
+        List<Object> facts = result.objects();
         assertNotNull(facts, "Facts should not be null");
         
         // Test with maxRuns parameter
-        List<Object> factsWithLimit = DRLRunner.runDRLWithJsonFacts(simpleDRL, jsonFacts, 5);
+        DRLRunnerResult resultWithLimit = DRLRunner.runDRLWithJsonFacts(simpleDRL, jsonFacts, 5);
+        List<Object> factsWithLimit = resultWithLimit.objects();
         assertNotNull(factsWithLimit, "Facts with limit should not be null");
     }
 

@@ -5,6 +5,7 @@ import io.quarkiverse.mcp.server.ToolArg;
 import org.drools.exception.DefinitionNotFoundException;
 import org.drools.exception.DRLExecutionException;
 import org.drools.exception.DRLValidationException;
+import org.drools.execution.DRLRunnerResult;
 import org.drools.model.JsonResponseBuilder;
 import org.drools.service.DefinitionManagementService;
 import org.drools.service.DRLExecutionService;
@@ -72,9 +73,10 @@ public class DRLTool {
                                                         "Use this to prevent infinite loops or limit rule execution for performance.") 
                                    int maxActivations) {
         try {
-            List<Object> facts = executionService.executeDRLWithJsonFacts(drlCode, externalFactsJson, maxActivations);
+            DRLRunnerResult result = executionService.executeDRLWithJsonFacts(drlCode, externalFactsJson, maxActivations);
             return JsonResponseBuilder.create()
-                    .facts(facts)
+                    .facts(result.objects())
+                    .count(result.firedRules())
                     .build();
         } catch (DRLExecutionException e) {
             return JsonResponseBuilder.create()
@@ -98,9 +100,10 @@ public class DRLTool {
                                                                         "Use this to prevent infinite loops or limit rule execution for performance.") 
                                                    int maxActivations) {
         try {
-            List<Object> facts = executionService.executeDRLWithJsonFactsAgainstStoredDefinitions(externalFactsJson, maxActivations, definitionService);
+            DRLRunnerResult result = executionService.executeDRLWithJsonFactsAgainstStoredDefinitions(externalFactsJson, maxActivations, definitionService);
             return JsonResponseBuilder.create()
-                    .facts(facts)
+                    .facts(result.objects())
+                    .count(result.firedRules())
                     .build();
         } catch (DRLExecutionException e) {
             return JsonResponseBuilder.create()

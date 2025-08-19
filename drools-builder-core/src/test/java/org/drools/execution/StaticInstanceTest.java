@@ -26,12 +26,12 @@ public class StaticInstanceTest {
                 """;
 
             System.out.println("=== First call ===");
-            java.util.List<Object> result1 = DRLRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
-            System.out.println("✅ First call succeeded: " + result1);
+            DRLRunnerResult result1 = DRLRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
+            System.out.println("✅ First call succeeded: " + result1.objects() + ", fired rules: " + result1.firedRules());
 
             System.out.println("\n=== Second call (should fail if static instance causes conflict) ===");
-            java.util.List<Object> result2 = DRLRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
-            System.out.println("✅ Second call succeeded: " + result2);
+            DRLRunnerResult result2 = DRLRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
+            System.out.println("✅ Second call succeeded: " + result2.objects() + ", fired rules: " + result2.firedRules());
 
         } catch (Exception e) {
             System.out.println("❌ Failed: " + e.getMessage());

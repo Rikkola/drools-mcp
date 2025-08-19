@@ -2,6 +2,7 @@ package org.drools.service;
 
 import org.drools.exception.DRLExecutionException;
 import org.drools.execution.DRLRunner;
+import org.drools.execution.DRLRunnerResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -29,17 +30,20 @@ class DRLExecutionServiceTest {
         String factsJson = "[{\"_type\":\"Person\",\"name\":\"John\",\"age\":25}]";
         int maxActivations = 10;
         List<Object> expectedFacts = Arrays.asList("fact1", "fact2");
+        DRLRunnerResult expectedResult = new DRLRunnerResult(expectedFacts, 5);
 
         // Mock the static method call
         try (MockedStatic<DRLRunner> mockedRunner = mockStatic(DRLRunner.class)) {
             mockedRunner.when(() -> DRLRunner.runDRLWithJsonFacts(drlCode, factsJson, maxActivations))
-                       .thenReturn(expectedFacts);
+                       .thenReturn(expectedResult);
 
             // When
-            List<Object> result = executionService.executeDRLWithJsonFacts(drlCode, factsJson, maxActivations);
+            DRLRunnerResult result = executionService.executeDRLWithJsonFacts(drlCode, factsJson, maxActivations);
 
             // Then
-            assertEquals(expectedFacts, result);
+            assertEquals(expectedResult, result);
+            assertEquals(expectedFacts, result.objects());
+            assertEquals(5, result.firedRules());
             mockedRunner.verify(() -> DRLRunner.runDRLWithJsonFacts(drlCode, factsJson, maxActivations));
         }
     }
@@ -99,7 +103,8 @@ class DRLExecutionServiceTest {
         String drlCode = "package org.example; rule \"Test\" when then end";
         List<Object> facts = Arrays.asList("fact1", "fact2");
         int maxActivations = 5;
-        List<Object> expectedResult = Arrays.asList("result1", "result2");
+        List<Object> expectedFacts = Arrays.asList("result1", "result2");
+        DRLRunnerResult expectedResult = new DRLRunnerResult(expectedFacts, 3);
 
         // Mock the static method call
         try (MockedStatic<DRLRunner> mockedRunner = mockStatic(DRLRunner.class)) {
@@ -107,10 +112,12 @@ class DRLExecutionServiceTest {
                        .thenReturn(expectedResult);
 
             // When
-            List<Object> result = executionService.executeDRLWithFacts(drlCode, facts, maxActivations);
+            DRLRunnerResult result = executionService.executeDRLWithFacts(drlCode, facts, maxActivations);
 
             // Then
             assertEquals(expectedResult, result);
+            assertEquals(expectedFacts, result.objects());
+            assertEquals(3, result.firedRules());
             mockedRunner.verify(() -> DRLRunner.runDRLWithFacts(drlCode, facts, maxActivations));
         }
     }
@@ -140,6 +147,7 @@ class DRLExecutionServiceTest {
         int maxActivations = 5;
         String expectedDRL = "package org.drools.generated; declare Person name: String age: int end";
         List<Object> expectedFacts = Arrays.asList("result1", "result2");
+        DRLRunnerResult expectedResult = new DRLRunnerResult(expectedFacts, 2);
         
         DefinitionManagementService mockDefinitionService = mock(DefinitionManagementService.class);
         when(mockDefinitionService.generateDRLFromDefinitions("org.drools.generated")).thenReturn(expectedDRL);
@@ -148,13 +156,15 @@ class DRLExecutionServiceTest {
         // Mock the static method call
         try (MockedStatic<DRLRunner> mockedRunner = mockStatic(DRLRunner.class)) {
             mockedRunner.when(() -> DRLRunner.runDRLWithJsonFacts(expectedDRL, factsJson, maxActivations))
-                       .thenReturn(expectedFacts);
+                       .thenReturn(expectedResult);
 
             // When
-            List<Object> result = executionService.executeDRLWithJsonFactsAgainstStoredDefinitions(factsJson, maxActivations, mockDefinitionService);
+            DRLRunnerResult result = executionService.executeDRLWithJsonFactsAgainstStoredDefinitions(factsJson, maxActivations, mockDefinitionService);
 
             // Then
-            assertEquals(expectedFacts, result);
+            assertEquals(expectedResult, result);
+            assertEquals(expectedFacts, result.objects());
+            assertEquals(2, result.firedRules());
             verify(mockDefinitionService).generateDRLFromDefinitions("org.drools.generated");
             verify(mockDefinitionService).getDefinitionCount();
             mockedRunner.verify(() -> DRLRunner.runDRLWithJsonFacts(expectedDRL, factsJson, maxActivations));

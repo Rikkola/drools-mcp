@@ -42,9 +42,9 @@ public class NumberConversionNPETest {
             System.out.println(jsonFacts);
             
             // Execute exactly like the workflow did
-            List<Object> result = DRLRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
+            DRLRunnerResult result = DRLRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
             
-            System.out.println("✅ Success: " + result);
+            System.out.println("✅ Success: " + result.objects() + ", fired rules: " + result.firedRules());
             
         } catch (Exception e) {
             System.out.println("❌ NPE Reproduced: " + e.getMessage());
@@ -90,8 +90,8 @@ public class NumberConversionNPETest {
             System.out.println("DRL: " + fieldType + " field");
             System.out.println("JSON: " + jsonFacts);
             
-            List<Object> result = DRLRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
-            System.out.println("✅ Success with " + fieldType + ": " + result.size() + " facts");
+            DRLRunnerResult result = DRLRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
+            System.out.println("✅ Success with " + fieldType + ": " + result.objects().size() + " facts, fired rules: " + result.firedRules());
             
         } catch (Exception e) {
             System.out.println("❌ Failed with " + fieldType + ": " + e.getMessage());

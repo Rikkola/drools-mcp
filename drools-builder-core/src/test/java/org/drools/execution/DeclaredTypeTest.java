@@ -51,14 +51,14 @@ public class DeclaredTypeTest {
 
         // This should work with our fix, but let's verify
         try {
-            List<Object> result = DRLRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
+            DRLRunnerResult result = DRLRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
             
             // Verify that facts were processed
             assertNotNull(result, "Result should not be null");
-            assertEquals(2, result.size(), "Should have 2 facts in working memory");
+            assertEquals(2, result.objects().size(), "Should have 2 facts in working memory");
             
             System.out.println("SUCCESS: DRL executed with declared types");
-            result.forEach(fact -> System.out.println("Fact: " + fact));
+            result.objects().forEach(fact -> System.out.println("Fact: " + fact));
             
         } catch (Exception e) {
             System.err.println("FAILED: " + e.getMessage());
@@ -95,11 +95,11 @@ public class DeclaredTypeTest {
             System.out.println("\nJSON Facts:");
             System.out.println(jsonFacts);
             
-            List<Object> result = DRLRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
+            DRLRunnerResult result = DRLRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
             
             System.out.println("\nRESULT:");
-            System.out.println("Facts count: " + result.size());
-            result.forEach(fact -> System.out.println("  " + fact));
+            System.out.println("Facts count: " + result.objects().size());
+            result.objects().forEach(fact -> System.out.println("  " + fact));
             
         } catch (Exception e) {
             System.err.println("DEBUGGING FAILED: " + e.getMessage());

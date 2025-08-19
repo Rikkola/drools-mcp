@@ -2,6 +2,7 @@ package org.drools.agentic.example.services.execution;
 
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
+import org.drools.execution.DRLRunnerResult;
 import org.drools.service.DRLExecutionService;
 
 import java.util.List;
@@ -37,17 +38,18 @@ public class SimpleDRLExecutionToolService {
             response.append(jsonFacts).append("\n\n");
             
             // Execute the DRL with facts
-            List<Object> results = executionService.executeDRLWithJsonFacts(
+            DRLRunnerResult result = executionService.executeDRLWithJsonFacts(
                 drlCode, jsonFacts, maxActivations);
             
             response.append("⚡ Execution Results:\n");
             response.append("-".repeat(18) + "\n");
             response.append("✅ Execution completed successfully!\n");
-            response.append(String.format("📊 Facts in working memory: %d\n", results.size()));
+            response.append(String.format("🔥 Rules fired: %d\n", result.firedRules()));
+            response.append(String.format("📊 Facts in working memory: %d\n", result.objects().size()));
             
-            if (!results.isEmpty()) {
+            if (!result.objects().isEmpty()) {
                 response.append("\n💾 Working memory contents:\n");
-                for (Object fact : results) {
+                for (Object fact : result.objects()) {
                     response.append(String.format("  • %s\n", fact.toString()));
                 }
             } else {
