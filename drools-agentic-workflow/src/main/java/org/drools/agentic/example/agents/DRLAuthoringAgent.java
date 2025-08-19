@@ -167,6 +167,9 @@ public interface DRLAuthoringAgent {
                     if (cognisphere.readState("execution_feedback") == null) {
                         cognisphere.writeState("execution_feedback", "");
                     }
+                    if (cognisphere.readState("test_json") == null) {
+                        cognisphere.writeState("test_json", "");
+                    }
                 })
                 .subAgents(generatorAgent, new DRLValidatorAgent(), testJSONAuthoringAgent, new DRLExecutionAgent())
                 .maxIterations(maxIterations)

@@ -38,16 +38,23 @@ public interface TestJSONAuthoringAgent {
             ❌ WRONG: DRL "declare User" → JSON {"_type":"com.example.User", "age":25}
             
             """)
-    @UserMessage("Create test JSON objects for this DRL code: {{current_drl}}.")
-    @Agent("JSON test data authoring")
-    String generateJSON(@MemoryId String memoryId, @V("current_drl") String currentDrl);
+    @UserMessage("""
+                Create test JSON objects for this DRL code: {{current_drl}}.
+                If not empty, here is the feedback from the previous set you made and the issues with it: {{execution_feedback}}.
+                If not empty, here is the JSON you provided last time: {{test_json}}.
+            """)
+    @Agent(value = "JSON test data authoring",
+            outputName = "test_json")
+    String generateJSON(@MemoryId String memoryId,
+                        @V("current_drl") String currentDrl,
+                        @V("execution_feedback") String executionFeedback,
+                        @V("test_json") String testJson);
 
     static TestJSONAuthoringAgent create(ChatModel chatModel) {
 
         return AgenticServices.agentBuilder(TestJSONAuthoringAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(memoryId -> MessageWindowChatMemory.withMaxMessages(15))
-                .outputName("test_json")
                 .build();
     }
 }
