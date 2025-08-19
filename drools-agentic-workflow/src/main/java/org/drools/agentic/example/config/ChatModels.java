@@ -152,6 +152,42 @@ public class ChatModels {
             .build();
 
     /**
+     * Advanced code generation model using qwen2.5-coder:14b-instruct-q4_K_M.
+     * Qwen2.5 Coder model optimized for both planning and code generation tasks.
+     * Excellent for tool calling, JSON handling, and structured output.
+     */
+    public static final ChatModel QWEN_CODER_14B_MODEL = OllamaChatModel.builder()
+            .baseUrl(DEFAULT_OLLAMA_BASE_URL)
+            .modelName("qwen2.5-coder:14b-instruct-q4_K_M")
+            .timeout(Duration.ofMinutes(4))
+            .temperature(0.1)        // Low temperature for consistent code generation
+            .topP(0.9)              // Balanced token selection for creativity
+            .numPredict(2048)       // Longer responses for complex code
+            .numCtx(32768)          // Large context for understanding complex requirements
+            .repeatPenalty(1.05)    // Light penalty to avoid repetition
+            .logRequests(true)
+            .logResponses(true)
+            .build();
+
+    /**
+     * Lightweight planning model using granite3.3:8b.
+     * IBM's Granite 3.3 8B model optimized for planning and coordination tasks.
+     * Good balance between performance and resource usage.
+     */
+    public static final ChatModel GRANITE_33_8B_MODEL = OllamaChatModel.builder()
+            .baseUrl(DEFAULT_OLLAMA_BASE_URL)
+            .modelName("granite3.3:8b")
+            .timeout(Duration.ofMinutes(3))
+            .temperature(0.2)        // Slightly higher for planning creativity
+            .topP(0.95)             // More diverse planning options
+            .numPredict(1536)       // Medium responses for planning
+            .numCtx(16384)          // Good context for planning tasks
+            .repeatPenalty(1.1)     // Standard repetition penalty
+            .logRequests(true)
+            .logResponses(true)
+            .build();
+
+    /**
      * Private constructor to prevent instantiation of utility class.
      */
     private ChatModels() {

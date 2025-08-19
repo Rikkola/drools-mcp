@@ -24,7 +24,16 @@ public class ModelSelector {
         GRANITE_CODE("granite-code:20b", "IBM Granite Code 20B"),
         
         /** Qwen3 14B - Optimized for tool calling and function usage */
-        QWEN_TOOLS("qwen3:14b", "Qwen3 14B Tools");
+        QWEN_TOOLS("qwen3:14b", "Qwen3 14B Tools"),
+        
+        /** Qwen2.5 Coder 14B - Advanced code generation and planning with tool support */
+        QWEN_CODER("qwen2.5-coder:14b-instruct-q4_K_M", "Qwen2.5 Coder 14B"),
+        
+        /** IBM Granite 3.3 8B - Balanced planning model for resource efficiency */
+        GRANITE_33("granite3.3:8b", "IBM Granite 3.3 8B Balanced"),
+        
+        /** IBM Granite3 MoE 3B - Lightweight high-performance model */
+        GRANITE_MOE("granite3-moe:3b", "IBM Granite3 MoE 3B");
 
         private final String modelName;
         private final String displayName;
@@ -40,12 +49,12 @@ public class ModelSelector {
 
     /**
      * Creates the default ChatModel optimized for DRL code generation tasks.
-     * Uses Granite Code 20B as the default for enhanced code generation capabilities.
+     * Uses Qwen2.5 Coder 14B as the default for enhanced code generation capabilities and excellent tool support.
      * 
      * @return Configured ChatModel for DRL code generation
      */
     public static ChatModel getDefaultCodeGenAgent() {
-        return createChatModel(ModelType.GRANITE_CODE);
+        return createChatModel(ModelType.QWEN_CODER);
     }
 
     /**
@@ -61,6 +70,9 @@ public class ModelSelector {
             case GRANITE_PLANNING -> ChatModels.OLLAMA_GRANITE_PLANNING_MODEL;
             case GRANITE_CODE -> ChatModels.OLLAMA_GRANITE_CODE_MODEL;
             case QWEN_TOOLS -> ChatModels.OLLAMA_QWEN_TOOL_MODEL;
+            case QWEN_CODER -> ChatModels.QWEN_CODER_14B_MODEL;
+            case GRANITE_33 -> ChatModels.GRANITE_33_8B_MODEL;
+            case GRANITE_MOE -> ChatModels.OLLAMA_GRANITE3_MOE_MODEL;
         };
     }
 
@@ -112,8 +124,8 @@ public class ModelSelector {
             }
         }
         
-        // Default: use Granite Code 20B model (optimized for code generation)
-        System.out.println("Using default Granite Code 20B model (granite-code:20b)");
+        // Default: use Qwen2.5 Coder 14B model (optimized for code generation with excellent tool support)
+        System.out.println("Using default Qwen2.5 Coder 14B model (qwen2.5-coder:14b-instruct-q4_K_M)");
         return getDefaultCodeGenAgent();
     }
 
@@ -147,7 +159,7 @@ public class ModelSelector {
         System.out.println("=" .repeat(50));
         
         for (ModelType type : ModelType.values()) {
-            String marker = (type == ModelType.GRANITE_CODE) ? " [DEFAULT]" : "";
+            String marker = (type == ModelType.QWEN_CODER) ? " [DEFAULT]" : "";
             System.out.printf("🤖 %-20s - %s%s%n", type.name(), type.getDisplayName(), marker);
         }
         
@@ -173,9 +185,9 @@ public class ModelSelector {
      */
     public static boolean supportsTools(ModelType modelType) {
         return switch (modelType) {
-            case ANTHROPIC_CLAUDE, QWEN_TOOLS -> true; // These models support tools
-            case GRANITE_PLANNING -> true; // Granite planning supports tools
-            case GRANITE_CODE -> false; // Granite code does not support tools
+            case ANTHROPIC_CLAUDE, QWEN_TOOLS, QWEN_CODER -> true; // These models support tools excellently
+            case GRANITE_PLANNING, GRANITE_33, GRANITE_MOE -> true; // Granite models support tools
+            case GRANITE_CODE -> false; // Granite code does not support tools well
         };
     }
 
@@ -263,9 +275,9 @@ public class ModelSelector {
             }
         }
         
-        // Default to qwen3:14b for planning (optimized for tool calling and coordination)
-        System.out.println("Using default Qwen3 planning model (qwen3:14b)");
-        return createChatModel(ModelType.QWEN_TOOLS);
+        // Default to qwen2.5-coder:14b for planning (optimized for tool calling, coordination, and code understanding)
+        System.out.println("Using default Qwen2.5 Coder planning model (qwen2.5-coder:14b-instruct-q4_K_M)");
+        return createChatModel(ModelType.QWEN_CODER);
     }
 
     /**
@@ -315,9 +327,9 @@ public class ModelSelector {
             }
         }
         
-        // Default: use Granite Code 20B model (optimized for code generation)
-        System.out.println("Using default Granite Code 20B model (granite-code:20b)");
-        return createChatModel(ModelType.GRANITE_CODE);
+        // Default: use Qwen2.5 Coder 14B model (optimized for code generation with excellent tool support)
+        System.out.println("Using default Qwen2.5 Coder 14B model (qwen2.5-coder:14b-instruct-q4_K_M)");
+        return createChatModel(ModelType.QWEN_CODER);
     }
 
     /**
@@ -328,11 +340,11 @@ public class ModelSelector {
      */
     public static ModelType getRecommendedModel(UseCase useCase) {
         return switch (useCase) {
-            case PLANNING -> ModelType.GRANITE_PLANNING;        // Best for coordination
-            case CODE_GENERATION -> ModelType.GRANITE_CODE;   // Optimized for code generation
+            case PLANNING -> ModelType.QWEN_CODER;           // Best for coordination and tool calling
+            case CODE_GENERATION -> ModelType.QWEN_CODER;   // Optimized for code generation with tools
             case CLOUD_QUALITY -> ModelType.ANTHROPIC_CLAUDE; // High quality
-            case LIGHTWEIGHT -> ModelType.GRANITE_CODE;     // Resource efficient
-            case TOOL_CALLING -> ModelType.QWEN_TOOLS;       // Best for tools/functions
+            case LIGHTWEIGHT -> ModelType.GRANITE_MOE;       // Resource efficient MoE model
+            case TOOL_CALLING -> ModelType.QWEN_CODER;       // Best for tools/functions
         };
     }
 
