@@ -24,8 +24,7 @@ import java.time.Duration;
  * 
  * // Create custom Ollama model
  * ChatModel custom = ChatModels.createOllamaModel("llama3.2:8b");
- * ChatModel remote = ChatModels.createOllamaModel("http://server:11434", "codellama:13b");
- * 
+ *
  * // Auto-select based on environment
  * ChatModel auto = ChatModels.createFromEnvironment();
  * </pre>
@@ -43,7 +42,6 @@ import java.time.Duration;
  * java DroolsWorkflowMain --granite         # Use Granite code model (default)
  * java DroolsWorkflowMain --ollama          # Use default Ollama (llama3.2:3b)
  * java DroolsWorkflowMain --ollama-8b       # Use Llama 8B model
- * java DroolsWorkflowMain --codellama       # Use CodeLlama model
  * java DroolsWorkflowMain --anthropic       # Use Anthropic Claude
  * java DroolsWorkflowMain --auto            # Auto-select from environment
  * java DroolsWorkflowMain --ollama-model mistral:7b   # Custom model
@@ -75,34 +73,15 @@ public class ChatModels {
             .baseUrl(DEFAULT_OLLAMA_BASE_URL)
             .modelName("granite-code:8b")
             .timeout(Duration.ofMinutes(5))
+            .temperature(0.1)        // Low temperature for consistent code generation
+            .topP(0.9)              // Focus on most likely tokens
+            .numPredict(1024)       // Reasonable response length for DRL
+            .numCtx(8192)           // Context window for code understanding
+            .repeatPenalty(1.1)     // Reduce repetitive output
             .logRequests(true)
             .logResponses(true)
             .build();
-
-    /**
-     * High-performance local Ollama model using llama3.2:8b.
-     * Better reasoning capabilities but requires more memory.
-     */
-    public static final ChatModel OLLAMA_LLAMA_8B_MODEL = OllamaChatModel.builder()
-            .baseUrl(DEFAULT_OLLAMA_BASE_URL)
-            .modelName("llama3.2:8b")
-            .timeout(DEFAULT_TIMEOUT)
-            .logRequests(true)
-            .logResponses(true)
-            .build();
-
-    /**
-     * Code-focused local Ollama model using codellama:13b.
-     * Optimized for code generation and analysis tasks.
-     */
-    public static final ChatModel OLLAMA_CODELLAMA_MODEL = OllamaChatModel.builder()
-            .baseUrl(DEFAULT_OLLAMA_BASE_URL)
-            .modelName("codellama:13b")
-            .timeout(Duration.ofMinutes(3)) // Longer timeout for complex code tasks
-            .logRequests(true)
-            .logResponses(true)
-            .build();
-
+    
     /**
      * Planning model using granite-code:20b.
      * IBM's Granite Code model optimized for planning and code generation.
@@ -111,6 +90,11 @@ public class ChatModels {
             .baseUrl(DEFAULT_OLLAMA_BASE_URL)
             .modelName("granite-code:20b")
             .timeout(Duration.ofMinutes(5))
+            .temperature(0.2)        // Slightly higher for creative planning
+            .topP(0.95)             // More diverse planning options
+            .numPredict(2048)       // Longer responses for detailed plans
+            .numCtx(16384)          // Large context for complex planning
+            .repeatPenalty(1.05)    // Light penalty for planning variety
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -123,6 +107,11 @@ public class ChatModels {
             .baseUrl(DEFAULT_OLLAMA_BASE_URL)
             .modelName("granite-code:20b")
             .timeout(Duration.ofMinutes(5))
+            .temperature(0.05)       // Very low for precise code generation
+            .topP(0.85)             // Focus on most reliable code patterns
+            .numPredict(1536)       // Medium length for code blocks
+            .numCtx(12288)          // Large context for code understanding
+            .repeatPenalty(1.15)    // Higher penalty for repetitive code
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -135,6 +124,11 @@ public class ChatModels {
             .baseUrl(DEFAULT_OLLAMA_BASE_URL)
             .modelName("qwen3:14b")
             .timeout(Duration.ofMinutes(5))
+            .temperature(0.0)        // Deterministic for tool calling
+            .topP(0.8)              // Focused token selection for tools
+            .numPredict(800)        // Shorter responses for tool calls
+            .numCtx(8192)           // Standard context for tool usage
+            .repeatPenalty(1.2)     // Strong penalty for repetitive calls
             .logRequests(true)
             .logResponses(true)
             .build();
@@ -148,6 +142,11 @@ public class ChatModels {
             .baseUrl(DEFAULT_OLLAMA_BASE_URL)
             .modelName("granite3-moe:3b")
             .timeout(Duration.ofMinutes(3))
+            .temperature(0.1)        // Low temperature for consistent output
+            .topP(0.9)              // Balanced token selection
+            .numPredict(1200)       // Medium responses for fast turnaround
+            .numCtx(6144)           // Moderate context for 3B model efficiency
+            .repeatPenalty(1.1)     // Light repetition penalty
             .logRequests(true)
             .logResponses(true)
             .build();
