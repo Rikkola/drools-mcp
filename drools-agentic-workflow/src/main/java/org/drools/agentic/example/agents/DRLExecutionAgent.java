@@ -6,8 +6,12 @@ import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import org.drools.execution.DRLRunnerResult;
 import org.drools.service.DRLExecutionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DRLExecutionAgent {
+
+    private static final Logger logger = LoggerFactory.getLogger(DRLExecutionAgent.class);
 
     private final DRLExecutionService executionService = new DRLExecutionService();
 
@@ -17,9 +21,11 @@ public class DRLExecutionAgent {
     public String validateDRL(@MemoryId String memoryId,
                               @V("current_drl") String currentDrl,
                               @V("test_json") String testJSON) {
+        logger.debug("📋 Execution starting:");
+        logger.debug("📋 With test JSON: {}", testJSON);
         try {
             DRLRunnerResult result = executionService.executeDRLWithJsonFacts(currentDrl, testJSON, 100);
-            if (result.firedRules() > 0) {
+            if (result.firedRules() == 0) {
                 return "None of the rules fired with the given test data.";
             }
         } catch (Exception e) {
