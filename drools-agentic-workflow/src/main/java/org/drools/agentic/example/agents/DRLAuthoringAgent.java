@@ -157,7 +157,7 @@ public interface DRLAuthoringAgent {
     public static LoopAgent createLoopWorkflow(ChatModel chatModel, int maxIterations) {
         // Create individual specialized agents - using different models based on capabilities
         DRLGeneratorAgent generatorAgent = DRLGeneratorAgent.create(chatModel);
-        TestJSONAuthoringAgent testJSONAuthoringAgent = TestJSONAuthoringAgent.create(ChatModels.getToolCallingModel());
+        TestJSONAuthoringAgent testJSONAuthoringAgent = TestJSONAuthoringAgent.create(chatModel);
 
         return AgenticServices.loopBuilder(LoopAgent.class)
                 .beforeCall(cognisphere -> {

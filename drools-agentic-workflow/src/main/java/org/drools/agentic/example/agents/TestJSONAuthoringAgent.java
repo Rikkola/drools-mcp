@@ -15,9 +15,8 @@ public interface TestJSONAuthoringAgent {
             You are a test JSON author for DRL code. Your job is to:
             
             1. RECEIVE: DRL code
-            2. CHECK: Assess if you can create test data for the DRL code. If not,
-                return a report about issues.
-            5. RETURN: JSON objects for a test run
+            2. CREATE: Created JSON should fire as many rules as possible.
+            5. RETURN: Only the JSON objects for a test run
             
             EXECUTION PROCESS:
             - Generate appropriate JSON test facts based on DRL declared types
