@@ -75,8 +75,9 @@ public class DRLTool {
         try {
             DRLRunnerResult result = executionService.executeDRLWithJsonFacts(drlCode, externalFactsJson, maxActivations);
             return JsonResponseBuilder.create()
+                    .executionStatus("success")
+                    .factsCount(result.objects().size())
                     .facts(result.objects())
-                    .count(result.firedRules())
                     .build();
         } catch (DRLExecutionException e) {
             return JsonResponseBuilder.create()
@@ -102,8 +103,9 @@ public class DRLTool {
         try {
             DRLRunnerResult result = executionService.executeDRLWithJsonFactsAgainstStoredDefinitions(externalFactsJson, maxActivations, definitionService);
             return JsonResponseBuilder.create()
+                    .executionStatus("success")
+                    .factsCount(result.objects().size())
                     .facts(result.objects())
-                    .count(result.firedRules())
                     .build();
         } catch (DRLExecutionException e) {
             return JsonResponseBuilder.create()
@@ -148,6 +150,7 @@ public class DRLTool {
             List<DefinitionStorage.DroolsDefinition> definitions = definitionService.getAllDefinitions();
             return JsonResponseBuilder.create()
                     .success()
+                    .count(definitions.size())
                     .definitions(definitions)
                     .build();
         } catch (Exception e) {
