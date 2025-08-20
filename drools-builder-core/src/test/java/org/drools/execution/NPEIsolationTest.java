@@ -20,7 +20,7 @@ public class NPEIsolationTest {
             DefinitionStorage storage = new DefinitionStorage();
             DynamicJsonToJavaFactory factory = new DynamicJsonToJavaFactory(storage);
             
-            // Step 2: Register a declared type exactly like DRLRunner does
+            // Step 2: Register a declared type exactly like DRLPopulatorRunner does
             String drlDeclare = """
                 declare User
                     age : Number
@@ -99,7 +99,7 @@ public class NPEIsolationTest {
                 end
                 """;
             
-            DRLRunnerResult result = DRLRunner.runDRL(drlContent);
+            DRLRunnerResult result = DRLPopulatorRunner.runDRL(drlContent);
             System.out.println("✅ Pure DRL execution succeeded: " + result.objects().size() + " facts");
             result.objects().forEach(fact -> {
                 System.out.println("  Fact: " + fact + " (type: " + fact.getClass().getName() + ")");

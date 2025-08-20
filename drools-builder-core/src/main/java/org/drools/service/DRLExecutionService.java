@@ -1,7 +1,7 @@
 package org.drools.service;
 
 import org.drools.exception.DRLExecutionException;
-import org.drools.execution.DRLRunner;
+import org.drools.execution.DRLPopulatorRunner;
 import org.drools.execution.DRLRunnerResult;
 import java.util.List;
 
@@ -29,7 +29,7 @@ public class DRLExecutionService {
         }
         
         try {
-            return DRLRunner.runDRLWithJsonFacts(drlCode, externalFactsJson, maxActivations);
+            return DRLPopulatorRunner.runDRLWithJsonFacts(drlCode, externalFactsJson, maxActivations);
         } catch (Exception e) {
             throw new DRLExecutionException("Failed to execute DRL: " + e.getMessage(), e);
         }
@@ -54,7 +54,7 @@ public class DRLExecutionService {
         }
         
         try {
-            return DRLRunner.runDRLWithFacts(drlCode, facts, maxActivations);
+            return DRLPopulatorRunner.runDRLWithFacts(drlCode, facts, maxActivations);
         } catch (Exception e) {
             throw new DRLExecutionException("Failed to execute DRL: " + e.getMessage(), e);
         }
@@ -85,7 +85,7 @@ public class DRLExecutionService {
             }
             
             // Execute with the generated DRL
-            return DRLRunner.runDRLWithJsonFacts(drlCode, externalFactsJson, maxActivations);
+            return DRLPopulatorRunner.runDRLWithJsonFacts(drlCode, externalFactsJson, maxActivations);
         } catch (Exception e) {
             throw new DRLExecutionException("Failed to execute facts against stored definitions: " + e.getMessage(), e);
         }

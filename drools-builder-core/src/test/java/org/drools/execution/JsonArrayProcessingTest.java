@@ -15,7 +15,7 @@ public class JsonArrayProcessingTest {
         System.out.println("=== Testing JSON Array Processing ===");
         
         try {
-            // 1. Set up DefinitionStorage like DRLRunner does
+            // 1. Set up DefinitionStorage like DRLPopulatorRunner does
             DefinitionStorage storage = new DefinitionStorage();
             
             String drlContent = """
@@ -28,7 +28,7 @@ public class JsonArrayProcessingTest {
             storage.addDefinition("User", "declare", drlContent);
             System.out.println("✅ Registered User type in DefinitionStorage");
             
-            // 2. Create factory exactly like DRLRunner does
+            // 2. Create factory exactly like DRLPopulatorRunner does
             DynamicJsonToJavaFactory factory = new DynamicJsonToJavaFactory(storage);
             
             // 3. Test the exact JSON that fails in DeclaredTypeTest
@@ -41,14 +41,14 @@ public class JsonArrayProcessingTest {
             
             System.out.println("JSON Facts: " + jsonFacts);
             
-            // 4. Parse exactly like DRLRunner.parseJsonFacts does
+            // 4. Parse exactly like DRLPopulatorRunner.parseJsonFacts does
             com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
             java.util.List<java.util.Map<String, Object>> jsonFactsList = 
                 objectMapper.readValue(jsonFacts, new com.fasterxml.jackson.core.type.TypeReference<java.util.List<java.util.Map<String, Object>>>() {});
             
             System.out.println("Parsed " + jsonFactsList.size() + " JSON facts");
             
-            // 5. Process each fact exactly like DRLRunner.createObjectFromJson does
+            // 5. Process each fact exactly like DRLPopulatorRunner.createObjectFromJson does
             for (java.util.Map<String, Object> jsonFact : jsonFactsList) {
                 System.out.println("\n=== Processing fact: " + jsonFact + " ===");
                 

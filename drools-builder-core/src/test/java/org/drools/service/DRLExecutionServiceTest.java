@@ -1,7 +1,7 @@
 package org.drools.service;
 
 import org.drools.exception.DRLExecutionException;
-import org.drools.execution.DRLRunner;
+import org.drools.execution.DRLPopulatorRunner;
 import org.drools.execution.DRLRunnerResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,8 +33,8 @@ class DRLExecutionServiceTest {
         DRLRunnerResult expectedResult = new DRLRunnerResult(expectedFacts, 5);
 
         // Mock the static method call
-        try (MockedStatic<DRLRunner> mockedRunner = mockStatic(DRLRunner.class)) {
-            mockedRunner.when(() -> DRLRunner.runDRLWithJsonFacts(drlCode, factsJson, maxActivations))
+        try (MockedStatic<DRLPopulatorRunner> mockedRunner = mockStatic(DRLPopulatorRunner.class)) {
+            mockedRunner.when(() -> DRLPopulatorRunner.runDRLWithJsonFacts(drlCode, factsJson, maxActivations))
                        .thenReturn(expectedResult);
 
             // When
@@ -44,7 +44,7 @@ class DRLExecutionServiceTest {
             assertEquals(expectedResult, result);
             assertEquals(expectedFacts, result.objects());
             assertEquals(5, result.firedRules());
-            mockedRunner.verify(() -> DRLRunner.runDRLWithJsonFacts(drlCode, factsJson, maxActivations));
+            mockedRunner.verify(() -> DRLPopulatorRunner.runDRLWithJsonFacts(drlCode, factsJson, maxActivations));
         }
     }
 
@@ -84,8 +84,8 @@ class DRLExecutionServiceTest {
         RuntimeException executionException = new RuntimeException("Execution failed");
 
         // Mock the static method call to throw exception
-        try (MockedStatic<DRLRunner> mockedRunner = mockStatic(DRLRunner.class)) {
-            mockedRunner.when(() -> DRLRunner.runDRLWithJsonFacts(drlCode, factsJson, maxActivations))
+        try (MockedStatic<DRLPopulatorRunner> mockedRunner = mockStatic(DRLPopulatorRunner.class)) {
+            mockedRunner.when(() -> DRLPopulatorRunner.runDRLWithJsonFacts(drlCode, factsJson, maxActivations))
                        .thenThrow(executionException);
 
             // When & Then
@@ -107,8 +107,8 @@ class DRLExecutionServiceTest {
         DRLRunnerResult expectedResult = new DRLRunnerResult(expectedFacts, 3);
 
         // Mock the static method call
-        try (MockedStatic<DRLRunner> mockedRunner = mockStatic(DRLRunner.class)) {
-            mockedRunner.when(() -> DRLRunner.runDRLWithFacts(drlCode, facts, maxActivations))
+        try (MockedStatic<DRLPopulatorRunner> mockedRunner = mockStatic(DRLPopulatorRunner.class)) {
+            mockedRunner.when(() -> DRLPopulatorRunner.runDRLWithFacts(drlCode, facts, maxActivations))
                        .thenReturn(expectedResult);
 
             // When
@@ -118,7 +118,7 @@ class DRLExecutionServiceTest {
             assertEquals(expectedResult, result);
             assertEquals(expectedFacts, result.objects());
             assertEquals(3, result.firedRules());
-            mockedRunner.verify(() -> DRLRunner.runDRLWithFacts(drlCode, facts, maxActivations));
+            mockedRunner.verify(() -> DRLPopulatorRunner.runDRLWithFacts(drlCode, facts, maxActivations));
         }
     }
 
@@ -154,8 +154,8 @@ class DRLExecutionServiceTest {
         when(mockDefinitionService.getDefinitionCount()).thenReturn(1);
 
         // Mock the static method call
-        try (MockedStatic<DRLRunner> mockedRunner = mockStatic(DRLRunner.class)) {
-            mockedRunner.when(() -> DRLRunner.runDRLWithJsonFacts(expectedDRL, factsJson, maxActivations))
+        try (MockedStatic<DRLPopulatorRunner> mockedRunner = mockStatic(DRLPopulatorRunner.class)) {
+            mockedRunner.when(() -> DRLPopulatorRunner.runDRLWithJsonFacts(expectedDRL, factsJson, maxActivations))
                        .thenReturn(expectedResult);
 
             // When
@@ -167,7 +167,7 @@ class DRLExecutionServiceTest {
             assertEquals(2, result.firedRules());
             verify(mockDefinitionService).generateDRLFromDefinitions("org.drools.generated");
             verify(mockDefinitionService).getDefinitionCount();
-            mockedRunner.verify(() -> DRLRunner.runDRLWithJsonFacts(expectedDRL, factsJson, maxActivations));
+            mockedRunner.verify(() -> DRLPopulatorRunner.runDRLWithJsonFacts(expectedDRL, factsJson, maxActivations));
         }
     }
 
@@ -217,8 +217,8 @@ class DRLExecutionServiceTest {
         when(mockDefinitionService.getDefinitionCount()).thenReturn(1);
 
         // Mock the static method call to throw exception
-        try (MockedStatic<DRLRunner> mockedRunner = mockStatic(DRLRunner.class)) {
-            mockedRunner.when(() -> DRLRunner.runDRLWithJsonFacts(expectedDRL, factsJson, maxActivations))
+        try (MockedStatic<DRLPopulatorRunner> mockedRunner = mockStatic(DRLPopulatorRunner.class)) {
+            mockedRunner.when(() -> DRLPopulatorRunner.runDRLWithJsonFacts(expectedDRL, factsJson, maxActivations))
                        .thenThrow(executionException);
 
             // When & Then

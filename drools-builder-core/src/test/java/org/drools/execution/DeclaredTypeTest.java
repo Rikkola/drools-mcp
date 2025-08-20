@@ -51,7 +51,7 @@ public class DeclaredTypeTest {
 
         // This should work with our fix, but let's verify
         try {
-            DRLRunnerResult result = DRLRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
+            DRLRunnerResult result = DRLPopulatorRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
             
             // Verify that facts were processed
             assertNotNull(result, "Result should not be null");
@@ -95,7 +95,7 @@ public class DeclaredTypeTest {
             System.out.println("\nJSON Facts:");
             System.out.println(jsonFacts);
             
-            DRLRunnerResult result = DRLRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
+            DRLRunnerResult result = DRLPopulatorRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
             
             System.out.println("\nRESULT:");
             System.out.println("Facts count: " + result.objects().size());

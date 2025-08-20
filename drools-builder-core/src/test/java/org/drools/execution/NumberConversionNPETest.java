@@ -42,7 +42,7 @@ public class NumberConversionNPETest {
             System.out.println(jsonFacts);
             
             // Execute exactly like the workflow did
-            DRLRunnerResult result = DRLRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
+            DRLRunnerResult result = DRLPopulatorRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
             
             System.out.println("✅ Success: " + result.objects() + ", fired rules: " + result.firedRules());
             
@@ -90,7 +90,7 @@ public class NumberConversionNPETest {
             System.out.println("DRL: " + fieldType + " field");
             System.out.println("JSON: " + jsonFacts);
             
-            DRLRunnerResult result = DRLRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
+            DRLRunnerResult result = DRLPopulatorRunner.runDRLWithJsonFacts(drlContent, jsonFacts, 0);
             System.out.println("✅ Success with " + fieldType + ": " + result.objects().size() + " facts, fired rules: " + result.firedRules());
             
         } catch (Exception e) {

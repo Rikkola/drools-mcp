@@ -19,11 +19,11 @@ public class DRLRunnerTest {
             String drlContent = Files.readString(Paths.get("src/test/resources/org/drools/person-age-verification-with-data.drl"));
             
             // Execute the DRL
-            DRLRunnerResult result = DRLRunner.runDRL(drlContent);
+            DRLRunnerResult result = DRLPopulatorRunner.runDRL(drlContent);
             List<Object> facts = result.objects();
             
             // Filter to get only Person facts (declared types)
-            List<Object> personFacts = DRLRunner.filterFactsByType(result.objects(), "Person");
+            List<Object> personFacts = DRLPopulatorRunner.filterFactsByType(result.objects(), "Person");
             
             // Verify we have 6 Person objects
             assertEquals(6, personFacts.size(), "Should have 6 Person objects");
@@ -69,7 +69,7 @@ public class DRLRunnerTest {
             String drlContent = Files.readString(Paths.get("src/test/resources/org/drools/person-age-verification-with-data.drl"));
             
             // Execute the DRL with a limit of 3 rules
-            DRLRunnerResult result = DRLRunner.runDRL(drlContent, 3);
+            DRLRunnerResult result = DRLPopulatorRunner.runDRL(drlContent, 3);
             List<Object> facts = result.objects();
             
             // With maxRuns=3, we should still get some facts but potentially fewer rule executions
@@ -77,7 +77,7 @@ public class DRLRunnerTest {
             assertNotNull(facts, "Facts should not be null");
             
             // Test with unlimited rules (0)
-            DRLRunnerResult unlimitedResult = DRLRunner.runDRL(drlContent, 0);
+            DRLRunnerResult unlimitedResult = DRLPopulatorRunner.runDRL(drlContent, 0);
             List<Object> unlimitedFacts = unlimitedResult.objects();
             assertNotNull(unlimitedFacts, "Unlimited facts should not be null");
             
@@ -109,17 +109,17 @@ public class DRLRunnerTest {
         // This test mainly verifies the method signature works
         
         // Test with maxRuns parameter
-        DRLRunnerResult result = DRLRunner.runDRLWithFacts(simpleDRL, externalFacts, 5);
+        DRLRunnerResult result = DRLPopulatorRunner.runDRLWithFacts(simpleDRL, externalFacts, 5);
         List<Object> facts = result.objects();
         assertNotNull(facts, "Facts should not be null");
         
         // Test with unlimited runs (0)
-        DRLRunnerResult unlimitedResult = DRLRunner.runDRLWithFacts(simpleDRL, externalFacts, 0);
+        DRLRunnerResult unlimitedResult = DRLPopulatorRunner.runDRLWithFacts(simpleDRL, externalFacts, 0);
         List<Object> unlimitedFacts = unlimitedResult.objects();
         assertNotNull(unlimitedFacts, "Unlimited facts should not be null");
         
         // Test backward compatibility (original method without maxRuns)
-        DRLRunnerResult compatibilityResult = DRLRunner.runDRLWithFacts(simpleDRL, externalFacts);
+        DRLRunnerResult compatibilityResult = DRLPopulatorRunner.runDRLWithFacts(simpleDRL, externalFacts);
         List<Object> compatibilityFacts = compatibilityResult.objects();
         assertNotNull(compatibilityFacts, "Compatibility facts should not be null");
     }
@@ -131,15 +131,15 @@ public class DRLRunnerTest {
             String drlContent = Files.readString(Paths.get("src/test/resources/drl/max-runs-test.drl"));
             
             // Test with limited runs
-            DRLRunnerResult limitedResult = DRLRunner.runDRL(drlContent, 3);
+            DRLRunnerResult limitedResult = DRLPopulatorRunner.runDRL(drlContent, 3);
             List<Object> limitedFacts = limitedResult.objects();
-            List<Object> counterFacts = DRLRunner.filterFactsByType(limitedFacts, "Counter");
+            List<Object> counterFacts = DRLPopulatorRunner.filterFactsByType(limitedFacts, "Counter");
             assertEquals(1, counterFacts.size(), "Should have exactly 1 Counter fact");
             
             // Test with unlimited runs
-            DRLRunnerResult unlimitedResult = DRLRunner.runDRL(drlContent, 0);
+            DRLRunnerResult unlimitedResult = DRLPopulatorRunner.runDRL(drlContent, 0);
             List<Object> unlimitedFacts = unlimitedResult.objects();
-            List<Object> unlimitedCounterFacts = DRLRunner.filterFactsByType(unlimitedFacts, "Counter");
+            List<Object> unlimitedCounterFacts = DRLPopulatorRunner.filterFactsByType(unlimitedFacts, "Counter");
             assertEquals(1, unlimitedCounterFacts.size(), "Should have exactly 1 Counter fact");
             
             // The unlimited version should have fired more rules (counter should be higher)
@@ -168,7 +168,7 @@ public class DRLRunnerTest {
             "    System.out.println('Found person: ' + $p);\n" +
             "end";
         
-        DRLRunnerResult result = DRLRunner.runDRL(simpleDRL);
+        DRLRunnerResult result = DRLPopulatorRunner.runDRL(simpleDRL);
         List<Object> facts = result.objects();
         
         // Should have no facts since no Person objects were created
@@ -180,17 +180,17 @@ public class DRLRunnerTest {
         try {
             // Create a mixed set of facts
             String drlContent = Files.readString(Paths.get("src/test/resources/org/drools/person-age-verification-with-data.drl"));
-            DRLRunnerResult result = DRLRunner.runDRL(drlContent);
+            DRLRunnerResult result = DRLPopulatorRunner.runDRL(drlContent);
             List<Object> allFacts = result.objects();
             
             // Filter for Person facts
-            List<Object> personFacts = DRLRunner.filterFactsByType(allFacts, "Person");
+            List<Object> personFacts = DRLPopulatorRunner.filterFactsByType(allFacts, "Person");
             
             // All filtered facts should be Person objects
             assertEquals(6, personFacts.size(), "Should have exactly 6 Person facts");
             
             // Test filtering for non-existent type
-            List<Object> nonExistentFacts = DRLRunner.filterFactsByType(allFacts, "NonExistentType");
+            List<Object> nonExistentFacts = DRLPopulatorRunner.filterFactsByType(allFacts, "NonExistentType");
             assertEquals(0, nonExistentFacts.size(), "Should have no facts for non-existent type");
             
         } catch (IOException e) {
@@ -218,20 +218,13 @@ public class DRLRunnerTest {
         // Test with JSON facts using _type field
         String jsonFacts = "[{\"_type\":\"Person\", \"name\":\"John\", \"age\":25}, {\"_type\":\"Person\", \"name\":\"Jane\", \"age\":16}]";
         
-        DRLRunnerResult result = DRLRunner.runDRLWithJsonFacts(simpleDRL, jsonFacts);
+        DRLRunnerResult result = DRLPopulatorRunner.runDRLWithJsonFacts(simpleDRL, jsonFacts);
         List<Object> facts = result.objects();
         assertNotNull(facts, "Facts should not be null");
         
         // Test with maxRuns parameter
-        DRLRunnerResult resultWithLimit = DRLRunner.runDRLWithJsonFacts(simpleDRL, jsonFacts, 5);
+        DRLRunnerResult resultWithLimit = DRLPopulatorRunner.runDRLWithJsonFacts(simpleDRL, jsonFacts, 5);
         List<Object> factsWithLimit = resultWithLimit.objects();
         assertNotNull(factsWithLimit, "Facts with limit should not be null");
-    }
-
-
-    @Test
-    public void testGetDynamicJsonToJavaFactory() {
-        DynamicJsonToJavaFactory factory = DRLRunner.getDynamicJsonToJavaFactory();
-        assertNotNull(factory, "Dynamic JSON to Java factory should not be null");
     }
 }

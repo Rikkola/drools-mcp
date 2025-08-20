@@ -24,7 +24,7 @@ public class JavaGenerationDebugTest {
             end
             """;
 
-        // Register it in storage like DRLRunner does
+        // Register it in storage like DRLPopulatorRunner does
         storage.addDefinition("User", "declare", drlDeclare);
 
         System.out.println("=== ORIGINAL DRL DECLARE ===");
